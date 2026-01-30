@@ -6,48 +6,48 @@ import Icon from './Icon';
 // 常用廣東話短語（附圖示）- 按新分類重組
 const PHRASES = [
   // 日常
-  { id: 1, text: '你好', category: '日常', icon: '👋' },
-  { id: 2, text: '多謝', category: '日常', icon: '🙏' },
-  { id: 3, text: '唔該', category: '日常', icon: '🙏' },
-  { id: 4, text: '對唔住', category: '日常', icon: '😔' },
-  { id: 5, text: '再見', category: '日常', icon: '👋' },
-  { id: 6, text: '好', category: '日常', icon: '👍' },
-  { id: 7, text: '唔好', category: '日常', icon: '👎' },
-  { id: 8, text: '係', category: '日常', icon: '✅' },
-  { id: 9, text: '唔係', category: '日常', icon: '❌' },
-  { id: 10, text: '明白', category: '日常', icon: '💡' },
-  { id: 11, text: '唔明白', category: '日常', icon: '❓' },
+  { id: 1, text: '你好', en: 'Hello', category: '日常', icon: '👋' },
+  { id: 2, text: '多謝', en: 'Thank you', category: '日常', icon: '🙏' },
+  { id: 3, text: '唔該', en: 'Please / Thanks', category: '日常', icon: '🙏' },
+  { id: 4, text: '對唔住', en: 'Sorry', category: '日常', icon: '😔' },
+  { id: 5, text: '再見', en: 'Goodbye', category: '日常', icon: '👋' },
+  { id: 6, text: '好', en: 'Okay', category: '日常', icon: '👍' },
+  { id: 7, text: '唔好', en: 'No', category: '日常', icon: '👎' },
+  { id: 8, text: '係', en: 'Yes', category: '日常', icon: '✅' },
+  { id: 9, text: '唔係', en: 'No', category: '日常', icon: '❌' },
+  { id: 10, text: '明白', en: 'I understand', category: '日常', icon: '💡' },
+  { id: 11, text: '唔明白', en: "I don't understand", category: '日常', icon: '❓' },
   
   // 飲食
-  { id: 12, text: '我想飲水', category: '飲食', icon: '💧' },
-  { id: 13, text: '我肚餓', category: '飲食', icon: '🍚' },
-  { id: 14, text: '我想食飯', category: '飲食', icon: '🍱' },
-  { id: 15, text: '我想飲奶', category: '飲食', icon: '🥛' },
-  { id: 16, text: '蘋果', category: '飲食', icon: '🍎' },
-  { id: 17, text: '橙', category: '飲食', icon: '🍊' },
-  { id: 18, text: '香蕉', category: '飲食', icon: '🍌' },
+  { id: 12, text: '我想飲水', en: 'I want water', category: '飲食', icon: '💧' },
+  { id: 13, text: '我肚餓', en: "I'm hungry", category: '飲食', icon: '🍚' },
+  { id: 14, text: '我想食飯', en: 'I want to eat', category: '飲食', icon: '🍱' },
+  { id: 15, text: '我想飲奶', en: 'I want milk', category: '飲食', icon: '🥛' },
+  { id: 16, text: '蘋果', en: 'Apple', category: '飲食', icon: '🍎' },
+  { id: 17, text: '橙', en: 'Orange', category: '飲食', icon: '🍊' },
+  { id: 18, text: '香蕉', en: 'Banana', category: '飲食', icon: '🍌' },
   
   // 醫療
-  { id: 19, text: '我唔舒服', category: '醫療', icon: '🤒' },
-  { id: 20, text: '我頭痛', category: '醫療', icon: '🤕' },
-  { id: 21, text: '我想睇醫生', category: '醫療', icon: '👨‍⚕️' },
-  { id: 22, text: '我要食藥', category: '醫療', icon: '💊' },
-  { id: 23, text: '我想量體溫', category: '醫療', icon: '🌡️' },
-  { id: 24, text: '我想去廁所', category: '醫療', icon: '🚻' },
+  { id: 19, text: '我唔舒服', en: 'I feel unwell', category: '醫療', icon: '🤒' },
+  { id: 20, text: '我頭痛', en: 'I have a headache', category: '醫療', icon: '🤕' },
+  { id: 21, text: '我想睇醫生', en: 'I want to see a doctor', category: '醫療', icon: '👨‍⚕️' },
+  { id: 22, text: '我要食藥', en: 'I need medicine', category: '醫療', icon: '💊' },
+  { id: 23, text: '我想量體溫', en: 'I want to check my temperature', category: '醫療', icon: '🌡️' },
+  { id: 24, text: '我想去廁所', en: 'I want to use the toilet', category: '醫療', icon: '🚻' },
   
   // 情緒
-  { id: 25, text: '我好開心', category: '情緒', icon: '😊' },
-  { id: 26, text: '我好傷心', category: '情緒', icon: '😢' },
-  { id: 27, text: '我好攰', category: '情緒', icon: '😴' },
-  { id: 28, text: '我好擔心', category: '情緒', icon: '😰' },
-  { id: 29, text: '我好熱', category: '情緒', icon: '🥵' },
-  { id: 30, text: '我好凍', category: '情緒', icon: '🥶' },
+  { id: 25, text: '我好開心', en: "I'm happy", category: '情緒', icon: '😊' },
+  { id: 26, text: '我好傷心', en: "I'm sad", category: '情緒', icon: '😢' },
+  { id: 27, text: '我好攰', en: "I'm tired", category: '情緒', icon: '😴' },
+  { id: 28, text: '我好擔心', en: "I'm worried", category: '情緒', icon: '😰' },
+  { id: 29, text: '我好熱', en: "I'm hot", category: '情緒', icon: '🥵' },
+  { id: 30, text: '我好凍', en: "I'm cold", category: '情緒', icon: '🥶' },
   
   // 求助
-  { id: 31, text: '幫幫我', category: '求助', icon: '🆘' },
-  { id: 32, text: '我想休息', category: '求助', icon: '🛏️' },
-  { id: 33, text: '我需要幫忙', category: '求助', icon: '🙋' },
-  { id: 34, text: '請等等', category: '求助', icon: '⏰' },
+  { id: 31, text: '幫幫我', en: 'Help me', category: '求助', icon: '🆘' },
+  { id: 32, text: '我想休息', en: 'I want to rest', category: '求助', icon: '🛏️' },
+  { id: 33, text: '我需要幫忙', en: 'I need help', category: '求助', icon: '🙋' },
+  { id: 34, text: '請等等', en: 'Please wait', category: '求助', icon: '⏰' },
 ];
 
 // 分類圖示映射（新配色主題）
@@ -60,64 +60,97 @@ const CATEGORY_ICONS: Record<string, string> = {
   '求助': '🆘',
 };
 
+const CATEGORY_LABELS: Record<string, string> = {
+  '全部': 'All',
+  '日常': 'Daily',
+  '飲食': 'Food & Drink',
+  '醫療': 'Medical',
+  '情緒': 'Emotions',
+  '求助': 'Help',
+};
+
 // 句子啟動器和建議詞語
 const SENTENCE_STARTERS = [
-  { text: '我想', icon: '💭' },
-  { text: '可唔可以', icon: '🙏' },
-  { text: '幫我', icon: '🤝' },
-  { text: '我要', icon: '✋' },
+  { text: '我想', en: 'I want to', icon: '💭' },
+  { text: '可唔可以', en: 'Could you', icon: '🙏' },
+  { text: '幫我', en: 'Help me', icon: '🤝' },
+  { text: '我要', en: 'I need to', icon: '✋' },
 ];
 
-const SUGGESTED_WORDS: Record<string, Array<{text: string, icon: string}>> = {
+const SUGGESTED_WORDS: Record<string, Array<{text: string, en: string, icon: string}>> = {
   '我想': [
-    { text: '飲水', icon: '💧' },
-    { text: '食飯', icon: '🍚' },
-    { text: '休息', icon: '🛏️' },
-    { text: '去廁所', icon: '🚻' },
-    { text: '睇醫生', icon: '👨‍⚕️' },
-    { text: '食藥', icon: '💊' },
-    { text: '訓覺', icon: '😴' },
-    { text: '出去', icon: '🚶' },
-    { text: '打電話', icon: '📞' },
-    { text: '睇電視', icon: '📺' }
+    { text: '飲水', en: 'drink water', icon: '💧' },
+    { text: '食飯', en: 'eat', icon: '🍚' },
+    { text: '休息', en: 'rest', icon: '🛏️' },
+    { text: '去廁所', en: 'go to the toilet', icon: '🚻' },
+    { text: '睇醫生', en: 'see a doctor', icon: '👨‍⚕️' },
+    { text: '食藥', en: 'take medicine', icon: '💊' },
+    { text: '訓覺', en: 'sleep', icon: '😴' },
+    { text: '出去', en: 'go out', icon: '🚶' },
+    { text: '打電話', en: 'make a call', icon: '📞' },
+    { text: '睇電視', en: 'watch TV', icon: '📺' }
   ],
   '可唔可以': [
-    { text: '幫我', icon: '🤝' },
-    { text: '開燈', icon: '💡' },
-    { text: '閉燈', icon: '🌙' },
-    { text: '開窗', icon: '🪟' },
-    { text: '閉窗', icon: '🪟' },
-    { text: '開門', icon: '🚪' },
-    { text: '俾我', icon: '🤲' },
-    { text: '拎俾我', icon: '🤲' },
-    { text: '等我', icon: '⏰' },
-    { text: '陪我', icon: '👥' }
+    { text: '幫我', en: 'help me', icon: '🤝' },
+    { text: '開燈', en: 'turn on the light', icon: '💡' },
+    { text: '閉燈', en: 'turn off the light', icon: '🌙' },
+    { text: '開窗', en: 'open the window', icon: '🪟' },
+    { text: '閉窗', en: 'close the window', icon: '🪟' },
+    { text: '開門', en: 'open the door', icon: '🚪' },
+    { text: '俾我', en: 'give me', icon: '🤲' },
+    { text: '拎俾我', en: 'hand it to me', icon: '🤲' },
+    { text: '等我', en: 'wait for me', icon: '⏰' },
+    { text: '陪我', en: 'stay with me', icon: '👥' }
   ],
   '幫我': [
-    { text: '拎嘢', icon: '📦' },
-    { text: '開門', icon: '🚪' },
-    { text: '閉門', icon: '🚪' },
-    { text: '打電話', icon: '📞' },
-    { text: '叫人', icon: '📢' },
-    { text: '攞藥', icon: '💊' },
-    { text: '倒水', icon: '💧' },
-    { text: '拎紙巾', icon: '🧻' },
-    { text: '開電視', icon: '📺' },
-    { text: '調位', icon: '🔄' }
+    { text: '拎嘢', en: 'get it for me', icon: '📦' },
+    { text: '開門', en: 'open the door', icon: '🚪' },
+    { text: '閉門', en: 'close the door', icon: '🚪' },
+    { text: '打電話', en: 'make a call', icon: '📞' },
+    { text: '叫人', en: 'call someone', icon: '📢' },
+    { text: '攞藥', en: 'get medicine', icon: '💊' },
+    { text: '倒水', en: 'pour water', icon: '💧' },
+    { text: '拎紙巾', en: 'get tissues', icon: '🧻' },
+    { text: '開電視', en: 'turn on TV', icon: '📺' },
+    { text: '調位', en: 'adjust position', icon: '🔄' }
   ],
   '我要': [
-    { text: '飲水', icon: '💧' },
-    { text: '食嘢', icon: '🍔' },
-    { text: '去廁所', icon: '🚻' },
-    { text: '休息', icon: '🛏️' },
-    { text: '睇醫生', icon: '👨‍⚕️' },
-    { text: '食藥', icon: '💊' },
-    { text: '換衫', icon: '👕' },
-    { text: '沖涼', icon: '🚿' },
-    { text: '睇報紙', icon: '📰' },
-    { text: '聽收音機', icon: '📻' }
+    { text: '飲水', en: 'drink water', icon: '💧' },
+    { text: '食嘢', en: 'eat food', icon: '🍔' },
+    { text: '去廁所', en: 'go to the toilet', icon: '🚻' },
+    { text: '休息', en: 'rest', icon: '🛏️' },
+    { text: '睇醫生', en: 'see a doctor', icon: '👨‍⚕️' },
+    { text: '食藥', en: 'take medicine', icon: '💊' },
+    { text: '換衫', en: 'change clothes', icon: '👕' },
+    { text: '沖涼', en: 'take a shower', icon: '🚿' },
+    { text: '睇報紙', en: 'read the newspaper', icon: '📰' },
+    { text: '聽收音機', en: 'listen to the radio', icon: '📻' }
   ],
 };
+
+const PHRASE_TRANSLATIONS = PHRASES.reduce<Record<string, string>>((acc, phrase) => {
+  acc[phrase.text] = phrase.en;
+  return acc;
+}, {});
+
+const BilingualText = ({
+  zh,
+  en,
+  className = '',
+  enClassName = '',
+}: {
+  zh: string;
+  en: string;
+  className?: string;
+  enClassName?: string;
+}) => (
+  <span className={`flex flex-col leading-tight ${className}`}>
+    <span>{zh}</span>
+    {en ? (
+      <span className={`text-base sm:text-lg opacity-85 ${enClassName}`}>{en}</span>
+    ) : null}
+  </span>
+);
 
 export default function AACApp() {
   const [isLoading, setIsLoading] = useState(false);
@@ -161,7 +194,7 @@ export default function AACApp() {
 
   const speak = (text: string) => {
     if (!speechSupported) {
-      alert('您的瀏覽器不支援語音功能');
+      alert('您的瀏覽器不支援語音功能 / Your browser does not support speech');
       return;
     }
 
@@ -200,7 +233,7 @@ export default function AACApp() {
     utterance.onerror = (event) => {
       console.error('Speech error:', event);
       setIsLoading(false);
-      alert(`語音播放失敗: ${event.error}。請確保您使用 Chrome 或 Safari 瀏覽器。`);
+      alert(`語音播放失敗: ${event.error} / Speech failed: ${event.error}. 請確保您使用 Chrome 或 Safari 瀏覽器 / Please use Chrome or Safari.`);
     };
 
     try {
@@ -209,7 +242,7 @@ export default function AACApp() {
     } catch (error) {
       console.error('Failed to speak:', error);
       setIsLoading(false);
-      alert('語音播放失敗，請重試');
+      alert('語音播放失敗，請重試 / Speech failed, please try again');
     }
     
     // 添加到歷史記錄
@@ -237,7 +270,7 @@ export default function AACApp() {
     setShowSuggestions(true);
   };
   
-  const handleSuggestionClick = (word: {text: string, icon: string}) => {
+  const handleSuggestionClick = (word: {text: string, en: string, icon: string}) => {
     setCustomText(customText + word.text);
     setShowSuggestions(false);
   };
@@ -255,7 +288,7 @@ export default function AACApp() {
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="p-3 bg-[#f97316] rounded-xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 transform min-h-[60px] min-w-[60px] flex items-center justify-center"
-          aria-label="選單"
+          aria-label="選單 Menu"
         >
           <svg 
             className={`w-8 h-8 transition-transform duration-300 ${menuOpen ? 'rotate-90' : 'rotate-0'}`} 
@@ -267,14 +300,16 @@ export default function AACApp() {
           </svg>
         </button>
         
-        <h1 className="text-2xl sm:text-3xl font-bold flex-1 text-center">Audrey Audrey Chung 輔助通訊</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold flex-1 text-center">
+          Audrey Audrey Chung 輔助通訊
+        </h1>
         
         <div className="flex gap-2">
           {/* 歷史記錄按鈕 */}
           <button
             onClick={() => setShowHistory(!showHistory)}
             className="p-3 bg-[#f97316] rounded-xl shadow-lg hover:bg-[#ea580c] hover:scale-110 active:scale-95 transition-all duration-300 min-h-[60px] min-w-[60px] flex items-center justify-center"
-            aria-label="歷史記錄"
+            aria-label="歷史記錄 History"
           >
             <Icon emoji="📜" size={32} />
           </button>
@@ -283,7 +318,7 @@ export default function AACApp() {
           <button
             onClick={() => setShowSettings(!showSettings)}
             className="p-3 bg-[#f97316] rounded-xl shadow-lg hover:bg-[#ea580c] hover:scale-110 active:scale-95 transition-all duration-300 min-h-[60px] min-w-[60px] flex items-center justify-center"
-            aria-label="設定"
+            aria-label="設定 Settings"
           >
             <Icon emoji="⚙" size={32} />
           </button>
@@ -299,7 +334,9 @@ export default function AACApp() {
         <div className="p-6 h-full overflow-y-auto">
           <h2 className={`text-3xl font-bold text-[#1e3a5f] mb-6 transition-all duration-700 ${
             menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
-          }`}>分類選單</h2>
+          }`}>
+            <BilingualText zh="分類選單" en="Categories" enClassName="text-lg sm:text-xl" />
+          </h2>
           <nav className="space-y-3">
             {categories.map((category, index) => (
               <button
@@ -318,7 +355,12 @@ export default function AACApp() {
                 }}
               >
                 <Icon emoji={CATEGORY_ICONS[category] || '📁'} size={48} />
-                <span>{category}</span>
+                <BilingualText
+                  zh={category}
+                  en={CATEGORY_LABELS[category]}
+                  className="items-start"
+                  enClassName="text-lg sm:text-xl"
+                />
               </button>
             ))}
           </nav>
@@ -341,12 +383,15 @@ export default function AACApp() {
             <div className="mb-6 p-6 bg-white rounded-2xl shadow-xl border-4 border-[#1e3a5f] animate-fadeIn">
               <h3 className="text-2xl font-bold text-[#1e3a5f] mb-4 flex items-center gap-2">
                 <Icon emoji="⚙" size={40} />
-                語音設定
+                <BilingualText zh="語音設定" en="Speech Settings" />
               </h3>
               <div className="space-y-4">
                 <div>
                   <label className="block text-xl font-bold text-[#1e3a5f] mb-2">
-                    語速: {speechRate.toFixed(1)}x
+                    <span className="flex flex-col leading-tight">
+                      <span>語速: {speechRate.toFixed(1)}x</span>
+                      <span className="text-base sm:text-lg opacity-85">Speech rate: {speechRate.toFixed(1)}x</span>
+                    </span>
                   </label>
                   <input
                     type="range"
@@ -360,7 +405,10 @@ export default function AACApp() {
                 </div>
                 <div>
                   <label className="block text-xl font-bold text-[#1e3a5f] mb-2">
-                    音量: {Math.round(speechVolume * 100)}%
+                    <span className="flex flex-col leading-tight">
+                      <span>音量: {Math.round(speechVolume * 100)}%</span>
+                      <span className="text-base sm:text-lg opacity-85">Volume: {Math.round(speechVolume * 100)}%</span>
+                    </span>
                   </label>
                   <input
                     type="range"
@@ -381,7 +429,7 @@ export default function AACApp() {
             <div className="mb-6 p-6 bg-white rounded-2xl shadow-xl border-4 border-[#1e3a5f] animate-fadeIn">
               <h3 className="text-2xl font-bold text-[#1e3a5f] mb-4 flex items-center gap-2">
                 <Icon emoji="📜" size={40} />
-                歷史記錄
+                <BilingualText zh="歷史記錄" en="History" />
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {history.map((item, index) => (
@@ -390,7 +438,16 @@ export default function AACApp() {
                     onClick={() => speak(item)}
                     className="px-6 py-4 bg-[#f5f5dc] text-[#1e3a5f] rounded-xl font-bold text-xl border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-105 transition-all duration-300 min-h-[60px]"
                   >
-                    {item}
+                    {PHRASE_TRANSLATIONS[item] ? (
+                      <BilingualText
+                        zh={item}
+                        en={PHRASE_TRANSLATIONS[item]}
+                        className="items-center text-center"
+                        enClassName="text-lg sm:text-xl"
+                      />
+                    ) : (
+                      <span>{item}</span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -401,7 +458,7 @@ export default function AACApp() {
           <div className="mb-6 p-6 bg-white rounded-2xl shadow-xl border-4 border-[#f97316]">
             <h3 className="text-2xl font-bold text-[#1e3a5f] mb-4 flex items-center gap-2">
               <Icon emoji="📝" size={40} />
-              自訂訊息
+              <BilingualText zh="自訂訊息" en="Custom Message" />
             </h3>
             
             {/* 句子啟動按鈕 */}
@@ -417,7 +474,12 @@ export default function AACApp() {
                   }`}
                 >
                   <Icon emoji={starter.icon} size={32} />
-                  <span>{starter.text}</span>
+                  <BilingualText
+                    zh={starter.text}
+                    en={starter.en}
+                    className="items-start"
+                    enClassName="text-lg"
+                  />
                 </button>
               ))}
             </div>
@@ -428,7 +490,7 @@ export default function AACApp() {
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-xl font-bold text-[#1e3a5f] flex items-center gap-2">
                     <Icon emoji="💡" size={32} />
-                    建議詞語
+                    <BilingualText zh="建議詞語" en="Suggestions" enClassName="text-lg" />
                   </h4>
                   <button
                     onClick={() => setShowSuggestions(false)}
@@ -445,7 +507,12 @@ export default function AACApp() {
                       className="px-4 py-3 bg-white text-[#1e3a5f] rounded-xl font-bold text-lg border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-110 transition-all duration-300 shadow-md flex flex-col items-center gap-2"
                     >
                       <Icon emoji={word.icon} size={32} />
-                      <span>{word.text}</span>
+                      <BilingualText
+                        zh={word.text}
+                        en={word.en}
+                        className="items-center text-center"
+                        enClassName="text-base"
+                      />
                     </button>
                   ))}
                 </div>
@@ -460,7 +527,7 @@ export default function AACApp() {
                 onChange={(e) => setCustomText(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleCustomSpeak()}
                 onFocus={() => setShowSuggestions(false)}
-                placeholder="輸入要說的話..."
+                placeholder="輸入要說的話... / Type your message..."
                 className="flex-1 min-w-[280px] px-6 py-5 text-2xl font-bold border-4 border-[#1e3a5f] rounded-2xl focus:outline-none focus:border-[#f97316] transition-all duration-300 bg-[#f5f5dc] min-h-[70px]"
               />
               <button
@@ -469,7 +536,7 @@ export default function AACApp() {
                 className="px-8 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-110 active:scale-95 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 min-h-[70px] min-w-[120px] flex items-center justify-center gap-2"
               >
                 <Icon emoji="🔊" size={40} />
-                <span>播放</span>
+                <BilingualText zh="播放" en="Play" className="items-center" enClassName="text-lg" />
               </button>
             </div>
           </div>
@@ -478,7 +545,12 @@ export default function AACApp() {
           <div className="mb-6 text-center">
             <div className="inline-flex items-center gap-4 px-10 py-5 bg-[#1e3a5f] text-white rounded-2xl shadow-xl transition-all duration-500 hover:shadow-2xl hover:scale-110 transform border-4 border-[#f97316]">
               <Icon emoji={CATEGORY_ICONS[selectedCategory] || '📁'} size={64} className="transition-transform duration-300 hover:rotate-12 hover:scale-125" />
-              <span className="text-3xl font-bold">{selectedCategory}</span>
+              <BilingualText
+                zh={selectedCategory}
+                en={CATEGORY_LABELS[selectedCategory]}
+                className="items-center text-center text-3xl font-bold"
+                enClassName="text-lg sm:text-2xl font-semibold"
+              />
             </div>
           </div>
 
@@ -515,7 +587,14 @@ export default function AACApp() {
                 }}
               >
                 <Icon emoji={phrase.icon} size={96} className="transition-all duration-300 group-hover:scale-125 group-hover:rotate-12 group-active:scale-90" />
-                <div className="text-center transition-all duration-300 group-hover:scale-110">{phrase.text}</div>
+                <div className="text-center transition-all duration-300 group-hover:scale-110">
+                  <BilingualText
+                    zh={phrase.text}
+                    en={phrase.en}
+                    className="items-center"
+                    enClassName="text-lg sm:text-xl"
+                  />
+                </div>
               </button>
             ))}
           </div>
@@ -524,28 +603,28 @@ export default function AACApp() {
           <div className="mt-12 p-8 bg-white rounded-3xl shadow-2xl transition-all duration-500 hover:shadow-[0_20px_50px_rgba(30,58,95,0.3)] hover:scale-105 transform border-4 border-[#1e3a5f]">
             <h2 className="text-3xl font-bold text-[#1e3a5f] mb-6 flex items-center gap-3">
               <Icon emoji="📖" size={48} />
-              使用說明
+              <BilingualText zh="使用說明" en="How to Use" enClassName="text-xl sm:text-2xl" />
             </h2>
             <ul className="space-y-3 text-xl text-[#1e3a5f] font-semibold">
               <li className="transition-all duration-300 hover:translate-x-3 hover:text-[#f97316] flex items-center gap-3">
                 <Icon emoji="🔹" size={32} />
-                點擊左上角選單選擇分類
+                <BilingualText zh="點擊左上角選單選擇分類" en="Use the top-left menu to choose a category" />
               </li>
               <li className="transition-all duration-300 hover:translate-x-3 hover:text-[#f97316] flex items-center gap-3">
                 <Icon emoji="🔹" size={32} />
-                點擊任何按鈕即可播放語音
+                <BilingualText zh="點擊任何按鈕即可播放語音" en="Tap any button to play speech" />
               </li>
               <li className="transition-all duration-300 hover:translate-x-3 hover:text-[#f97316] flex items-center gap-3">
                 <Icon emoji="🔹" size={32} />
-                使用自訂輸入框輸入任何想說的話
+                <BilingualText zh="使用自訂輸入框輸入任何想說的話" en="Type any message in the custom input" />
               </li>
               <li className="transition-all duration-300 hover:translate-x-3 hover:text-[#f97316] flex items-center gap-3">
                 <Icon emoji="🔹" size={32} />
-                在設定中調整語速和音量
+                <BilingualText zh="在設定中調整語速和音量" en="Adjust speech rate and volume in Settings" />
               </li>
               <li className="transition-all duration-300 hover:translate-x-3 hover:text-[#f97316] flex items-center gap-3">
                 <Icon emoji="🔹" size={32} />
-                查看歷史記錄快速重複使用
+                <BilingualText zh="查看歷史記錄快速重複使用" en="Use History to replay recent phrases" />
               </li>
             </ul>
           </div>
