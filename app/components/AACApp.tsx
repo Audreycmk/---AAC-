@@ -139,6 +139,19 @@ export default function AACApp() {
       setSpeechSupported(false);
     }
     
+    // 載入語音列表（某些瀏覽器需要這個步驟）
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      // 觸發語音列表載入
+      window.speechSynthesis.getVoices();
+      
+      // 監聽語音列表變化
+      window.speechSynthesis.onvoiceschanged = () => {
+        const voices = window.speechSynthesis.getVoices();
+        console.log('Available voices:', voices.length);
+        console.log('Cantonese voices:', voices.filter(v => v.lang.includes('zh-HK')));
+      };
+    }
+    
     // 從 localStorage 載入歷史記錄
     const savedHistory = localStorage.getItem('aac-history');
     if (savedHistory) {
@@ -165,16 +178,39 @@ export default function AACApp() {
     utterance.pitch = 1.0;
     utterance.volume = speechVolume;
 
+    // 嘗試選擇廣東話語音
+    const voices = window.speechSynthesis.getVoices();
+    const cantonese = voices.find(voice => voice.lang === 'zh-HK' || voice.lang === 'zh_HK');
+    if (cantonese) {
+      utterance.voice = cantonese;
+      console.log('Using voice:', cantonese.name);
+    } else {
+      console.warn('No Cantonese voice found, using default');
+    }
+
+    utterance.onstart = () => {
+      console.log('Speech started:', text);
+    };
+
     utterance.onend = () => {
+      console.log('Speech ended');
       setIsLoading(false);
     };
 
-    utterance.onerror = () => {
+    utterance.onerror = (event) => {
+      console.error('Speech error:', event);
+      setIsLoading(false);
+      alert(`語音播放失敗: ${event.error}。請確保您使用 Chrome 或 Safari 瀏覽器。`);
+    };
+
+    try {
+      window.speechSynthesis.speak(utterance);
+      console.log('Speech synthesis started');
+    } catch (error) {
+      console.error('Failed to speak:', error);
       setIsLoading(false);
       alert('語音播放失敗，請重試');
-    };
-
-    window.speechSynthesis.speak(utterance);
+    }
     
     // 添加到歷史記錄
     addToHistory(text);
@@ -417,7 +453,7 @@ export default function AACApp() {
             )}
             
             {/* 輸入框和播放按鈕 */}
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3 justify-center">
               <input
                 type="text"
                 value={customText}
@@ -425,12 +461,12 @@ export default function AACApp() {
                 onKeyPress={(e) => e.key === 'Enter' && handleCustomSpeak()}
                 onFocus={() => setShowSuggestions(false)}
                 placeholder="輸入要說的話..."
-                className="flex-1 px-6 py-5 text-2xl font-bold border-4 border-[#1e3a5f] rounded-2xl focus:outline-none focus:border-[#f97316] transition-all duration-300 bg-[#f5f5dc] min-h-[70px]"
+                className="flex-1 min-w-[280px] px-6 py-5 text-2xl font-bold border-4 border-[#1e3a5f] rounded-2xl focus:outline-none focus:border-[#f97316] transition-all duration-300 bg-[#f5f5dc] min-h-[70px]"
               />
               <button
                 onClick={handleCustomSpeak}
                 disabled={!customText.trim() || isLoading}
-                className="px-8 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-110 active:scale-95 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 min-h-[70px] min-w-[120px] flex items-center gap-2"
+                className="px-8 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-110 active:scale-95 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 min-h-[70px] min-w-[120px] flex items-center justify-center gap-2"
               >
                 <Icon emoji="🔊" size={40} />
                 <span>播放</span>
