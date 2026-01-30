@@ -198,6 +198,18 @@ const BilingualText = ({
   </span>
 );
 
+// Common emoji presets for quick selection
+const COMMON_EMOJIS = [
+  '😊', '❤️', '👋', '🙏', '🍔', '💧', '🏥', '😴', '🆘', '🛏️',
+  '👜', '🏠', '🍎', '📍', '🚻', '🍽️', '👨‍⚕️', '💊', '📺', '🚪',
+  '❄️', '🔥', '💡', '🥄', '🍴', '🍇', '🍊', '🍍', '🏢', '🌳',
+  '☕', '🎓', '🎨', '⚽', '🎮', '🎵', '📚', '🏃', '🚗', '✈️',
+  '🎁', '🎪', '🎭', '🎬', '🎸', '🎹', '🎤', '🏋️', '⛹️', '🤸',
+  '🧘', '💃', '🕺', '👯', '🚴', '🏊', '🧗', '🤺', '🏇', '🎿',
+];
+
+type CustomPhrase = (typeof PHRASES)[0];
+
 export default function AACApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
@@ -214,6 +226,20 @@ export default function AACApp() {
   const [currentStarter, setCurrentStarter] = useState('');
   const [showCustomPanel, setShowCustomPanel] = useState(false);
   const [favorites, setFavorites] = useState<string[]>(['個人物品', '家居用品', '水果', '地方']);
+  
+  // Add Vocabulary Feature States
+  const [showAddVocab, setShowAddVocab] = useState(false);
+  const [customPhrases, setCustomPhrases] = useState<(typeof PHRASES[0])[]>([]);
+  const [addVocabInput, setAddVocabInput] = useState({
+    text: '',
+    en: '',
+    icon: '📝',
+    category: '',
+    newCategory: '',
+  });
+  const [addVocabLang, setAddVocabLang] = useState<'zh' | 'en'>('zh');
+  const [vocabError, setVocabError] = useState('');
+  const [vocabSuccess, setVocabSuccess] = useState(false);
 
   useEffect(() => {
     // 檢查瀏覽器是否支援 Web Speech API
@@ -353,10 +379,95 @@ export default function AACApp() {
     }
   };
 
-  const categories = ['全部', ...Array.from(new Set(PHRASES.map(p => p.category)))];
+  // ========== Add Vocabulary Functions ==========
+  
+  const validatePhrase = (phrase: Partial<typeof PHRASES[0]>) => {
+    const errors: string[] = [];
+    if (!phrase.text?.trim()) errors.push('Chinese text required / 需要中文');
+    if (!phrase.en?.trim()) errors.push('English text required / 需要英文');
+    if (!phrase.icon) errors.push('Emoji required / 需要表情符號');
+    if (!phrase.category) errors.push('Category required / 需要分類');
+    return errors;
+  };
+
+  const resetAddVocabForm = () => {
+    setAddVocabInput({
+      text: '',
+      en: '',
+      icon: '📝',
+      category: '',
+      newCategory: '',
+    });
+    setAddVocabLang('zh');
+    setVocabError('');
+    setVocabSuccess(false);
+  };
+
+  const getUniqueCategories = () => {
+    const allPhrases = [...PHRASES, ...customPhrases];
+    return Array.from(new Set(allPhrases.map((p: typeof PHRASES[0]) => p.category))).sort();
+  };
+
+  const handleAddVocab = () => {
+    const errors = validatePhrase({
+      text: addVocabInput.text,
+      en: addVocabInput.en,
+      icon: addVocabInput.icon,
+      category: addVocabInput.category || addVocabInput.newCategory,
+    });
+
+    if (errors.length > 0) {
+      setVocabError(errors.join(' / '));
+      return;
+    }
+
+    const finalCategory = addVocabInput.category || addVocabInput.newCategory;
+    const newId = Math.max(...PHRASES.map((p: typeof PHRASES[0]) => p.id), ...customPhrases.map((p: typeof PHRASES[0]) => p.id), 0) + 1;
+    
+    const newPhrase: typeof PHRASES[0] = {
+      id: newId,
+      text: addVocabInput.text,
+      en: addVocabInput.en,
+      icon: addVocabInput.icon,
+      category: finalCategory,
+    };
+
+    const updatedCustomPhrases = [...customPhrases, newPhrase];
+    setCustomPhrases(updatedCustomPhrases);
+    
+    // Save to localStorage
+    localStorage.setItem('custom-vocab', JSON.stringify(updatedCustomPhrases));
+
+    setVocabSuccess(true);
+    setTimeout(() => {
+      resetAddVocabForm();
+      setShowAddVocab(false);
+    }, 1500);
+  };
+
+  const handleVocabInputChange = (field: string, value: string) => {
+    setAddVocabInput(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    setVocabError('');
+  };
+
+  const toggleInputLanguage = () => {
+    setAddVocabLang(addVocabLang === 'zh' ? 'en' : 'zh');
+    // Swap the values when toggling language
+    setAddVocabInput(prev => ({
+      ...prev,
+      text: prev.en,
+      en: prev.text,
+    }));
+  };
+
+  const categories = ['全部', ...getUniqueCategories().filter(c => c !== '全部')];
+  const allPhrases = [...PHRASES, ...customPhrases];
   const filteredPhrases = selectedCategory === '全部' 
-    ? PHRASES 
-    : PHRASES.filter(p => p.category === selectedCategory);
+    ? allPhrases
+    : allPhrases.filter(p => p.category === selectedCategory);
 
   const visibleStarters = showSuggestions && currentStarter
     ? SENTENCE_STARTERS.filter((starter) => starter.text === currentStarter)
@@ -481,7 +592,7 @@ export default function AACApp() {
                   className="transition-all duration-300 hover:scale-125"
                   aria-label="移除最愛 Remove favorite"
                 >
-                  <Icon emoji="❤️" size={32} />
+                  <Icon emoji="❤️" size={30} />
                 </button>
               </button>
             ))}
@@ -492,7 +603,7 @@ export default function AACApp() {
           }`}>
             <BilingualText zh="分類選單" en="Categories" enClassName="text-lg sm:text-xl" />
           </h2>
-          <nav className="space-y-3">
+          <nav className="space-y-3 mb-8">
             {categories.map((category, index) => (
               <button
                 key={category}
@@ -519,6 +630,24 @@ export default function AACApp() {
               </button>
             ))}
           </nav>
+
+          {/* Add Vocabulary Button */}
+          <button
+            onClick={() => {
+              setShowAddVocab(true);
+              setMenuOpen(false);
+            }}
+            className={`w-full mt-8 px-6 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-3 transform ${
+              menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'
+            }`}
+            style={{ 
+              transitionDelay: menuOpen ? `${categories.length * 50 + 100}ms` : '0ms'
+            }}
+            aria-label="加入詞語 Add Vocabulary"
+          >
+            <Icon emoji="➕" size={40} />
+            <BilingualText zh="加入詞語" en="Add Words" className="items-center text-center" enClassName="text-lg" />
+          </button>
         </div>
       </div>
 
@@ -623,6 +752,205 @@ export default function AACApp() {
                     {item}
                   </button>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Add Vocabulary Panel */}
+          {showAddVocab && (
+            <div className="mb-6 p-6 bg-white rounded-2xl shadow-2xl border-4 border-[#f97316] animate-fadeIn">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-3xl font-bold text-[#1e3a5f] flex items-center gap-2">
+                  <Icon emoji="➕" size={40} />
+                  <BilingualText zh="加入新詞語" en="Add New Words" enClassName="text-lg" />
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowAddVocab(false);
+                    resetAddVocabForm();
+                  }}
+                  className="text-[#1e3a5f] hover:text-[#f97316] text-2xl font-bold transition-all duration-300"
+                  aria-label="關閉 Close"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Success Message */}
+              {vocabSuccess && (
+                <div className="mb-4 p-4 bg-green-100 border-3 border-green-500 rounded-xl text-green-800 font-bold text-lg text-center animate-pulse">
+                  ✅ 詞語已加入! / Word added successfully!
+                </div>
+              )}
+
+              {/* Error Message */}
+              {vocabError && (
+                <div className="mb-4 p-4 bg-red-100 border-3 border-red-500 rounded-xl text-red-800 font-bold text-lg">
+                  ❌ {vocabError}
+                </div>
+              )}
+
+              <div className="space-y-6">
+                {/* Emoji Selector */}
+                <div>
+                  <h4 className="text-2xl font-bold text-[#1e3a5f] mb-3">
+                    <BilingualText zh="1️⃣ 選擇表情符號" en="1️⃣ Choose Emoji" enClassName="text-lg" />
+                  </h4>
+                  <div className="bg-[#f5f5dc] p-4 rounded-2xl">
+                    <div className="flex items-center gap-2 mb-4">
+                      <input
+                        type="text"
+                        placeholder="或貼上/Or paste emoji"
+                        value={addVocabInput.icon}
+                        onChange={(e) => handleVocabInputChange('icon', e.target.value.slice(0, 2))}
+                        className="flex-1 px-4 py-3 border-2 border-[#1e3a5f] rounded-xl text-2xl text-center font-bold"
+                        maxLength={2}
+                      />
+                      <div className="text-5xl min-w-[60px] text-center">{addVocabInput.icon}</div>
+                    </div>
+                    <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 max-h-[200px] overflow-y-auto p-2 bg-white rounded-xl">
+                      {COMMON_EMOJIS.map((emoji) => (
+                        <button
+                          key={emoji}
+                          onClick={() => handleVocabInputChange('icon', emoji)}
+                          className={`text-3xl p-2 rounded-lg hover:bg-[#f97316] hover:scale-110 transition-all duration-300 ${
+                            addVocabInput.icon === emoji ? 'bg-[#f97316] scale-110' : 'bg-white'
+                          }`}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Language Toggle */}
+                <div>
+                  <h4 className="text-2xl font-bold text-[#1e3a5f] mb-3">
+                    <BilingualText zh="2️⃣ 選擇輸入語言" en="2️⃣ Choose Input Language" enClassName="text-lg" />
+                  </h4>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setAddVocabLang('zh')}
+                      className={`flex-1 px-6 py-4 rounded-2xl font-bold text-xl border-3 transition-all duration-300 min-h-[60px] ${
+                        addVocabLang === 'zh'
+                          ? 'bg-[#1e3a5f] text-white border-[#1e3a5f] shadow-lg'
+                          : 'bg-[#f5f5dc] text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white'
+                      }`}
+                    >
+                      中文 Chinese
+                    </button>
+                    <button
+                      onClick={() => setAddVocabLang('en')}
+                      className={`flex-1 px-6 py-4 rounded-2xl font-bold text-xl border-3 transition-all duration-300 min-h-[60px] ${
+                        addVocabLang === 'en'
+                          ? 'bg-[#1e3a5f] text-white border-[#1e3a5f] shadow-lg'
+                          : 'bg-[#f5f5dc] text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white'
+                      }`}
+                    >
+                      English
+                    </button>
+                    <button
+                      onClick={toggleInputLanguage}
+                      className="px-6 py-4 bg-[#f97316] text-white rounded-2xl font-bold text-xl border-3 border-[#f97316] shadow-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[60px]"
+                      title="Swap languages / 交換語言"
+                    >
+                      ⇅
+                    </button>
+                  </div>
+                </div>
+
+                {/* Text Inputs */}
+                <div>
+                  <h4 className="text-2xl font-bold text-[#1e3a5f] mb-3">
+                    <BilingualText zh="3️⃣ 輸入詞語" en="3️⃣ Enter Words" enClassName="text-lg" />
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-lg font-bold text-[#1e3a5f] mb-2">
+                        {addVocabLang === 'zh' ? '中文 Chinese' : '英文 English'}
+                      </label>
+                      <input
+                        type="text"
+                        placeholder={addVocabLang === 'zh' ? '輸入中文詞語...' : 'Enter English word...'}
+                        value={addVocabLang === 'zh' ? addVocabInput.text : addVocabInput.en}
+                        onChange={(e) => handleVocabInputChange(addVocabLang === 'zh' ? 'text' : 'en', e.target.value)}
+                        className="w-full px-6 py-4 border-3 border-[#1e3a5f] rounded-xl text-xl font-bold text-[#1e3a5f] focus:border-[#f97316] focus:outline-none transition-all duration-300"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-lg font-bold text-[#1e3a5f] mb-2">
+                        {addVocabLang === 'zh' ? '英文 English' : '中文 Chinese'}
+                      </label>
+                      <input
+                        type="text"
+                        placeholder={addVocabLang === 'zh' ? 'Enter English translation...' : '輸入中文翻譯...'}
+                        value={addVocabLang === 'zh' ? addVocabInput.en : addVocabInput.text}
+                        onChange={(e) => handleVocabInputChange(addVocabLang === 'zh' ? 'en' : 'text', e.target.value)}
+                        className="w-full px-6 py-4 border-3 border-[#1e3a5f] rounded-xl text-xl font-bold text-[#1e3a5f] focus:border-[#f97316] focus:outline-none transition-all duration-300"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Category Selector */}
+                <div>
+                  <h4 className="text-2xl font-bold text-[#1e3a5f] mb-3">
+                    <BilingualText zh="4️⃣ 選擇分類" en="4️⃣ Choose Category" enClassName="text-lg" />
+                  </h4>
+                  <div className="space-y-3">
+                    {getUniqueCategories().length > 0 && (
+                      <select
+                        value={addVocabInput.category}
+                        onChange={(e) => handleVocabInputChange('category', e.target.value)}
+                        className="w-full px-6 py-4 border-3 border-[#1e3a5f] rounded-xl text-lg font-bold text-[#1e3a5f] focus:border-[#f97316] focus:outline-none transition-all duration-300 cursor-pointer"
+                      >
+                        <option value="">-- 選擇分類 / Select Category --</option>
+                        {getUniqueCategories().map((cat) => (
+                          <option key={cat} value={cat}>
+                            {cat} / {CATEGORY_LABELS[cat] || cat}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="或建立新分類 / Or create new category"
+                        value={addVocabInput.newCategory}
+                        onChange={(e) => handleVocabInputChange('newCategory', e.target.value)}
+                        disabled={!!addVocabInput.category}
+                        className="w-full px-6 py-4 border-3 border-[#1e3a5f] rounded-xl text-lg font-bold text-[#1e3a5f] focus:border-[#f97316] focus:outline-none transition-all duration-300 disabled:bg-gray-200 disabled:text-gray-500"
+                      />
+                      <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-lg text-[#1e3a5f]">
+                        {!addVocabInput.category ? '➕' : '✓'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={handleAddVocab}
+                    className="flex-1 px-8 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-105 active:scale-95 disabled:bg-gray-400 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-2"
+                  >
+                    <Icon emoji="💾" size={40} />
+                    <BilingualText zh="加入詞語" en="Add Word" className="items-center" enClassName="text-lg" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowAddVocab(false);
+                      resetAddVocabForm();
+                    }}
+                    className="flex-1 px-8 py-5 bg-[#1e3a5f] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#2a5a8f] hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-2"
+                  >
+                    <Icon emoji="❌" size={40} />
+                    <BilingualText zh="取消" en="Cancel" className="items-center" enClassName="text-lg" />
+                  </button>
+                </div>
               </div>
             </div>
           )}
