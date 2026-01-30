@@ -93,7 +93,7 @@ const SUGGESTED_WORDS: Record<string, Array<{text: string, en: string, icon: str
   '可唔可以': [
     { text: '幫我', en: 'help me', icon: '🤝' },
     { text: '開燈', en: 'turn on the light', icon: '💡' },
-    { text: '閉燈', en: 'turn off the light', icon: '🌙' },
+    { text: '熄燈', en: 'turn off the light', icon: '🌙' },
     { text: '開窗', en: 'open the window', icon: '🪟' },
     { text: '閉窗', en: 'close the window', icon: '🪟' },
     { text: '開門', en: 'open the door', icon: '🚪' },
@@ -146,9 +146,7 @@ const BilingualText = ({
 }) => (
   <span className={`flex flex-col leading-tight ${className}`}>
     <span>{zh}</span>
-    {en ? (
-      <span className={`text-base sm:text-lg opacity-85 ${enClassName}`}>{en}</span>
-    ) : null}
+    <span className={`text-sm sm:text-base opacity-80 ${enClassName}`}>{en}</span>
   </span>
 );
 
@@ -165,6 +163,7 @@ export default function AACApp() {
   const [showHistory, setShowHistory] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [currentStarter, setCurrentStarter] = useState('');
+  const [showCustomPanel, setShowCustomPanel] = useState(false);
 
   useEffect(() => {
     // 檢查瀏覽器是否支援 Web Speech API
@@ -271,12 +270,18 @@ export default function AACApp() {
   
   const handleSuggestionClick = (word: {text: string, en: string, icon: string}) => {
     setCustomText(customText + word.text);
+    setShowSuggestions(false);
+    setCurrentStarter('');
   };
 
   const categories = ['全部', ...Array.from(new Set(PHRASES.map(p => p.category)))];
   const filteredPhrases = selectedCategory === '全部' 
     ? PHRASES 
     : PHRASES.filter(p => p.category === selectedCategory);
+
+  const visibleStarters = showSuggestions && currentStarter
+    ? SENTENCE_STARTERS.filter((starter) => starter.text === currentStarter)
+    : SENTENCE_STARTERS;
 
   const starterMatch = SENTENCE_STARTERS.find((starter) => customText.startsWith(starter.text));
   const starterTail = starterMatch ? customText.slice(starterMatch.text.length) : '';
@@ -309,7 +314,12 @@ export default function AACApp() {
         </button>
         
         <h1 className="text-2xl sm:text-3xl font-bold flex-1 text-center">
-          Audrey Audrey Chung 輔助通訊
+          <BilingualText
+            zh="Audrey Audrey Chung 輔助通訊"
+            en=""
+            className="items-center"
+            enClassName="text-base sm:text-lg font-semibold"
+          />
         </h1>
         
         <div className="flex gap-2">
@@ -367,7 +377,7 @@ export default function AACApp() {
                   zh={category}
                   en={CATEGORY_LABELS[category]}
                   className="items-start"
-                  enClassName="text-lg sm:text-xl"
+                  enClassName="text-base sm:text-lg"
                 />
               </button>
             ))}
@@ -391,15 +401,12 @@ export default function AACApp() {
             <div className="mb-6 p-6 bg-white rounded-2xl shadow-xl border-4 border-[#1e3a5f] animate-fadeIn">
               <h3 className="text-2xl font-bold text-[#1e3a5f] mb-4 flex items-center gap-2">
                 <Icon emoji="⚙" size={40} />
-                <BilingualText zh="語音設定" en="Speech Settings" />
+                語音設定
               </h3>
               <div className="space-y-4">
                 <div>
                   <label className="block text-xl font-bold text-[#1e3a5f] mb-2">
-                    <span className="flex flex-col leading-tight">
-                      <span>語速: {speechRate.toFixed(1)}x</span>
-                      <span className="text-base sm:text-lg opacity-85">Speech rate: {speechRate.toFixed(1)}x</span>
-                    </span>
+                    語速: {speechRate.toFixed(1)}x
                   </label>
                   <input
                     type="range"
@@ -413,10 +420,7 @@ export default function AACApp() {
                 </div>
                 <div>
                   <label className="block text-xl font-bold text-[#1e3a5f] mb-2">
-                    <span className="flex flex-col leading-tight">
-                      <span>音量: {Math.round(speechVolume * 100)}%</span>
-                      <span className="text-base sm:text-lg opacity-85">Volume: {Math.round(speechVolume * 100)}%</span>
-                    </span>
+                    音量: {Math.round(speechVolume * 100)}%
                   </label>
                   <input
                     type="range"
@@ -437,7 +441,7 @@ export default function AACApp() {
             <div className="mb-6 p-6 bg-white rounded-2xl shadow-xl border-4 border-[#1e3a5f] animate-fadeIn">
               <h3 className="text-2xl font-bold text-[#1e3a5f] mb-4 flex items-center gap-2">
                 <Icon emoji="📜" size={40} />
-                <BilingualText zh="歷史記錄" en="History" />
+                歷史記錄
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {history.map((item, index) => (
@@ -446,137 +450,151 @@ export default function AACApp() {
                     onClick={() => speak(item)}
                     className="px-6 py-4 bg-[#f5f5dc] text-[#1e3a5f] rounded-xl font-bold text-xl border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-105 transition-all duration-300 min-h-[60px]"
                   >
-                    {PHRASE_TRANSLATIONS[item] ? (
-                      <BilingualText
-                        zh={item}
-                        en={PHRASE_TRANSLATIONS[item]}
-                        className="items-center text-center"
-                        enClassName="text-lg sm:text-xl"
-                      />
-                    ) : (
-                      <span>{item}</span>
-                    )}
+                    {item}
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          {/* 自訂輸入區 */}
-          <div className="mb-6 p-6 bg-white rounded-2xl shadow-xl border-4 border-[#f97316]">
-            <h3 className="text-2xl font-bold text-[#1e3a5f] mb-4 flex items-center gap-2">
+          {/* 自訂訊息 */}
+          {!showCustomPanel ? (
+            <button
+              onClick={() => setShowCustomPanel(true)}
+              className="w-full mb-6 px-6 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-3"
+              aria-label="自訂訊息 Custom Message"
+            >
               <Icon emoji="📝" size={40} />
-              <BilingualText zh="自訂訊息" en="Custom Message" />
-            </h3>
-            
-            {/* 句子啟動按鈕 */}
-            <div className="mb-4 flex flex-wrap gap-3">
-              {SENTENCE_STARTERS.map((starter) => (
+              <BilingualText zh="自訂訊息" en="Custom Message" className="items-center text-center" enClassName="text-lg" />
+            </button>
+          ) : (
+            <div className="mb-6 p-6 bg-white rounded-2xl shadow-xl border-4 border-[#f97316]">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-2xl font-bold text-[#1e3a5f] flex items-center gap-2">
+                  <Icon emoji="📝" size={40} />
+                  <BilingualText zh="自訂訊息" en="Custom Message" enClassName="text-lg" />
+                </h3>
                 <button
-                  key={starter.text}
-                  onClick={() => handleStarterClick(starter.text)}
-                  className={`px-6 py-4 rounded-2xl font-bold text-xl border-3 transition-all duration-300 min-h-[60px] flex items-center gap-2 ${
-                    customText.startsWith(starter.text)
-                      ? 'bg-[#f97316] text-white border-[#f97316] shadow-lg scale-105'
-                      : 'bg-[#f5f5dc] text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-105'
-                  }`}
+                  onClick={() => {
+                    setShowCustomPanel(false);
+                    setShowSuggestions(false);
+                    setCurrentStarter('');
+                  }}
+                  className="text-[#1e3a5f] hover:text-[#f97316] text-2xl font-bold"
+                  aria-label="關閉 Close"
                 >
-                  <Icon emoji={starter.icon} size={32} />
-                  <BilingualText
-                    zh={starter.text}
-                    en={starter.en}
-                    className="items-start"
-                    enClassName="text-lg"
-                  />
+                  ✕
                 </button>
-              ))}
-            </div>
-            
-            {/* 建議詞語面板 */}
-            {showSuggestions && currentStarter && SUGGESTED_WORDS[currentStarter] && (
-              <div className="mb-4 p-4 bg-[#f5f5dc] rounded-2xl border-3 border-[#1e3a5f] animate-fadeIn">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-xl font-bold text-[#1e3a5f] flex items-center gap-2">
-                    <Icon emoji="💡" size={32} />
-                    <BilingualText zh="建議詞語" en="Suggestions" enClassName="text-lg" />
-                  </h4>
+              </div>
+
+              {/* 句子啟動按鈕 */}
+              <div className="mb-4 flex flex-col gap-3 items-center">
+                {visibleStarters.map((starter) => (
                   <button
-                    onClick={() => setShowSuggestions(false)}
-                    className="text-[#1e3a5f] hover:text-[#f97316] text-2xl font-bold"
+                    key={starter.text}
+                    onClick={() => handleStarterClick(starter.text)}
+                    className={`w-full px-6 py-5 rounded-2xl font-bold text-[110%] border-3 transition-all duration-300 min-h-[80px] flex items-center justify-center gap-4 ${
+                      currentStarter === starter.text
+                        ? 'bg-[#f97316] text-white border-[#f97316] shadow-lg scale-[1.02]'
+                        : 'bg-[#f5f5dc] text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-[1.02]'
+                    }`}
                   >
-                    ✕
+                    <Icon emoji={starter.icon} size={40} />
+                    <BilingualText
+                      zh={starter.text}
+                      en={starter.en}
+                      className="items-center text-center"
+                      enClassName="text-lg"
+                    />
                   </button>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-                  {SUGGESTED_WORDS[currentStarter].map((word, index) => (
+                ))}
+              </div>
+              
+              {/* 建議詞語面板 */}
+              {showSuggestions && currentStarter && SUGGESTED_WORDS[currentStarter] && (
+                <div className="mb-4 p-4 bg-[#f5f5dc] rounded-2xl border-3 border-[#1e3a5f] animate-fadeIn">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-xl font-bold text-[#1e3a5f] flex items-center gap-2">
+                      <Icon emoji="💡" size={32} />
+                      <BilingualText zh="建議詞語" en="Suggestions" enClassName="text-lg" />
+                    </h4>
                     <button
-                      key={index}
-                      onClick={() => handleSuggestionClick(word)}
-                      className="px-4 py-3 bg-white text-[#1e3a5f] rounded-xl font-bold text-lg border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-110 transition-all duration-300 shadow-md flex flex-col items-center gap-2"
+                      onClick={() => {
+                        setShowSuggestions(false);
+                        setCurrentStarter('');
+                      }}
+                      className="text-[#1e3a5f] hover:text-[#f97316] text-2xl font-bold"
+                      aria-label="關閉建議 Close suggestions"
                     >
-                      <Icon emoji={word.icon} size={32} />
-                      <BilingualText
-                        zh={word.text}
-                        en={word.en}
-                        className="items-center text-center"
-                        enClassName="text-base"
-                      />
+                      ✕
                     </button>
-                  ))}
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                    {SUGGESTED_WORDS[currentStarter].map((word, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestionClick(word)}
+                        className="px-4 py-4 bg-white text-[#1e3a5f] rounded-xl font-bold text-lg border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-110 transition-all duration-300 shadow-md flex flex-col items-center gap-2"
+                      >
+                        <Icon emoji={word.icon} size={32} />
+                        <BilingualText
+                          zh={word.text}
+                          en={word.en}
+                          className="items-center text-center"
+                          enClassName="text-base"
+                        />
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-            
-            {/* 輸入框和播放按鈕 */}
-            <div className="flex flex-wrap gap-3 justify-center">
-              <div className="flex-1 min-w-[280px] relative border-4 border-[#1e3a5f] rounded-2xl bg-[#f5f5dc] min-h-[70px] focus-within:border-[#f97316] transition-all duration-300">
-                <div className="absolute inset-0 px-6 py-4 pointer-events-none flex flex-col justify-center">
-                  {customText ? (
-                    <>
-                      <span className="text-2xl font-bold text-[#1e3a5f]">{customText}</span>
-                      {customEnglish && (
-                        <span className="text-xl sm:text-2xl font-semibold text-[#1e3a5f] opacity-85">
-                          {customEnglish}
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-2xl font-bold text-[#1e3a5f] opacity-50">輸入要說的話...</span>
-                      <span className="text-xl sm:text-2xl font-semibold text-[#1e3a5f] opacity-40">Type your message...</span>
-                    </>
-                  )}
+              )}
+              
+              {/* 輸入框和播放按鈕 */}
+              <div className="flex flex-wrap gap-3 justify-center">
+                <div className="flex-1 min-w-[280px] relative border-4 border-[#1e3a5f] rounded-2xl bg-[#f5f5dc] min-h-[80px] focus-within:border-[#f97316] transition-all duration-300">
+                  <div className="absolute inset-0 px-6 py-4 pointer-events-none flex flex-col justify-center">
+                    {customText ? (
+                      <>
+                        <span className="text-2xl font-bold text-[#1e3a5f]">{customText}</span>
+                        {customEnglish && (
+                          <span className="text-xl sm:text-2xl font-semibold text-[#1e3a5f] opacity-85">
+                            {customEnglish}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-2xl font-bold text-[#1e3a5f] opacity-50">輸入要說的話...</span>
+                        <span className="text-xl sm:text-2xl font-semibold text-[#1e3a5f] opacity-40">Type your message...</span>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    value={customText}
+                    onChange={(e) => setCustomText(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleCustomSpeak()}
+                    aria-label="輸入要說的話 / Type your message"
+                    className="absolute inset-0 w-full h-full bg-transparent text-transparent caret-[#1e3a5f] px-6 py-5 text-2xl font-bold rounded-2xl focus:outline-none"
+                  />
                 </div>
-                <input
-                  type="text"
-                  value={customText}
-                  onChange={(e) => setCustomText(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleCustomSpeak()}
-                  aria-label="輸入要說的話 / Type your message"
-                  className="absolute inset-0 w-full h-full bg-transparent text-transparent caret-[#1e3a5f] px-6 py-5 text-2xl font-bold rounded-2xl focus:outline-none"
-                />
+                <button
+                  onClick={handleCustomSpeak}
+                  disabled={!customText.trim() || isLoading}
+                  className="px-8 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-110 active:scale-95 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 min-h-[70px] min-w-[120px] flex items-center justify-center gap-2"
+                >
+                  <Icon emoji="🔊" size={40} />
+                  <BilingualText zh="播放" en="Play" className="items-center" enClassName="text-lg" />
+                </button>
               </div>
-              <button
-                onClick={handleCustomSpeak}
-                disabled={!customText.trim() || isLoading}
-                className="px-8 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-110 active:scale-95 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 min-h-[70px] min-w-[120px] flex items-center justify-center gap-2"
-              >
-                <Icon emoji="🔊" size={40} />
-                <BilingualText zh="播放" en="Play" className="items-center" enClassName="text-lg" />
-              </button>
             </div>
-          </div>
+          )}
 
           {/* 當前分類顯示 */}
           <div className="mb-6 text-center">
             <div className="inline-flex items-center gap-4 px-10 py-5 bg-[#1e3a5f] text-white rounded-2xl shadow-xl transition-all duration-500 hover:shadow-2xl hover:scale-110 transform border-4 border-[#f97316]">
               <Icon emoji={CATEGORY_ICONS[selectedCategory] || '📁'} size={64} className="transition-transform duration-300 hover:rotate-12 hover:scale-125" />
-              <BilingualText
-                zh={selectedCategory}
-                en={CATEGORY_LABELS[selectedCategory]}
-                className="items-center text-center text-3xl font-bold"
-                enClassName="text-lg sm:text-2xl font-semibold"
-              />
+              <span className="text-3xl font-bold">{selectedCategory}</span>
             </div>
           </div>
 
@@ -629,28 +647,28 @@ export default function AACApp() {
           <div className="mt-12 p-8 bg-white rounded-3xl shadow-2xl transition-all duration-500 hover:shadow-[0_20px_50px_rgba(30,58,95,0.3)] hover:scale-105 transform border-4 border-[#1e3a5f]">
             <h2 className="text-3xl font-bold text-[#1e3a5f] mb-6 flex items-center gap-3">
               <Icon emoji="📖" size={48} />
-              <BilingualText zh="使用說明" en="How to Use" enClassName="text-xl sm:text-2xl" />
+              使用說明
             </h2>
             <ul className="space-y-3 text-xl text-[#1e3a5f] font-semibold">
               <li className="transition-all duration-300 hover:translate-x-3 hover:text-[#f97316] flex items-center gap-3">
                 <Icon emoji="🔹" size={32} />
-                <BilingualText zh="點擊左上角選單選擇分類" en="Use the top-left menu to choose a category" />
+                點擊左上角選單選擇分類
               </li>
               <li className="transition-all duration-300 hover:translate-x-3 hover:text-[#f97316] flex items-center gap-3">
                 <Icon emoji="🔹" size={32} />
-                <BilingualText zh="點擊任何按鈕即可播放語音" en="Tap any button to play speech" />
+                點擊任何按鈕即可播放語音
               </li>
               <li className="transition-all duration-300 hover:translate-x-3 hover:text-[#f97316] flex items-center gap-3">
                 <Icon emoji="🔹" size={32} />
-                <BilingualText zh="使用自訂輸入框輸入任何想說的話" en="Type any message in the custom input" />
+                使用自訂輸入框輸入任何想說的話
               </li>
               <li className="transition-all duration-300 hover:translate-x-3 hover:text-[#f97316] flex items-center gap-3">
                 <Icon emoji="🔹" size={32} />
-                <BilingualText zh="在設定中調整語速和音量" en="Adjust speech rate and volume in Settings" />
+                在設定中調整語速和音量
               </li>
               <li className="transition-all duration-300 hover:translate-x-3 hover:text-[#f97316] flex items-center gap-3">
                 <Icon emoji="🔹" size={32} />
-                <BilingualText zh="查看歷史記錄快速重複使用" en="Use History to replay recent phrases" />
+                查看歷史記錄快速重複使用
               </li>
             </ul>
           </div>
