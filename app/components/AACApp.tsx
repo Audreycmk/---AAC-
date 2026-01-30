@@ -48,16 +48,60 @@ const PHRASES = [
   { id: 32, text: '我想休息', en: 'I want to rest', category: '求助', icon: '🛏️' },
   { id: 33, text: '我需要幫忙', en: 'I need help', category: '求助', icon: '🙋' },
   { id: 34, text: '請等等', en: 'Please wait', category: '求助', icon: '⏰' },
+
+  // 個人物品
+  { id: 35, text: '銀包', en: 'Wallet', category: '個人物品', icon: '💳' },
+  { id: 36, text: '手機', en: 'Mobile phone', category: '個人物品', icon: '📱' },
+  { id: 37, text: '眼鏡', en: 'Glasses', category: '個人物品', icon: '👓' },
+  { id: 38, text: '口罩', en: 'Mask', category: '個人物品', icon: '😷' },
+  { id: 39, text: '鎖匙', en: 'Key', category: '個人物品', icon: '🔑' },
+  { id: 40, text: '袋', en: 'Bag', category: '個人物品', icon: '👜' },
+  { id: 41, text: '外套', en: 'Jacket', category: '個人物品', icon: '🧥' },
+  { id: 42, text: '橡筋', en: 'Hair tie', category: '個人物品', icon: '💁' },
+
+  // 家居用品
+  { id: 43, text: '電視', en: 'Television', category: '家居用品', icon: '📺' },
+  { id: 44, text: '門', en: 'Door', category: '家居用品', icon: '🚪' },
+  { id: 45, text: '冷氣', en: 'Air conditioner', category: '家居用品', icon: '❄️' },
+  { id: 46, text: '暖爐', en: 'Heater', category: '家居用品', icon: '🔥' },
+  { id: 47, text: '窗', en: 'Window', category: '家居用品', icon: '🪟' },
+  { id: 48, text: '燈', en: 'Light', category: '家居用品', icon: '💡' },
+  { id: 49, text: '匙羹', en: 'Spoon', category: '家居用品', icon: '🥄' },
+  { id: 50, text: '叉', en: 'Fork', category: '家居用品', icon: '🍴' },
+
+  // 水果
+  { id: 51, text: '提子', en: 'Grapes', category: '水果', icon: '🍇' },
+  { id: 52, text: '香蕉', en: 'Banana', category: '水果', icon: '🍌' },
+  { id: 53, text: '蘋果', en: 'Apple', category: '水果', icon: '🍎' },
+  { id: 54, text: '橙', en: 'Orange', category: '水果', icon: '🍊' },
+  { id: 55, text: '荔枝', en: 'Lychee', category: '水果', icon: '🍑' },
+  { id: 56, text: '菠蘿', en: 'Pineapple', category: '水果', icon: '🍍' },
+  { id: 57, text: '桃', en: 'Peach', category: '水果', icon: '🍑' },
+  { id: 58, text: '榴槤', en: 'Durian', category: '水果', icon: '🟡' },
+
+  // 地方
+  { id: 59, text: '廁所', en: 'Toilet', category: '地方', icon: '🚻' },
+  { id: 60, text: '睡房', en: 'Bedroom', category: '地方', icon: '🛏️' },
+  { id: 61, text: '超市', en: 'Supermarket', category: '地方', icon: '🏬' },
+  { id: 62, text: '李鄭屋中心', en: 'Lei Cheng Uk Center', category: '地方', icon: '🏢' },
+  { id: 63, text: '醫院', en: 'Hospital', category: '地方', icon: '🏥' },
+  { id: 64, text: '酒樓', en: 'Chinese restaurant', category: '地方', icon: '🍽️' },
+  { id: 65, text: '公園', en: 'Park', category: '地方', icon: '🌳' },
+  { id: 66, text: '茶餐廳', en: 'Cha Chaan Teng', category: '地方', icon: '☕' },
 ];
 
 // 分類圖示映射（新配色主題）
 const CATEGORY_ICONS: Record<string, string> = {
   '全部': '📋',
-  '日常': '🏠',
+  '日常': '👋',
   '飲食': '🍔',
   '醫療': '🏥',
   '情緒': '😊',
   '求助': '🆘',
+  '個人物品': '👜',
+  '家居用品': '🏠',
+  '水果': '🍎',
+  '地方': '📍',
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -67,6 +111,10 @@ const CATEGORY_LABELS: Record<string, string> = {
   '醫療': 'Medical',
   '情緒': 'Emotions',
   '求助': 'Help',
+  '個人物品': 'Personal Items',
+  '家居用品': 'Home Items',
+  '水果': 'Fruits',
+  '地方': 'Places',
 };
 
 // 句子啟動器和建議詞語
@@ -165,6 +213,7 @@ export default function AACApp() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [currentStarter, setCurrentStarter] = useState('');
   const [showCustomPanel, setShowCustomPanel] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>(['個人物品', '家居用品', '水果', '地方']);
 
   useEffect(() => {
     // 檢查瀏覽器是否支援 Web Speech API
@@ -296,6 +345,14 @@ export default function AACApp() {
     setCurrentStarter('');
   };
 
+  const toggleFavorite = (category: string) => {
+    if (favorites.includes(category)) {
+      setFavorites(favorites.filter(fav => fav !== category));
+    } else {
+      setFavorites([...favorites, category]);
+    }
+  };
+
   const categories = ['全部', ...Array.from(new Set(PHRASES.map(p => p.category)))];
   const filteredPhrases = selectedCategory === '全部' 
     ? PHRASES 
@@ -384,6 +441,51 @@ export default function AACApp() {
             <Icon emoji="📝" size={40} />
             <BilingualText zh="自訂訊息" en="Custom Message" className="items-center text-center" enClassName="text-lg" />
           </button>
+          
+          <h2 className={`text-3xl font-bold text-[#1e3a5f] mb-6 transition-all duration-700 ${
+            menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
+          }`}>
+            <BilingualText zh="常用選單" en="Favorites" enClassName="text-lg sm:text-xl" />
+          </h2>
+          <nav className="space-y-3 mb-8">
+            {['個人物品', '家居用品', '水果', '地方'].map((category, index) => (
+              <button
+                key={category}
+                onClick={() => {
+                  setSelectedCategory(category);
+                  setMenuOpen(false);
+                }}
+                className={`w-full text-left px-6 py-5 rounded-2xl text-2xl font-bold transition-all duration-300 flex items-center gap-4 transform hover:translate-x-2 hover:shadow-xl min-h-[70px] ${
+                  selectedCategory === category
+                    ? 'bg-[#1e3a5f] text-white shadow-lg scale-105'
+                    : 'bg-[#f5f5dc] text-[#1e3a5f] border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-105'
+                } ${menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'}`}
+                style={{ 
+                  transitionDelay: menuOpen ? `${index * 50}ms` : '0ms'
+                }}
+              >
+                <Icon emoji={CATEGORY_ICONS[category] || '📁'} size={48} />
+                <span className="flex-1">
+                  <BilingualText
+                    zh={category}
+                    en={CATEGORY_LABELS[category]}
+                    className="items-start"
+                    enClassName="text-base sm:text-lg"
+                  />
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(category);
+                  }}
+                  className="transition-all duration-300 hover:scale-125"
+                  aria-label="移除最愛 Remove favorite"
+                >
+                  <Icon emoji="❤️" size={32} />
+                </button>
+              </button>
+            ))}
+          </nav>
           
           <h2 className={`text-3xl font-bold text-[#1e3a5f] mb-6 transition-all duration-700 ${
             menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
