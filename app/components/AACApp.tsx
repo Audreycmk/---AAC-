@@ -424,7 +424,7 @@ export default function AACApp() {
         } w-80 pt-20`}
       >
         <div className="p-6 h-full overflow-y-auto">
-          {/* 自訂訊息按鈕（在菜單內） */}
+          {/* 自訂句子按鈕（在菜單內） */}
           <button
             onClick={() => {
               setShowCustomPanel(!showCustomPanel);
@@ -436,10 +436,10 @@ export default function AACApp() {
             style={{ 
               transitionDelay: menuOpen ? '50ms' : '0ms'
             }}
-            aria-label="自訂訊息 Custom Message"
+            aria-label="自訂句子 Custom Sentence"
           >
             <Icon emoji="📝" size={40} />
-            <BilingualText zh="自訂訊息" en="Custom Message" className="items-center text-center" enClassName="text-lg" />
+            <BilingualText zh="自訂句子" en="Custom Sentence" className="items-center text-center" enClassName="text-lg" />
           </button>
           
           <h2 className={`text-3xl font-bold text-[#1e3a5f] mb-6 transition-all duration-700 ${
@@ -627,22 +627,22 @@ export default function AACApp() {
             </div>
           )}
 
-          {/* 自訂訊息 */}
+          {/* 自訂句子 */}
           {!showCustomPanel ? (
             <button
               onClick={() => setShowCustomPanel(true)}
               className="w-full mb-6 px-6 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-3"
-              aria-label="自訂訊息 Custom Message"
+              aria-label="自訂句子 Custom Sentence"
             >
               <Icon emoji="📝" size={40} />
-              <BilingualText zh="自訂訊息" en="Custom Message" className="items-center text-center" enClassName="text-lg" />
+              <BilingualText zh="自訂句子" en="Custom Sentence" className="items-center text-center" enClassName="text-lg" />
             </button>
           ) : (
             <div className="mb-6 p-6 bg-white rounded-2xl shadow-xl border-4 border-[#f97316]">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-2xl font-bold text-[#1e3a5f] flex items-center gap-2">
                   <Icon emoji="📝" size={40} />
-                  <BilingualText zh="自訂訊息" en="Custom Message" enClassName="text-lg" />
+                  <BilingualText zh="自訂句子" en="Custom Sentence" enClassName="text-lg" />
                 </h3>
                 <button
                   onClick={() => {
