@@ -950,16 +950,10 @@ export default function AACApp() {
         </button>
         
         <h1 className="text-lg sm:text-3xl font-bold flex-1 text-center mx-2 sm:mx-0">
-          <BilingualText
-            zh="AAC 輔助通訊"
-            en=""
-            className="items-center flex-col sm:flex-row gap-1 sm:gap-0"
-            enClassName="text-base sm:text-lg font-semibold hidden sm:inline"
-          />
-          <div className="sm:hidden text-sm leading-tight">
-            <div>AAC</div>
-            <div>輔助</div>
-            <div>通訊</div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-0 sm:gap-1">
+            <div className="whitespace-nowrap">AAC</div>
+            <div className="whitespace-nowrap">輔助</div>
+            <div className="whitespace-nowrap">通訊</div>
           </div>
         </h1>
         
@@ -1272,7 +1266,7 @@ export default function AACApp() {
 
       {/* Footer */}
       <footer className="fixed bottom-0 left-0 right-0 bg-[#1e3a5f] text-white border-t-4 border-[#f97316] shadow-2xl z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4 text-center">
+        <div className="max-w-7xl mx-auto px-6 py-[12px] text-center">
           {!hasFullAccess() ? (
             <>
               <button
