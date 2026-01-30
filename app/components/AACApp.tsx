@@ -1834,7 +1834,7 @@ export default function AACApp() {
                 {/* Image Upload */}
                 <div>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-[#f97316] text-white rounded-full flex items-center justify-center font-bold text-xl shadow-lg">1</div>
+                    <div className="w-10 h-10 text-[#1e3a5f] rounded-full flex items-center justify-center font-bold text-xl">1</div>
                     <h4 className="text-2xl font-bold text-[#1e3a5f]">
                       <BilingualText zh="上傳圖片" en="Upload Image" enClassName="text-lg" />
                     </h4>
@@ -1934,7 +1934,7 @@ export default function AACApp() {
                 {/* Text Inputs */}
                 <div>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-[#f97316] text-white rounded-full flex items-center justify-center font-bold text-xl shadow-lg">2</div>
+                    <div className="w-10 h-10 text-[#1e3a5f] rounded-full flex items-center justify-center font-bold text-xl">2</div>
                     <h4 className="text-2xl font-bold text-[#1e3a5f]">
                       <BilingualText zh="輸入詞語" en="Enter Words" enClassName="text-lg" />
                     </h4>
@@ -1971,7 +1971,7 @@ export default function AACApp() {
                 {/* Category Selector */}
                 <div>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-[#f97316] text-white rounded-full flex items-center justify-center font-bold text-xl shadow-lg">3</div>
+                    <div className="w-10 h-10 text-[#1e3a5f] rounded-full flex items-center justify-center font-bold text-xl">3</div>
                     <h4 className="text-2xl font-bold text-[#1e3a5f]">
                       <BilingualText zh="選擇分類" en="Choose Category" enClassName="text-lg" />
                     </h4>
