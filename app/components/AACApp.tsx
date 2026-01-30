@@ -1374,6 +1374,23 @@ export default function AACApp() {
                     onChange={(e) => setLoginCode(e.target.value)}
                     className="w-full px-4 py-3 border-2 border-[#1e3a5f] rounded-xl font-bold text-lg bg-white text-[#1e3a5f] outline-none focus:border-[#f97316] focus:bg-yellow-50"
                   />
+                  
+                  {/* Get Login Code Button */}
+                  <div className="border-t-2 border-gray-200 pt-4">
+                    <p className="text-sm font-semibold text-[#1e3a5f] mb-2">
+                      需要登入碼？ / Need a Login Code?
+                    </p>
+                    <a
+                      href="mailto:audreycmk@gmail.com?subject=AAC%20Login%20Code%20Request&body=Hi%2C%0A%0AI%20would%20like%20to%20request%20a%20login%20code%20for%20the%20AAC%20app.%0A%0AThank%20you!"
+                      className="w-full px-4 py-3 bg-[#f97316] text-white rounded-xl font-bold hover:bg-[#ea580c] transition-all duration-300 flex items-center justify-center gap-2"
+                    >
+                      <Icon emoji="📧" size={24} />
+                      <span>取得登入碼 / Get Login Code</span>
+                    </a>
+                    <p className="text-xs text-gray-600 mt-2 text-center">
+                      audreycmk@gmail.com
+                    </p>
+                  </div>
                 </div>
                 <div className="flex gap-3">
                   <button
