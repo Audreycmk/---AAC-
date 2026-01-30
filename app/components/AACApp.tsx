@@ -258,7 +258,6 @@ export default function AACApp() {
   const handleCustomSpeak = () => {
     if (customText.trim()) {
       speak(customText);
-      setCustomText('');
       setShowSuggestions(false);
       setCurrentStarter('');
     }
@@ -272,13 +271,22 @@ export default function AACApp() {
   
   const handleSuggestionClick = (word: {text: string, en: string, icon: string}) => {
     setCustomText(customText + word.text);
-    setShowSuggestions(false);
   };
 
   const categories = ['全部', ...Array.from(new Set(PHRASES.map(p => p.category)))];
   const filteredPhrases = selectedCategory === '全部' 
     ? PHRASES 
     : PHRASES.filter(p => p.category === selectedCategory);
+
+  const starterMatch = SENTENCE_STARTERS.find((starter) => customText.startsWith(starter.text));
+  const starterTail = starterMatch ? customText.slice(starterMatch.text.length) : '';
+  const suggestionMatch = starterMatch && starterTail
+    ? SUGGESTED_WORDS[starterMatch.text]?.find((word) => word.text === starterTail)
+    : undefined;
+  const customEnglish =
+    PHRASE_TRANSLATIONS[customText] ||
+    (starterMatch && suggestionMatch ? `${starterMatch.en} ${suggestionMatch.en}` : '') ||
+    (starterMatch && !starterTail ? starterMatch.en : '');
 
   return (
     <div className="min-h-screen bg-[#f5f5dc]">
@@ -521,15 +529,33 @@ export default function AACApp() {
             
             {/* 輸入框和播放按鈕 */}
             <div className="flex flex-wrap gap-3 justify-center">
-              <input
-                type="text"
-                value={customText}
-                onChange={(e) => setCustomText(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleCustomSpeak()}
-                onFocus={() => setShowSuggestions(false)}
-                placeholder="輸入要說的話... / Type your message..."
-                className="flex-1 min-w-[280px] px-6 py-5 text-2xl font-bold border-4 border-[#1e3a5f] rounded-2xl focus:outline-none focus:border-[#f97316] transition-all duration-300 bg-[#f5f5dc] min-h-[70px]"
-              />
+              <div className="flex-1 min-w-[280px] relative border-4 border-[#1e3a5f] rounded-2xl bg-[#f5f5dc] min-h-[70px] focus-within:border-[#f97316] transition-all duration-300">
+                <div className="absolute inset-0 px-6 py-4 pointer-events-none flex flex-col justify-center">
+                  {customText ? (
+                    <>
+                      <span className="text-2xl font-bold text-[#1e3a5f]">{customText}</span>
+                      {customEnglish && (
+                        <span className="text-xl sm:text-2xl font-semibold text-[#1e3a5f] opacity-85">
+                          {customEnglish}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-2xl font-bold text-[#1e3a5f] opacity-50">輸入要說的話...</span>
+                      <span className="text-xl sm:text-2xl font-semibold text-[#1e3a5f] opacity-40">Type your message...</span>
+                    </>
+                  )}
+                </div>
+                <input
+                  type="text"
+                  value={customText}
+                  onChange={(e) => setCustomText(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleCustomSpeak()}
+                  aria-label="輸入要說的話 / Type your message"
+                  className="absolute inset-0 w-full h-full bg-transparent text-transparent caret-[#1e3a5f] px-6 py-5 text-2xl font-bold rounded-2xl focus:outline-none"
+                />
+              </div>
               <button
                 onClick={handleCustomSpeak}
                 disabled={!customText.trim() || isLoading}
