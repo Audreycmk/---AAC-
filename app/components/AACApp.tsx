@@ -1099,7 +1099,7 @@ export default function AACApp() {
                   className="ml-4 transition-all duration-300 hover:scale-125"
                   aria-label={favorites.includes(selectedCategory) ? '移除最愛' : '加入最愛'}
                 >
-                  <Icon emoji={favorites.includes(selectedCategory) ? '❤️' : '🤍'} size={48} />
+                  <Icon emoji={favorites.includes(selectedCategory) ? '❤️' : '🤍'} size={30} />
                 </button>
               )}
             </div>
