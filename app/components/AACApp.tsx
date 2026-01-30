@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Icon from './Icon';
 
 // 常用廣東話短語（附圖示）- 按新分類重組
@@ -237,9 +237,22 @@ export default function AACApp() {
     category: '',
     newCategory: '',
   });
+  const [newCategoryEmoji, setNewCategoryEmoji] = useState('📁');
   const [addVocabLang, setAddVocabLang] = useState<'zh' | 'en'>('zh');
   const [vocabError, setVocabError] = useState('');
   const [vocabSuccess, setVocabSuccess] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showCategoryEmojiPicker, setShowCategoryEmojiPicker] = useState(false);
+  const [showCreateCategory, setShowCreateCategory] = useState(false);
+  const [customCategoryIcons, setCustomCategoryIcons] = useState<Record<string, string>>({});
+  const [customCategoryNames, setCustomCategoryNames] = useState<Record<string, { zh: string; en: string }>>({});
+  const [editFavoritesMode, setEditFavoritesMode] = useState(false);
+  const [editCategoriesMode, setEditCategoriesMode] = useState(false);
+  const [editingCategoryName, setEditingCategoryName] = useState<Record<string, { zh: string; en: string }>>({});
+  const [deleteCategoryConfirm, setDeleteCategoryConfirm] = useState<string | null>(null);
+  const [draggedCategory, setDraggedCategory] = useState<string | null>(null);
+  const [showCategoryEmojiPickerFor, setShowCategoryEmojiPickerFor] = useState<string | null>(null);
+  const emojiInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // 檢查瀏覽器是否支援 Web Speech API
@@ -264,6 +277,18 @@ export default function AACApp() {
     const savedHistory = localStorage.getItem('aac-history');
     if (savedHistory) {
       setHistory(JSON.parse(savedHistory));
+    }
+
+    // 從 localStorage 載入自訂分類圖示
+    const savedCategoryIcons = localStorage.getItem('custom-category-icons');
+    if (savedCategoryIcons) {
+      setCustomCategoryIcons(JSON.parse(savedCategoryIcons));
+    }
+
+    // 從 localStorage 載入自訂詞語
+    const savedCustomPhrases = localStorage.getItem('custom-vocab');
+    if (savedCustomPhrases) {
+      setCustomPhrases(JSON.parse(savedCustomPhrases));
     }
   }, []);
 
@@ -379,6 +404,85 @@ export default function AACApp() {
     }
   };
 
+  const moveFavoriteUp = (index: number) => {
+    if (index > 0) {
+      const newFavorites = [...favorites];
+      [newFavorites[index], newFavorites[index - 1]] = [newFavorites[index - 1], newFavorites[index]];
+      setFavorites(newFavorites);
+    }
+  };
+
+  const moveFavoriteDown = (index: number) => {
+    if (index < favorites.length - 1) {
+      const newFavorites = [...favorites];
+      [newFavorites[index], newFavorites[index + 1]] = [newFavorites[index + 1], newFavorites[index]];
+      setFavorites(newFavorites);
+    }
+  };
+
+  const updateCategoryEmoji = (oldName: string, newEmoji: string) => {
+    const updatedIcons = { ...customCategoryIcons };
+    if (updatedIcons[oldName]) {
+      updatedIcons[oldName] = newEmoji;
+      setCustomCategoryIcons(updatedIcons);
+      localStorage.setItem('custom-category-icons', JSON.stringify(updatedIcons));
+    }
+  };
+
+  const updateCategoryName = (oldName: string, newName: string) => {
+    if (!newName.trim()) return;
+    
+    // Update customPhrases
+    const updatedPhrases = customPhrases.map(phrase => 
+      phrase.category === oldName ? { ...phrase, category: newName } : phrase
+    );
+    setCustomPhrases(updatedPhrases);
+    localStorage.setItem('custom-vocab', JSON.stringify(updatedPhrases));
+    
+    // Update customCategoryIcons
+    const updatedIcons = { ...customCategoryIcons };
+    if (updatedIcons[oldName]) {
+      updatedIcons[newName] = updatedIcons[oldName];
+      delete updatedIcons[oldName];
+      setCustomCategoryIcons(updatedIcons);
+      localStorage.setItem('custom-category-icons', JSON.stringify(updatedIcons));
+    }
+    
+    // Update favorites
+    setFavorites(favorites.map(fav => fav === oldName ? newName : fav));
+    
+    // Reset edit state
+    setEditingCategoryName(prev => {
+      const updated = { ...prev };
+      delete updated[oldName];
+      return updated;
+    });
+  };
+
+  const deleteCategory = (category: string) => {
+    // Remove from customPhrases
+    const updatedPhrases = customPhrases.filter(phrase => phrase.category !== category);
+    setCustomPhrases(updatedPhrases);
+    localStorage.setItem('custom-vocab', JSON.stringify(updatedPhrases));
+    
+    // Remove from customCategoryIcons
+    const updatedIcons = { ...customCategoryIcons };
+    delete updatedIcons[category];
+    setCustomCategoryIcons(updatedIcons);
+    localStorage.setItem('custom-category-icons', JSON.stringify(updatedIcons));
+    
+    // Remove from favorites
+    setFavorites(favorites.filter(fav => fav !== category));
+    
+    // Reset states
+    setDeleteCategoryConfirm(null);
+    setEditingCategoryName(prev => {
+      const updated = { ...prev };
+      delete updated[category];
+      return updated;
+    });
+  };
+
   // ========== Add Vocabulary Functions ==========
   
   const validatePhrase = (phrase: Partial<typeof PHRASES[0]>) => {
@@ -398,6 +502,8 @@ export default function AACApp() {
       category: '',
       newCategory: '',
     });
+    setNewCategoryEmoji('📁');
+    setShowCreateCategory(false);
     setAddVocabLang('zh');
     setVocabError('');
     setVocabSuccess(false);
@@ -421,7 +527,9 @@ export default function AACApp() {
       return;
     }
 
-    const finalCategory = addVocabInput.category || addVocabInput.newCategory;
+    const selectedCat = addVocabInput.category || addVocabInput.newCategory;
+    let finalCategory = selectedCat;
+    
     const newId = Math.max(...PHRASES.map((p: typeof PHRASES[0]) => p.id), ...customPhrases.map((p: typeof PHRASES[0]) => p.id), 0) + 1;
     
     const newPhrase: typeof PHRASES[0] = {
@@ -434,6 +542,16 @@ export default function AACApp() {
 
     const updatedCustomPhrases = [...customPhrases, newPhrase];
     setCustomPhrases(updatedCustomPhrases);
+    
+    // Save category emoji if creating new category with custom emoji
+    if (addVocabInput.newCategory && !addVocabInput.category && newCategoryEmoji !== '📁') {
+      const updatedCategoryIcons = {
+        ...customCategoryIcons,
+        [finalCategory]: newCategoryEmoji
+      };
+      setCustomCategoryIcons(updatedCategoryIcons);
+      localStorage.setItem('custom-category-icons', JSON.stringify(updatedCategoryIcons));
+    }
     
     // Save to localStorage
     localStorage.setItem('custom-vocab', JSON.stringify(updatedCustomPhrases));
@@ -553,81 +671,232 @@ export default function AACApp() {
             <BilingualText zh="自訂句子" en="Custom Sentence" className="items-center text-center" enClassName="text-lg" />
           </button>
           
-          <h2 className={`text-3xl font-bold text-[#1e3a5f] mb-6 transition-all duration-700 ${
+          <div className={`flex items-center gap-3 mb-6 transition-all duration-700 ${
             menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
           }`}>
-            <BilingualText zh="常用選單" en="Favorites" enClassName="text-lg sm:text-xl" />
-          </h2>
+            <h2 className="text-3xl font-bold text-[#1e3a5f]">
+              <BilingualText zh="常用選單" en="Favorites" enClassName="text-lg sm:text-xl" />
+            </h2>
+          </div>
           <nav className="space-y-3 mb-8">
             {favorites.map((category, index) => (
-              <button
-                key={category}
-                onClick={() => {
-                  setSelectedCategory(category);
-                  setMenuOpen(false);
+              <div 
+                key={category} 
+                className={`transition-all duration-300 ${menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'}`} 
+                style={{ transitionDelay: menuOpen ? `${index * 50}ms` : '0ms' }}
+                draggable={editFavoritesMode}
+                onDragStart={(e) => {
+                  setDraggedCategory(category);
+                  if (e.dataTransfer) {
+                    e.dataTransfer.effectAllowed = 'move';
+                  }
                 }}
-                className={`w-full text-left px-6 py-5 rounded-2xl text-2xl font-bold transition-all duration-300 flex items-center gap-4 transform hover:translate-x-2 hover:shadow-xl min-h-[70px] ${
-                  selectedCategory === category
-                    ? 'bg-[#1e3a5f] text-white shadow-lg scale-105'
-                    : 'bg-[#f5f5dc] text-[#1e3a5f] border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-105'
-                } ${menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'}`}
-                style={{ 
-                  transitionDelay: menuOpen ? `${index * 50}ms` : '0ms'
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (e.dataTransfer) {
+                    e.dataTransfer.dropEffect = 'move';
+                  }
                 }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (draggedCategory && draggedCategory !== category) {
+                    const draggedIdx = favorites.indexOf(draggedCategory);
+                    const targetIdx = index;
+                    const newFavorites = [...favorites];
+                    [newFavorites[draggedIdx], newFavorites[targetIdx]] = [newFavorites[targetIdx], newFavorites[draggedIdx]];
+                    setFavorites(newFavorites);
+                    setDraggedCategory(null);
+                  }
+                }}
+                onDragEnd={() => setDraggedCategory(null)}
               >
-                <Icon emoji={CATEGORY_ICONS[category] || '📁'} size={48} />
-                <span className="flex-1">
-                  <BilingualText
-                    zh={category}
-                    en={CATEGORY_LABELS[category]}
-                    className="items-start"
-                    enClassName="text-base sm:text-lg"
+                <div className={`w-full text-left px-6 py-5 rounded-2xl text-2xl font-bold transition-all duration-300 flex items-center gap-4 transform hover:translate-x-2 hover:shadow-xl min-h-[70px] ${
+                  draggedCategory === category && editFavoritesMode ? 'opacity-50 scale-95' : ''
+                } ${
+                  editFavoritesMode
+                    ? 'bg-[#f5f5dc] text-[#1e3a5f] border-2 border-[#f97316] cursor-move'
+                    : selectedCategory === category
+                      ? 'bg-[#1e3a5f] text-white shadow-lg scale-105'
+                      : 'bg-[#f5f5dc] text-[#1e3a5f] border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-105 translate-x-0 opacity-100'
+                }`}>
+                  {editFavoritesMode ? (
+                    // Edit mode
+                    <div className="w-full flex items-center gap-3">
+                      <button
+                        onClick={() => setShowCategoryEmojiPickerFor(showCategoryEmojiPickerFor === category ? null : category)}
+                        className="px-3 py-2 bg-[#f97316] text-white rounded-xl text-3xl hover:scale-110 transition-all duration-300 flex-shrink-0"
+                      >
+                        {customCategoryIcons[category] || CATEGORY_ICONS[category] || '📁'}
+                      </button>
+                      <div className="flex flex-col gap-2 flex-1">
+                        <input
+                          type="text"
+                          value={editingCategoryName[category]?.zh ?? category}
+                          onChange={(e) => setEditingCategoryName(prev => ({ ...prev, [category]: { ...prev[category], zh: e.target.value } }))}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          className="max-w-[120px] px-3 py-2 border-2 border-[#1e3a5f] rounded-lg font-bold text-base bg-white text-[#1e3a5f] outline-none focus:border-[#f97316] focus:bg-yellow-50"
+                          placeholder="中文 Chinese"
+                        />
+                        <input
+                          type="text"
+                          value={editingCategoryName[category]?.en ?? CATEGORY_LABELS[category] ?? ''}
+                          onChange={(e) => setEditingCategoryName(prev => ({ ...prev, [category]: { ...prev[category], en: e.target.value } }))}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          className="max-w-[120px] px-3 py-2 border-2 border-[#1e3a5f] rounded-lg font-bold text-base bg-white text-[#1e3a5f] outline-none focus:border-[#f97316] focus:bg-yellow-50"
+                          placeholder="English"
+                        />
+                      </div>
+                      <button
+                        onClick={() => setDeleteCategoryConfirm(category)}
+                        className="px-3 py-2 text-2xl hover:scale-125 transition-all duration-300 flex-shrink-0"
+                      >
+                        ⛔️
+                      </button>
+                    </div>
+                  ) : (
+                    // Normal mode - show category button
+                    <>
+                      <Icon emoji={customCategoryIcons[category] || CATEGORY_ICONS[category] || '📁'} size={48} className="flex-shrink-0" />
+                      <span className="flex-1">
+                        <BilingualText
+                          zh={customCategoryNames[category]?.zh ?? category}
+                          en={customCategoryNames[category]?.en ?? CATEGORY_LABELS[category]}
+                          className="items-start"
+                          enClassName="text-base sm:text-lg"
+                        />
+                      </span>
+                      <button
+                        onClick={() => toggleFavorite(category)}
+                        className="transition-all duration-300 hover:scale-125 flex-shrink-0"
+                        aria-label={favorites.includes(category) ? '移除最愛' : '加入最愛'}
+                      >
+                        <Icon emoji={favorites.includes(category) ? '❤️' : '🤍'} size={24} />
+                      </button>
+                    </>
+                  )}
+                </div>
+                {!editFavoritesMode && (
+                  <button
+                    onClick={() => {
+                      setSelectedCategory(category);
+                      setMenuOpen(false);
+                    }}
+                    className="absolute inset-0 w-full h-full"
+                    aria-label={`Select ${category}`}
                   />
-                </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(category);
-                  }}
-                  className="transition-all duration-300 hover:scale-125"
-                  aria-label="移除最愛 Remove favorite"
-                >
-                  <Icon emoji="❤️" size={30} />
-                </button>
-              </button>
+                )}
+              </div>
             ))}
           </nav>
           
-          <h2 className={`text-3xl font-bold text-[#1e3a5f] mb-6 transition-all duration-700 ${
+          <div className={`flex items-center gap-3 mb-6 transition-all duration-700 ${
             menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
           }`}>
-            <BilingualText zh="分類選單" en="Categories" enClassName="text-lg sm:text-xl" />
-          </h2>
+            <h2 className="text-3xl font-bold text-[#1e3a5f]">
+              <BilingualText zh="分類選單" en="Categories" enClassName="text-lg sm:text-xl" />
+            </h2>
+            <button
+              onClick={() => {
+                if (editCategoriesMode) {
+                  // Save edits
+                  Object.entries(editingCategoryName).forEach(([category, names]) => {
+                    setCustomCategoryNames(prev => ({ ...prev, [category]: names }));
+                  });
+                }
+                setEditCategoriesMode(!editCategoriesMode);
+                setEditingCategoryName({});
+                setShowCategoryEmojiPickerFor(null);
+              }}
+              className="ml-auto px-4 py-2 bg-[#f97316] text-white rounded-xl font-bold text-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[50px] flex items-center justify-center gap-2"
+              aria-label={editCategoriesMode ? '保存' : '編輯'}
+            >
+              <Icon emoji={editCategoriesMode ? '✔️' : '✏️'} size={24} />
+            </button>
+          </div>
           <nav className="space-y-3 mb-8">
             {categories.map((category, index) => (
-              <button
+              <div
                 key={category}
-                onClick={() => {
-                  setSelectedCategory(category);
-                  setMenuOpen(false);
+                className={`transition-all duration-300 ${menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'}`}
+                style={{ transitionDelay: menuOpen ? `${index * 50}ms` : '0ms' }}
+                draggable={editCategoriesMode}
+                onDragStart={() => setDraggedCategory(category)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => {
+                  // Categories are read-only derived, so drag is visual only
+                  setDraggedCategory(null);
                 }}
-                className={`w-full text-left px-6 py-5 rounded-2xl text-2xl font-bold transition-all duration-300 flex items-center gap-4 transform hover:translate-x-2 hover:shadow-xl min-h-[70px] ${
-                  selectedCategory === category
-                    ? 'bg-[#1e3a5f] text-white shadow-lg scale-105'
-                    : 'bg-[#f5f5dc] text-[#1e3a5f] border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-105'
-                } ${menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'}`}
-                style={{ 
-                  transitionDelay: menuOpen ? `${index * 50}ms` : '0ms'
-                }}
+                onDragEnd={() => setDraggedCategory(null)}
               >
-                <Icon emoji={CATEGORY_ICONS[category] || '📁'} size={48} />
-                <BilingualText
-                  zh={category}
-                  en={CATEGORY_LABELS[category]}
-                  className="items-start"
-                  enClassName="text-base sm:text-lg"
-                />
-              </button>
+                <div className={`w-full text-left px-6 py-5 rounded-2xl text-2xl font-bold transition-all duration-300 flex items-center gap-4 transform hover:translate-x-2 hover:shadow-xl min-h-[70px] ${
+                  editCategoriesMode
+                    ? 'bg-[#f5f5dc] text-[#1e3a5f] border-2 border-[#f97316] cursor-move'
+                    : selectedCategory === category
+                      ? 'bg-[#1e3a5f] text-white shadow-lg scale-105'
+                      : 'bg-[#f5f5dc] text-[#1e3a5f] border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-105 translate-x-0 opacity-100'
+                }`}>
+                  {editCategoriesMode ? (
+                    // Edit mode
+                    <div className="w-full flex items-center gap-3">
+                      <button
+                        onClick={() => setShowCategoryEmojiPickerFor(showCategoryEmojiPickerFor === category ? null : category)}
+                        className="px-3 py-2 bg-[#f97316] text-white rounded-xl text-3xl hover:scale-110 transition-all duration-300 flex-shrink-0"
+                      >
+                        {customCategoryIcons[category] || CATEGORY_ICONS[category] || '📁'}
+                      </button>
+                      <div className="flex flex-col gap-2 flex-1">
+                        <input
+                          type="text"
+                          value={editingCategoryName[category]?.zh ?? category}
+                          onChange={(e) => setEditingCategoryName(prev => ({ ...prev, [category]: { ...prev[category], zh: e.target.value } }))}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          className="max-w-[120px] px-3 py-2 border-2 border-[#1e3a5f] rounded-lg font-bold text-base bg-white text-[#1e3a5f] outline-none focus:border-[#f97316] focus:bg-yellow-50"
+                          placeholder="中文 Chinese"
+                        />
+                        <input
+                          type="text"
+                          value={editingCategoryName[category]?.en ?? CATEGORY_LABELS[category] ?? ''}
+                          onChange={(e) => setEditingCategoryName(prev => ({ ...prev, [category]: { ...prev[category], en: e.target.value } }))}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          className="max-w-[120px] px-3 py-2 border-2 border-[#1e3a5f] rounded-lg font-bold text-base bg-white text-[#1e3a5f] outline-none focus:border-[#f97316] focus:bg-yellow-50"
+                          placeholder="English"
+                        />
+                      </div>
+                      <button
+                        onClick={() => setDeleteCategoryConfirm(category)}
+                        className="px-3 py-2 text-2xl hover:scale-125 transition-all duration-300 flex-shrink-0"
+                      >
+                        ⛔️
+                      </button>
+                    </div>
+                  ) : (
+                    // Normal mode - show category button
+                    <>
+                      <Icon emoji={customCategoryIcons[category] || CATEGORY_ICONS[category] || '📁'} size={48} className="flex-shrink-0" />
+                      <BilingualText
+                        zh={customCategoryNames[category]?.zh ?? category}
+                        en={customCategoryNames[category]?.en ?? CATEGORY_LABELS[category]}
+                        className="items-start flex-1"
+                        enClassName="text-base sm:text-lg"
+                      />
+                    </>
+                  )}
+                </div>
+                {!editCategoriesMode && (
+                  <button
+                    onClick={() => {
+                      setSelectedCategory(category);
+                      setMenuOpen(false);
+                    }}
+                    className="absolute inset-0 w-full h-full"
+                    aria-label={`Select ${category}`}
+                  />
+                )}
+              </div>
             ))}
           </nav>
 
@@ -657,6 +926,65 @@ export default function AACApp() {
           onClick={() => setMenuOpen(false)}
           className="fixed inset-0 bg-black bg-opacity-50 z-30 transition-all duration-500 animate-fadeIn backdrop-blur-sm"
         />
+      )}
+
+      {/* 選擇分類圖示表情符號選擇器 */}
+      {showCategoryEmojiPickerFor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={() => setShowCategoryEmojiPickerFor(null)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl p-6 max-w-sm mx-4 border-4 border-[#f97316]">
+            <h3 className="text-2xl font-bold text-[#1e3a5f] mb-4">選擇分類圖示</h3>
+            <div className="grid grid-cols-5 gap-2">
+              {COMMON_EMOJIS.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => {
+                    updateCategoryEmoji(showCategoryEmojiPickerFor, emoji);
+                    setShowCategoryEmojiPickerFor(null);
+                  }}
+                  className={`text-4xl p-3 rounded-lg hover:bg-[#f97316] hover:scale-110 transition-all duration-300 ${
+                    (customCategoryIcons[showCategoryEmojiPickerFor] || CATEGORY_ICONS[showCategoryEmojiPickerFor]) === emoji ? 'bg-[#f97316] scale-110' : 'bg-white'
+                  }`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowCategoryEmojiPickerFor(null)}
+              className="mt-4 w-full px-4 py-2 bg-gray-400 text-white rounded-xl font-bold hover:bg-gray-500 transition-all duration-300"
+            >
+              關閉
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 刪除分類確認對話框 */}
+      {deleteCategoryConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={() => setDeleteCategoryConfirm(null)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 border-4 border-red-500">
+            <h3 className="text-2xl font-bold text-[#1e3a5f] mb-4">確認刪除分類</h3>
+            <p className="text-lg text-[#1e3a5f] mb-6">
+              確定要刪除分類「<span className="font-bold">{deleteCategoryConfirm}</span>」嗎？該分類下的所有詞語都會被刪除，無法復原。
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteCategoryConfirm(null)}
+                className="flex-1 px-6 py-3 bg-gray-400 text-white rounded-xl font-bold hover:bg-gray-500 transition-all duration-300"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => deleteCategory(deleteCategoryConfirm)}
+                className="flex-1 px-6 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-all duration-300"
+              >
+                確認刪除
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* 主要內容 */}
@@ -791,79 +1119,103 @@ export default function AACApp() {
               )}
 
               <div className="space-y-6">
-                {/* Emoji Selector */}
+                {/* Image Upload */}
                 <div>
                   <h4 className="text-2xl font-bold text-[#1e3a5f] mb-3">
-                    <BilingualText zh="1️⃣ 選擇表情符號" en="1️⃣ Choose Emoji" enClassName="text-lg" />
+                    <BilingualText zh="1️⃣ 上傳圖片" en="1️⃣ Upload Image" enClassName="text-lg" />
                   </h4>
                   <div className="bg-[#f5f5dc] p-4 rounded-2xl">
                     <div className="flex items-center gap-2 mb-4">
-                      <input
-                        type="text"
-                        placeholder="或貼上/Or paste emoji"
-                        value={addVocabInput.icon}
-                        onChange={(e) => handleVocabInputChange('icon', e.target.value.slice(0, 2))}
-                        className="flex-1 px-4 py-3 border-2 border-[#1e3a5f] rounded-xl text-2xl text-center font-bold"
-                        maxLength={2}
-                      />
-                      <div className="text-5xl min-w-[60px] text-center">{addVocabInput.icon}</div>
+                      <div className="flex-1 px-4 py-3 border-2 border-[#1e3a5f] rounded-xl text-2xl text-center font-bold bg-white text-[#1e3a5f]">
+                        {addVocabInput.icon}
+                      </div>
                     </div>
-                    <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 max-h-[200px] overflow-y-auto p-2 bg-white rounded-xl">
-                      {COMMON_EMOJIS.map((emoji) => (
-                        <button
-                          key={emoji}
-                          onClick={() => handleVocabInputChange('icon', emoji)}
-                          className={`text-3xl p-2 rounded-lg hover:bg-[#f97316] hover:scale-110 transition-all duration-300 ${
-                            addVocabInput.icon === emoji ? 'bg-[#f97316] scale-110' : 'bg-white'
-                          }`}
-                        >
-                          {emoji}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                    <div className="flex gap-3">
+                      {/* Camera Button */}
+                      <button
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.setAttribute('capture', 'environment');
+                          input.onchange = (e: any) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (event: any) => {
+                                handleVocabInputChange('icon', event.target.result);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          };
+                          input.click();
+                        }}
+                        className="flex-1 px-6 py-4 bg-[#f97316] text-white rounded-2xl font-bold text-lg border-3 border-[#f97316] shadow-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2"
+                      >
+                        <Icon emoji="📷" size={32} />
+                        <span>拍照 / Camera</span>
+                      </button>
 
-                {/* Language Toggle */}
-                <div>
-                  <h4 className="text-2xl font-bold text-[#1e3a5f] mb-3">
-                    <BilingualText zh="2️⃣ 選擇輸入語言" en="2️⃣ Choose Input Language" enClassName="text-lg" />
-                  </h4>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setAddVocabLang('zh')}
-                      className={`flex-1 px-6 py-4 rounded-2xl font-bold text-xl border-3 transition-all duration-300 min-h-[60px] ${
-                        addVocabLang === 'zh'
-                          ? 'bg-[#1e3a5f] text-white border-[#1e3a5f] shadow-lg'
-                          : 'bg-[#f5f5dc] text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white'
-                      }`}
-                    >
-                      中文 Chinese
-                    </button>
-                    <button
-                      onClick={() => setAddVocabLang('en')}
-                      className={`flex-1 px-6 py-4 rounded-2xl font-bold text-xl border-3 transition-all duration-300 min-h-[60px] ${
-                        addVocabLang === 'en'
-                          ? 'bg-[#1e3a5f] text-white border-[#1e3a5f] shadow-lg'
-                          : 'bg-[#f5f5dc] text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white'
-                      }`}
-                    >
-                      English
-                    </button>
-                    <button
-                      onClick={toggleInputLanguage}
-                      className="px-6 py-4 bg-[#f97316] text-white rounded-2xl font-bold text-xl border-3 border-[#f97316] shadow-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[60px]"
-                      title="Swap languages / 交換語言"
-                    >
-                      ⇅
-                    </button>
+                      {/* Upload Button */}
+                      <button
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = (e: any) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (event: any) => {
+                                handleVocabInputChange('icon', event.target.result);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          };
+                          input.click();
+                        }}
+                        className="flex-1 px-6 py-4 bg-[#f97316] text-white rounded-2xl font-bold text-lg border-3 border-[#f97316] shadow-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2"
+                      >
+                        <Icon emoji="📁" size={32} />
+                        <span>上傳 / Upload</span>
+                      </button>
+
+                      {/* Emoji Keyboard Button */}
+                      <button
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        className="flex-1 px-6 py-4 bg-[#f97316] text-white rounded-2xl font-bold text-lg border-3 border-[#f97316] shadow-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2"
+                      >
+                        <Icon emoji="😀" size={32} />
+                        <span>表情 / Emoji</span>
+                      </button>
+                    </div>
+
+                    {/* Emoji Keyboard Grid */}
+                    {showEmojiPicker && (
+                      <div className="mt-4 grid grid-cols-5 sm:grid-cols-8 gap-2 max-h-[200px] overflow-y-auto p-2 bg-white rounded-xl">
+                        {COMMON_EMOJIS.map((emoji) => (
+                          <button
+                            key={emoji}
+                            onClick={() => {
+                              handleVocabInputChange('icon', emoji);
+                              setShowEmojiPicker(false);
+                            }}
+                            className={`text-3xl p-2 rounded-lg hover:bg-[#f97316] hover:scale-110 transition-all duration-300 ${
+                              addVocabInput.icon === emoji ? 'bg-[#f97316] scale-110' : 'bg-white'
+                            }`}
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Text Inputs */}
                 <div>
                   <h4 className="text-2xl font-bold text-[#1e3a5f] mb-3">
-                    <BilingualText zh="3️⃣ 輸入詞語" en="3️⃣ Enter Words" enClassName="text-lg" />
+                    <BilingualText zh="2️⃣ 輸入詞語" en="2️⃣ Enter Words" enClassName="text-lg" />
                   </h4>
                   <div className="space-y-3">
                     <div>
@@ -875,7 +1227,7 @@ export default function AACApp() {
                         placeholder={addVocabLang === 'zh' ? '輸入中文詞語...' : 'Enter English word...'}
                         value={addVocabLang === 'zh' ? addVocabInput.text : addVocabInput.en}
                         onChange={(e) => handleVocabInputChange(addVocabLang === 'zh' ? 'text' : 'en', e.target.value)}
-                        className="w-full px-6 py-4 border-3 border-[#1e3a5f] rounded-xl text-xl font-bold text-[#1e3a5f] focus:border-[#f97316] focus:outline-none transition-all duration-300"
+                        className="w-full px-6 py-4 border border-[#1e3a5f] rounded-xl text-xl font-bold text-[#1e3a5f] focus:border-[#f97316] focus:outline-none transition-all duration-300"
                       />
                     </div>
 
@@ -888,7 +1240,7 @@ export default function AACApp() {
                         placeholder={addVocabLang === 'zh' ? 'Enter English translation...' : '輸入中文翻譯...'}
                         value={addVocabLang === 'zh' ? addVocabInput.en : addVocabInput.text}
                         onChange={(e) => handleVocabInputChange(addVocabLang === 'zh' ? 'en' : 'text', e.target.value)}
-                        className="w-full px-6 py-4 border-3 border-[#1e3a5f] rounded-xl text-xl font-bold text-[#1e3a5f] focus:border-[#f97316] focus:outline-none transition-all duration-300"
+                        className="w-full px-6 py-4 border border-[#1e3a5f] rounded-xl text-xl font-bold text-[#1e3a5f] focus:border-[#f97316] focus:outline-none transition-all duration-300"
                       />
                     </div>
                   </div>
@@ -897,14 +1249,14 @@ export default function AACApp() {
                 {/* Category Selector */}
                 <div>
                   <h4 className="text-2xl font-bold text-[#1e3a5f] mb-3">
-                    <BilingualText zh="4️⃣ 選擇分類" en="4️⃣ Choose Category" enClassName="text-lg" />
+                    <BilingualText zh="3️⃣ 選擇分類" en="3️⃣ Choose Category" enClassName="text-lg" />
                   </h4>
                   <div className="space-y-3">
                     {getUniqueCategories().length > 0 && (
                       <select
                         value={addVocabInput.category}
                         onChange={(e) => handleVocabInputChange('category', e.target.value)}
-                        className="w-full px-6 py-4 border-3 border-[#1e3a5f] rounded-xl text-lg font-bold text-[#1e3a5f] focus:border-[#f97316] focus:outline-none transition-all duration-300 cursor-pointer"
+                        className="w-full px-6 py-4 border border-[#1e3a5f] rounded-xl text-lg font-bold text-[#1e3a5f] focus:border-[#f97316] focus:outline-none transition-all duration-300 cursor-pointer"
                       >
                         <option value="">-- 選擇分類 / Select Category --</option>
                         {getUniqueCategories().map((cat) => (
@@ -915,19 +1267,63 @@ export default function AACApp() {
                       </select>
                     )}
                     
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="或建立新分類 / Or create new category"
-                        value={addVocabInput.newCategory}
-                        onChange={(e) => handleVocabInputChange('newCategory', e.target.value)}
-                        disabled={!!addVocabInput.category}
-                        className="w-full px-6 py-4 border-3 border-[#1e3a5f] rounded-xl text-lg font-bold text-[#1e3a5f] focus:border-[#f97316] focus:outline-none transition-all duration-300 disabled:bg-gray-200 disabled:text-gray-500"
-                      />
-                      <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-lg text-[#1e3a5f]">
-                        {!addVocabInput.category ? '➕' : '✓'}
-                      </span>
-                    </div>
+                    <button
+                      onClick={() => setShowCreateCategory(!showCreateCategory)}
+                      disabled={!!addVocabInput.category}
+                      className="w-full px-6 py-4 bg-[#f97316] text-white rounded-xl font-bold text-lg border border-[#f97316] shadow-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      <Icon emoji="➕" size={32} />
+                      <span>新增分類</span>
+                    </button>
+                    
+                    {showCreateCategory && (
+                      <div className="space-y-3">
+                        {/* Category Emoji Selector */}
+                        <div className="flex items-center gap-3">
+                          <div className="px-4 py-3 border-2 border-[#1e3a5f] rounded-xl text-4xl text-center font-bold bg-white text-[#1e3a5f] min-w-[80px] flex items-center justify-center">
+                            {newCategoryEmoji}
+                          </div>
+                          <button
+                            onClick={() => setShowCategoryEmojiPicker(!showCategoryEmojiPicker)}
+                            disabled={!!addVocabInput.category}
+                            className="flex-1 px-6 py-4 bg-[#f97316] text-white rounded-xl font-bold text-lg border border-[#f97316] shadow-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                          >
+                            <Icon emoji="😀" size={32} />
+                            <span>選擇新分類圖示 / Select New Category Icon</span>
+                          </button>
+                        </div>
+
+                        {/* Category Emoji Picker Grid */}
+                        {showCategoryEmojiPicker && (
+                          <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 max-h-[200px] overflow-y-auto p-2 bg-white rounded-xl border-2 border-[#1e3a5f]">
+                            {COMMON_EMOJIS.map((emoji) => (
+                              <button
+                                key={emoji}
+                                onClick={() => {
+                                  setNewCategoryEmoji(emoji);
+                                  setShowCategoryEmojiPicker(false);
+                                }}
+                                className={`text-3xl p-2 rounded-lg hover:bg-[#f97316] hover:scale-110 transition-all duration-300 ${
+                                  newCategoryEmoji === emoji ? 'bg-[#f97316] scale-110' : 'bg-white'
+                                }`}
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Category Name Input */}
+                        <input
+                          type="text"
+                          placeholder="新分類名稱 / New Category Name"
+                          value={addVocabInput.newCategory}
+                          onChange={(e) => handleVocabInputChange('newCategory', e.target.value)}
+                          disabled={!!addVocabInput.category}
+                          className="w-full px-6 py-4 border border-[#1e3a5f] rounded-xl text-lg font-bold text-[#1e3a5f] focus:border-[#f97316] focus:outline-none transition-all duration-300 disabled:bg-gray-200 disabled:text-gray-500"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1091,7 +1487,7 @@ export default function AACApp() {
           {/* 當前分類顯示 */}
           <div className="mb-6 text-center">
             <div className="inline-flex items-center gap-4 px-10 py-5 bg-[#1e3a5f] text-white rounded-2xl shadow-xl transition-all duration-500 hover:shadow-2xl hover:scale-110 transform border-4 border-[#f97316]">
-              <Icon emoji={CATEGORY_ICONS[selectedCategory] || '📁'} size={64} className="transition-transform duration-300 hover:rotate-12 hover:scale-125" />
+              <Icon emoji={customCategoryIcons[selectedCategory] || CATEGORY_ICONS[selectedCategory] || '📁'} size={64} className="transition-transform duration-300 hover:rotate-12 hover:scale-125" />
               <span className="text-3xl font-bold">{selectedCategory}</span>
               {selectedCategory !== '全部' && (
                 <button

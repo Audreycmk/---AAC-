@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+
 interface IconProps {
   emoji: string;
   size?: number;
@@ -5,6 +7,8 @@ interface IconProps {
 }
 
 export default function Icon({ emoji, size = 64, className = '' }: IconProps) {
+  const [showEmoji, setShowEmoji] = useState(false);
+
   // Convert emoji to Unicode codepoint for Twemoji CDN
   // Remove variation selectors (U+FE0F) and other modifiers
   const cleanEmoji = emoji.replace(/\uFE0F/g, '');
@@ -16,7 +20,26 @@ export default function Icon({ emoji, size = 64, className = '' }: IconProps) {
     })
     .filter(code => code !== '')
     .join('-');
-  
+
+  const handleImageError = () => {
+    setShowEmoji(true);
+  };
+
+  if (showEmoji) {
+    return (
+      <span
+        style={{ 
+          fontSize: `${size}px`,
+          display: 'inline-block',
+          lineHeight: '1'
+        }}
+        className={className}
+      >
+        {emoji}
+      </span>
+    );
+  }
+
   return (
     <img
       src={`https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/${codePoint}.png`}
@@ -25,16 +48,7 @@ export default function Icon({ emoji, size = 64, className = '' }: IconProps) {
       height={size}
       className={className}
       style={{ display: 'inline-block' }}
-      onError={(e) => {
-        // Fallback to text emoji if image fails to load
-        const target = e.target as HTMLImageElement;
-        target.style.display = 'none';
-        const span = document.createElement('span');
-        span.textContent = emoji;
-        span.style.fontSize = `${size}px`;
-        span.className = className;
-        target.parentNode?.replaceChild(span, target);
-      }}
+      onError={handleImageError}
     />
   );
 }
