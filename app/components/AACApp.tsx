@@ -130,49 +130,25 @@ const SUGGESTED_WORDS: Record<string, Array<{text: string, en: string, icon: str
     { text: '飲水', en: 'drink water', icon: '💧' },
     { text: '食飯', en: 'eat', icon: '🍚' },
     { text: '休息', en: 'rest', icon: '🛏️' },
-    { text: '去廁所', en: 'go to the toilet', icon: '🚻' },
-    { text: '睇醫生', en: 'see a doctor', icon: '👨‍⚕️' },
-    { text: '食藥', en: 'take medicine', icon: '💊' },
-    { text: '訓覺', en: 'sleep', icon: '😴' },
-    { text: '出去', en: 'go out', icon: '🚶' },
-    { text: '打電話', en: 'make a call', icon: '📞' },
     { text: '睇電視', en: 'watch TV', icon: '📺' }
   ],
   '可唔可以': [
-    { text: '幫我', en: 'help me', icon: '🤝' },
     { text: '開燈', en: 'turn on the light', icon: '💡' },
     { text: '熄燈', en: 'turn off the light', icon: '🌙' },
     { text: '開窗', en: 'open the window', icon: '🪟' },
-    { text: '閉窗', en: 'close the window', icon: '🪟' },
-    { text: '開門', en: 'open the door', icon: '🚪' },
-    { text: '俾我', en: 'give me', icon: '🤲' },
-    { text: '拎俾我', en: 'hand it to me', icon: '🤲' },
-    { text: '等我', en: 'wait for me', icon: '⏰' },
-    { text: '陪我', en: 'stay with me', icon: '👥' }
+    { text: '閉窗', en: 'close the window', icon: '🪟' }
   ],
   '幫我': [
     { text: '拎嘢', en: 'get it for me', icon: '📦' },
     { text: '開門', en: 'open the door', icon: '🚪' },
     { text: '閉門', en: 'close the door', icon: '🚪' },
-    { text: '打電話', en: 'make a call', icon: '📞' },
-    { text: '叫人', en: 'call someone', icon: '📢' },
-    { text: '攞藥', en: 'get medicine', icon: '💊' },
-    { text: '倒水', en: 'pour water', icon: '💧' },
-    { text: '拎紙巾', en: 'get tissues', icon: '🧻' },
-    { text: '開電視', en: 'turn on TV', icon: '📺' },
-    { text: '調位', en: 'adjust position', icon: '🔄' }
+    { text: '倒水', en: 'pour water', icon: '💧' }
   ],
   '我要': [
-    { text: '飲水', en: 'drink water', icon: '💧' },
-    { text: '食嘢', en: 'eat food', icon: '🍔' },
-    { text: '去廁所', en: 'go to the toilet', icon: '🚻' },
-    { text: '休息', en: 'rest', icon: '🛏️' },
-    { text: '睇醫生', en: 'see a doctor', icon: '👨‍⚕️' },
     { text: '食藥', en: 'take medicine', icon: '💊' },
     { text: '換衫', en: 'change clothes', icon: '👕' },
     { text: '沖涼', en: 'take a shower', icon: '🚿' },
-    { text: '睇報紙', en: 'read the newspaper', icon: '📰' },
-    { text: '聽收音機', en: 'listen to the radio', icon: '📻' }
+    { text: '睇醫生', en: 'see a doctor', icon: '👨‍⚕️' }
   ],
 };
 
@@ -213,10 +189,54 @@ type CustomPhrase = (typeof PHRASES)[0];
 export default function AACApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
+  const [user, setUser] = useState<{ email: string; role: 'admin' | 'user' } | null>(null);
+  const [showLoginCodeModal, setShowLoginCodeModal] = useState(false);
+  const [loginCode, setLoginCode] = useState('');
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  
+  // User Management States
+  const [showDashboard, setShowDashboard] = useState(false);
+  const [allUsers, setAllUsers] = useState<Array<{
+    id: string;
+    email?: string;
+    password?: string;
+    loginCode?: string;
+    role: 'admin' | 'user';
+    createdAt: string;
+    trialType: 'unlimited' | '14days' | 'notrial';
+    trialStartDate?: string;
+    customizations?: {
+      favorites: string[];
+      customPhrases: any[];
+      customCategoryIcons: Record<string, string>;
+      customCategoryNames: Record<string, { zh: string; en: string }>;
+    };
+  }>>([
+    {
+      id: '1',
+      email: 'admin@aac.com',
+      password: 'admin123',
+      role: 'admin',
+      createdAt: new Date().toISOString(),
+      trialType: 'unlimited',
+    }
+  ]);
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [newUserType, setNewUserType] = useState<'admin' | 'user'>('user');
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [newUserLoginCode, setNewUserLoginCode] = useState('');
+  const [deleteUserConfirm, setDeleteUserConfirm] = useState<string | null>(null);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editingUserRole, setEditingUserRole] = useState<'admin' | 'user'>('user');
+  const [editingUserTrial, setEditingUserTrial] = useState<'unlimited' | '14days' | 'notrial'>('14days');
+  
   const [selectedCategory, setSelectedCategory] = useState<string>('全部');
   const [menuOpen, setMenuOpen] = useState(false);
   const [customText, setCustomText] = useState('');
-  const [speechRate, setSpeechRate] = useState(0.9);
+  const [speechRate, setSpeechRate] = useState(0.5);
   const [speechVolume, setSpeechVolume] = useState(1.0);
   const [speechLanguage, setSpeechLanguage] = useState<'zh-HK' | 'en-US'>('zh-HK');
   const [history, setHistory] = useState<string[]>([]);
@@ -273,6 +293,43 @@ export default function AACApp() {
       };
     }
     
+    // 從 localStorage 載入用戶列表
+    const loadUsersFromAPI = async () => {
+      try {
+        const response = await fetch('/api/users');
+        if (response.ok) {
+          const users = await response.json();
+          setAllUsers(users);
+          // Also save to localStorage as cache
+          localStorage.setItem('aac-users', JSON.stringify(users));
+        }
+      } catch (error) {
+        console.error('Failed to load users from API, using localStorage:', error);
+        // Fallback to localStorage if API fails
+        const savedUsers = localStorage.getItem('aac-users');
+        if (savedUsers) {
+          try {
+            setAllUsers(JSON.parse(savedUsers));
+          } catch (e) {
+            console.error('Failed to load users from localStorage:', e);
+          }
+        }
+      }
+    };
+
+    loadUsersFromAPI();
+
+    // 從 localStorage 載入當前用戶會話
+    const savedUserSession = localStorage.getItem('aac-current-user');
+    if (savedUserSession) {
+      try {
+        const userSession = JSON.parse(savedUserSession);
+        setUser(userSession);
+      } catch (e) {
+        console.error('Failed to load user session from localStorage:', e);
+      }
+    }
+    
     // 從 localStorage 載入歷史記錄
     const savedHistory = localStorage.getItem('aac-history');
     if (savedHistory) {
@@ -292,6 +349,23 @@ export default function AACApp() {
     }
   }, []);
 
+  // Save allUsers to API and localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('aac-users', JSON.stringify(allUsers));
+    
+    // Sync with server (optional - only if you want real-time sync)
+    // This is useful but not required since we sync when adding/removing users
+  }, [allUsers]);
+
+  // Save current user session to localStorage whenever it changes
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('aac-current-user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('aac-current-user');
+    }
+  }, [user]);
+
   const resolveEnglishText = (text: string) => {
     if (PHRASE_TRANSLATIONS[text]) {
       return PHRASE_TRANSLATIONS[text];
@@ -306,6 +380,265 @@ export default function AACApp() {
     }
     const suggestion = SUGGESTED_WORDS[starterMatch.text]?.find((word) => word.text === tail);
     return suggestion ? `${starterMatch.en} ${suggestion.en}` : '';
+  };
+
+  const handleLoginCode = () => {
+    if (!loginCode.trim()) {
+      alert('請輸入登入碼 / Please enter login code');
+      return;
+    }
+    
+    if (loginCode.toLowerCase() === 'admin') {
+      // Admin login - show email/password modal
+      setShowLoginCodeModal(false);
+      setLoginCode('');
+      setShowLoginModal(true);
+    } else {
+      // Normal user login - verify with server
+      verifyUserLogin('user', loginCode);
+    }
+  };
+
+  const verifyUserLogin = async (role: 'admin' | 'user', loginData: string, password?: string) => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          role === 'admin' 
+            ? { email: loginData, password, role }
+            : { loginCode: loginData, role }
+        ),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        alert(result.error || 'Authentication failed');
+        return;
+      }
+
+      // Update state with authenticated user
+      setUser(result.user);
+      
+      // Reset modal states
+      setShowLoginCodeModal(false);
+      setShowLoginModal(false);
+      setLoginCode('');
+      setLoginEmail('');
+      setLoginPassword('');
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('登入失敗 / Login failed');
+    }
+  };
+
+  const handleLogin = () => {
+    // Admin credentials - verify with server
+    if (!loginEmail || !loginPassword) {
+      alert('請輸入郵箱和密碼 / Please enter email and password');
+      return;
+    }
+    verifyUserLogin('admin', loginEmail, loginPassword);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+  };
+
+  // ========== User Management CRUD Functions ==========
+  const addUser = async () => {
+    if (newUserType === 'admin') {
+      // Admin user requires email and password
+      if (!newUserEmail || !newUserPassword) {
+        alert('請填寫所有欄位 / Please fill in all fields');
+        return;
+      }
+      if (allUsers.some(u => u.email === newUserEmail)) {
+        alert('該郵箱已存在 / This email already exists');
+        return;
+      }
+      
+      const newAdmin = {
+        email: newUserEmail,
+        password: newUserPassword,
+        role: 'admin' as const,
+        trialType: 'unlimited' as const,
+      };
+      
+      try {
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newAdmin),
+        });
+
+        if (!response.ok) {
+          alert('添加用戶失敗 / Failed to add user');
+          return;
+        }
+
+        const createdUser = await response.json();
+        setAllUsers([...allUsers, createdUser]);
+        alert('管理員已新增 / Admin added successfully');
+      } catch (error) {
+        console.error('Error adding admin:', error);
+        alert('添加用戶失敗 / Failed to add user');
+      }
+    } else {
+      // Normal user requires login code only
+      if (!newUserLoginCode) {
+        alert('請填寫所有欄位 / Please fill in all fields');
+        return;
+      }
+      if (allUsers.some(u => u.loginCode === newUserLoginCode)) {
+        alert('該登入碼已存在 / This login code already exists');
+        return;
+      }
+      
+      const newNormalUser = {
+        loginCode: newUserLoginCode,
+        role: 'user' as const,
+        trialType: '14days' as const,
+      };
+      
+      try {
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newNormalUser),
+        });
+
+        if (!response.ok) {
+          alert('添加用戶失敗 / Failed to add user');
+          return;
+        }
+
+        const createdUser = await response.json();
+        setAllUsers([...allUsers, createdUser]);
+        alert('普通使用者已新增 / User added successfully');
+      } catch (error) {
+        console.error('Error adding user:', error);
+        alert('添加用戶失敗 / Failed to add user');
+      }
+    }
+    
+    setNewUserType('user');
+    setNewUserEmail('');
+    setNewUserPassword('');
+    setNewUserLoginCode('');
+    setShowAddUserModal(false);
+  };
+
+  const deleteUser = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        alert('刪除用戶失敗 / Failed to delete user');
+        return;
+      }
+
+      setAllUsers(allUsers.filter(u => u.id !== userId));
+      setDeleteUserConfirm(null);
+      alert('用戶已刪除 / User deleted');
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('刪除用戶失敗 / Failed to delete user');
+    }
+  };
+
+  const updateUserRole = async (userId: string, newRole: 'admin' | 'user') => {
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: newRole }),
+      });
+
+      if (!response.ok) {
+        alert('更新用戶失敗 / Failed to update user');
+        return;
+      }
+
+      const updatedUser = await response.json();
+      setAllUsers(allUsers.map(u => u.id === userId ? updatedUser : u));
+      setEditingUserId(null);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      alert('更新用戶失敗 / Failed to update user');
+    }
+  };
+
+  const updateUserTrial = async (userId: string, newTrialType: 'unlimited' | '14days' | 'notrial') => {
+    try {
+      const updateData: any = { trialType: newTrialType };
+      
+      // When changing back from notrial, set new start date
+      const currentUser = allUsers.find(u => u.id === userId);
+      if (currentUser?.trialType === 'notrial' && (newTrialType === '14days' || newTrialType === 'unlimited')) {
+        updateData.trialStartDate = new Date().toISOString();
+      }
+
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        alert('更新用戶失敗 / Failed to update user');
+        return;
+      }
+
+      const updatedUser = await response.json();
+      setAllUsers(allUsers.map(u => u.id === userId ? updatedUser : u));
+      setEditingUserId(null);
+    } catch (error) {
+      console.error('Error updating user trial:', error);
+      alert('更新用戶失敗 / Failed to update user');
+    }
+  };
+
+  const getTrialStatus = (user: any) => {
+    if (user.trialType === 'unlimited') {
+      return { status: 'Unlimited', daysLeft: -1, expired: false };
+    }
+    if (user.trialType === 'notrial') {
+      return { status: 'No Trial', daysLeft: 0, expired: true };
+    }
+    // 14days
+    const startDate = new Date(user.trialStartDate || user.createdAt);
+    const daysLeft = Math.ceil((startDate.getTime() + 14 * 24 * 60 * 60 * 1000 - new Date().getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysLeft <= 0) {
+      // Auto-expire trial
+      setAllUsers(allUsers.map(u => u.id === user.id ? { ...u, trialType: 'notrial' } : u));
+      return { status: 'Expired', daysLeft: 0, expired: true };
+    }
+    return { status: `${daysLeft}日`, daysLeft, expired: false };
+  };
+
+  const hasFullAccess = () => {
+    if (!user) return false;
+    
+    // Admin always has full access
+    if (user.role === 'admin') return true;
+    
+    // Regular user - check trial status
+    // For normal users, user.email contains the login code
+    const currentUser = allUsers.find(u => u.loginCode === user.email && u.role === 'user');
+    if (!currentUser) return false;
+    
+    if (currentUser.trialType === 'unlimited') return true;
+    if (currentUser.trialType === '14days') {
+      const startDate = new Date(currentUser.trialStartDate || currentUser.createdAt);
+      const daysLeft = Math.ceil((startDate.getTime() + 14 * 24 * 60 * 60 * 1000 - new Date().getTime()) / (1000 * 60 * 60 * 24));
+      return daysLeft > 0;
+    }
+    return false;
   };
 
   const speak = (text: string) => {
@@ -618,7 +951,7 @@ export default function AACApp() {
         
         <h1 className="text-2xl sm:text-3xl font-bold flex-1 text-center">
           <BilingualText
-            zh="Audrey Audrey Chung 輔助通訊"
+            zh="AAC 輔助通訊"
             en=""
             className="items-center"
             enClassName="text-base sm:text-lg font-semibold"
@@ -643,6 +976,36 @@ export default function AACApp() {
           >
             <Icon emoji="⚙" size={32} />
           </button>
+
+          {/* 登入/登出按鈕 */}
+          {user ? (
+            <>
+              {user.role === 'admin' && (
+                <button
+                  onClick={() => setShowDashboard(true)}
+                  className="p-3 bg-[#f97316] rounded-xl shadow-lg hover:bg-[#ea580c] hover:scale-110 active:scale-95 transition-all duration-300 min-h-[60px] min-w-[60px] flex items-center justify-center"
+                  aria-label="管理儀表板 Dashboard"
+                >
+                  <Icon emoji="📊" size={32} />
+                </button>
+              )}
+              <button
+                onClick={handleLogout}
+                className="p-3 bg-red-500 rounded-xl shadow-lg hover:bg-red-600 hover:scale-110 active:scale-95 transition-all duration-300 min-h-[60px] min-w-[60px] flex items-center justify-center"
+                aria-label="登出 Logout"
+              >
+                <Icon emoji="🚪" size={32} />
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setShowLoginCodeModal(true)}
+              className="p-3 bg-green-500 rounded-xl shadow-lg hover:bg-green-600 hover:scale-110 active:scale-95 transition-all duration-300 min-h-[60px] min-w-[60px] flex items-center justify-center"
+              aria-label="登入 Login"
+            >
+              <Icon emoji="🔐" size={32} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -684,139 +1047,70 @@ export default function AACApp() {
                 key={category} 
                 className={`transition-all duration-300 ${menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'}`} 
                 style={{ transitionDelay: menuOpen ? `${index * 50}ms` : '0ms' }}
-                draggable={editFavoritesMode}
-                onDragStart={(e) => {
-                  setDraggedCategory(category);
-                  if (e.dataTransfer) {
-                    e.dataTransfer.effectAllowed = 'move';
-                  }
-                }}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  if (e.dataTransfer) {
-                    e.dataTransfer.dropEffect = 'move';
-                  }
-                }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  if (draggedCategory && draggedCategory !== category) {
-                    const draggedIdx = favorites.indexOf(draggedCategory);
-                    const targetIdx = index;
-                    const newFavorites = [...favorites];
-                    [newFavorites[draggedIdx], newFavorites[targetIdx]] = [newFavorites[targetIdx], newFavorites[draggedIdx]];
-                    setFavorites(newFavorites);
-                    setDraggedCategory(null);
-                  }
-                }}
-                onDragEnd={() => setDraggedCategory(null)}
               >
                 <div className={`w-full text-left px-6 py-5 rounded-2xl text-2xl font-bold transition-all duration-300 flex items-center gap-4 transform hover:translate-x-2 hover:shadow-xl min-h-[70px] ${
-                  draggedCategory === category && editFavoritesMode ? 'opacity-50 scale-95' : ''
-                } ${
-                  editFavoritesMode
-                    ? 'bg-[#f5f5dc] text-[#1e3a5f] border-2 border-[#f97316] cursor-move'
-                    : selectedCategory === category
-                      ? 'bg-[#1e3a5f] text-white shadow-lg scale-105'
-                      : 'bg-[#f5f5dc] text-[#1e3a5f] border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-105 translate-x-0 opacity-100'
+                  selectedCategory === category
+                    ? 'bg-[#1e3a5f] text-white shadow-lg scale-105'
+                    : 'bg-[#f5f5dc] text-[#1e3a5f] border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-105 translate-x-0 opacity-100'
                 }`}>
-                  {editFavoritesMode ? (
-                    // Edit mode
-                    <div className="w-full flex items-center gap-3">
-                      <button
-                        onClick={() => setShowCategoryEmojiPickerFor(showCategoryEmojiPickerFor === category ? null : category)}
-                        className="px-3 py-2 bg-[#f97316] text-white rounded-xl text-3xl hover:scale-110 transition-all duration-300 flex-shrink-0"
-                      >
-                        {customCategoryIcons[category] || CATEGORY_ICONS[category] || '📁'}
-                      </button>
-                      <div className="flex flex-col gap-2 flex-1">
-                        <input
-                          type="text"
-                          value={editingCategoryName[category]?.zh ?? category}
-                          onChange={(e) => setEditingCategoryName(prev => ({ ...prev, [category]: { ...prev[category], zh: e.target.value } }))}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                          className="max-w-[120px] px-3 py-2 border-2 border-[#1e3a5f] rounded-lg font-bold text-base bg-white text-[#1e3a5f] outline-none focus:border-[#f97316] focus:bg-yellow-50"
-                          placeholder="中文 Chinese"
-                        />
-                        <input
-                          type="text"
-                          value={editingCategoryName[category]?.en ?? CATEGORY_LABELS[category] ?? ''}
-                          onChange={(e) => setEditingCategoryName(prev => ({ ...prev, [category]: { ...prev[category], en: e.target.value } }))}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                          className="max-w-[120px] px-3 py-2 border-2 border-[#1e3a5f] rounded-lg font-bold text-base bg-white text-[#1e3a5f] outline-none focus:border-[#f97316] focus:bg-yellow-50"
-                          placeholder="English"
-                        />
-                      </div>
-                      <button
-                        onClick={() => setDeleteCategoryConfirm(category)}
-                        className="px-3 py-2 text-2xl hover:scale-125 transition-all duration-300 flex-shrink-0"
-                      >
-                        ⛔️
-                      </button>
-                    </div>
-                  ) : (
-                    // Normal mode - show category button
-                    <>
-                      <Icon emoji={customCategoryIcons[category] || CATEGORY_ICONS[category] || '📁'} size={48} className="flex-shrink-0" />
-                      <span className="flex-1">
-                        <BilingualText
-                          zh={customCategoryNames[category]?.zh ?? category}
-                          en={customCategoryNames[category]?.en ?? CATEGORY_LABELS[category]}
-                          className="items-start"
-                          enClassName="text-base sm:text-lg"
-                        />
-                      </span>
-                      <button
-                        onClick={() => toggleFavorite(category)}
-                        className="transition-all duration-300 hover:scale-125 flex-shrink-0"
-                        aria-label={favorites.includes(category) ? '移除最愛' : '加入最愛'}
-                      >
-                        <Icon emoji={favorites.includes(category) ? '❤️' : '🤍'} size={24} />
-                      </button>
-                    </>
-                  )}
-                </div>
-                {!editFavoritesMode && (
+                  <Icon emoji={customCategoryIcons[category] || CATEGORY_ICONS[category] || '📁'} size={48} className="flex-shrink-0" />
+                  <span className="flex-1">
+                    <BilingualText
+                      zh={customCategoryNames[category]?.zh ?? category}
+                      en={customCategoryNames[category]?.en ?? CATEGORY_LABELS[category]}
+                      className="items-start"
+                      enClassName="text-base sm:text-lg"
+                    />
+                  </span>
                   <button
-                    onClick={() => {
-                      setSelectedCategory(category);
-                      setMenuOpen(false);
-                    }}
-                    className="absolute inset-0 w-full h-full"
-                    aria-label={`Select ${category}`}
-                  />
-                )}
+                    onClick={() => toggleFavorite(category)}
+                    className="transition-all duration-300 hover:scale-125 flex-shrink-0"
+                    aria-label={favorites.includes(category) ? '移除最愛' : '加入最愛'}
+                  >
+                    <Icon emoji={favorites.includes(category) ? '❤️' : '🤍'} size={24} />
+                  </button>
+                </div>
+                <button
+                  onClick={() => {
+                    setSelectedCategory(category);
+                    setMenuOpen(false);
+                  }}
+                  className="absolute inset-0 w-full h-full"
+                  aria-label={`Select ${category}`}
+                />
               </div>
             ))}
           </nav>
           
-          <div className={`flex items-center gap-3 mb-6 transition-all duration-700 ${
-            menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
-          }`}>
-            <h2 className="text-3xl font-bold text-[#1e3a5f]">
-              <BilingualText zh="分類選單" en="Categories" enClassName="text-lg sm:text-xl" />
-            </h2>
-            <button
-              onClick={() => {
-                if (editCategoriesMode) {
-                  // Save edits
-                  Object.entries(editingCategoryName).forEach(([category, names]) => {
-                    setCustomCategoryNames(prev => ({ ...prev, [category]: names }));
-                  });
-                }
-                setEditCategoriesMode(!editCategoriesMode);
-                setEditingCategoryName({});
-                setShowCategoryEmojiPickerFor(null);
-              }}
-              className="ml-auto px-4 py-2 bg-[#f97316] text-white rounded-xl font-bold text-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[50px] flex items-center justify-center gap-2"
-              aria-label={editCategoriesMode ? '保存' : '編輯'}
-            >
-              <Icon emoji={editCategoriesMode ? '✔️' : '✏️'} size={24} />
-            </button>
-          </div>
-          <nav className="space-y-3 mb-8">
-            {categories.map((category, index) => (
+          {/* Categories Section - Show all if logged in with full access, only defaults if not */}
+          {hasFullAccess() && (
+            <>
+              <div className={`flex items-center gap-3 mb-6 transition-all duration-700 ${
+                menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
+              }`}>
+                <h2 className="text-3xl font-bold text-[#1e3a5f]">
+                  <BilingualText zh="分類選單" en="Categories" enClassName="text-lg sm:text-xl" />
+                </h2>
+                <button
+                  onClick={() => {
+                    if (editCategoriesMode) {
+                      // Save edits
+                      Object.entries(editingCategoryName).forEach(([category, names]) => {
+                        setCustomCategoryNames(prev => ({ ...prev, [category]: names }));
+                      });
+                    }
+                    setEditCategoriesMode(!editCategoriesMode);
+                    setEditingCategoryName({});
+                    setShowCategoryEmojiPickerFor(null);
+                  }}
+                  className="ml-auto px-4 py-2 bg-[#f97316] text-white rounded-xl font-bold text-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[50px] flex items-center justify-center gap-2"
+                  aria-label={editCategoriesMode ? '保存' : '編輯'}
+                >
+                  <Icon emoji={editCategoriesMode ? '✔️' : '✏️'} size={24} />
+                </button>
+              </div>
+              <nav className="space-y-3 mb-8">
+                {categories.map((category, index) => (
               <div
                 key={category}
                 className={`transition-all duration-300 ${menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'}`}
@@ -898,27 +1192,98 @@ export default function AACApp() {
                 )}
               </div>
             ))}
-          </nav>
+              </nav>
+            </>
+          )}
 
-          {/* Add Vocabulary Button */}
-          <button
-            onClick={() => {
-              setShowAddVocab(true);
-              setMenuOpen(false);
-            }}
-            className={`w-full mt-8 px-6 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-3 transform ${
-              menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'
-            }`}
-            style={{ 
-              transitionDelay: menuOpen ? `${categories.length * 50 + 100}ms` : '0ms'
-            }}
-            aria-label="加入詞語 Add Vocabulary"
-          >
-            <Icon emoji="➕" size={40} />
-            <BilingualText zh="加入詞語" en="Add Words" className="items-center text-center" enClassName="text-lg" />
-          </button>
+          {/* Guest/Limited Access Categories View - Only show 4 default categories */}
+          {!hasFullAccess() && (
+            <>
+              <h2 className="text-3xl font-bold text-[#1e3a5f] mb-6">
+                <BilingualText zh="分類選單" en="Categories" enClassName="text-lg sm:text-xl" />
+              </h2>
+              <nav className="space-y-3 mb-8">
+                {['個人物品', '家居用品', '水果', '地方'].map((category, index) => (
+                  <div
+                    key={category}
+                    className={`transition-all duration-300 ${menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'}`}
+                    style={{ transitionDelay: menuOpen ? `${index * 50}ms` : '0ms' }}
+                  >
+                    <div className={`w-full text-left px-6 py-5 rounded-2xl text-2xl font-bold transition-all duration-300 flex items-center gap-4 transform hover:translate-x-2 hover:shadow-xl min-h-[70px] ${
+                      selectedCategory === category
+                        ? 'bg-[#1e3a5f] text-white shadow-lg scale-105'
+                        : 'bg-[#f5f5dc] text-[#1e3a5f] border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-105 translate-x-0 opacity-100'
+                    }`}>
+                      <Icon emoji={customCategoryIcons[category] || CATEGORY_ICONS[category] || '📁'} size={48} className="flex-shrink-0" />
+                      <BilingualText
+                        zh={customCategoryNames[category]?.zh ?? category}
+                        en={customCategoryNames[category]?.en ?? CATEGORY_LABELS[category]}
+                        className="items-start flex-1"
+                        enClassName="text-base sm:text-lg"
+                      />
+                      <button
+                        onClick={() => toggleFavorite(category)}
+                        className="transition-all duration-300 hover:scale-125 flex-shrink-0"
+                        aria-label={favorites.includes(category) ? '移除最愛' : '加入最愛'}
+                      >
+                        <Icon emoji={favorites.includes(category) ? '❤️' : '🤍'} size={24} />
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setSelectedCategory(category);
+                        setMenuOpen(false);
+                      }}
+                      className="absolute inset-0 w-full h-full"
+                      aria-label={`Select ${category}`}
+                    />
+                  </div>
+                ))}
+              </nav>
+            </>
+          )}
+
+          {/* Add Vocabulary Button - Only show when logged in with full access */}
+          {hasFullAccess() && (
+            <button
+              onClick={() => {
+                setShowAddVocab(true);
+                setMenuOpen(false);
+              }}
+              className={`w-full mt-8 mb-20 px-6 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-3 transform ${
+                menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'
+              }`}
+              style={{ 
+                transitionDelay: menuOpen ? `${categories.length * 50 + 100}ms` : '0ms'
+              }}
+              aria-label="加入詞語 Add Vocabulary"
+            >
+              <Icon emoji="➕" size={40} />
+              <BilingualText zh="加入詞語" en="Add Words" className="items-center text-center" enClassName="text-lg" />
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-[#1e3a5f] text-white border-t-4 border-[#f97316] shadow-2xl z-40">
+        <div className="max-w-7xl mx-auto px-6 py-4 text-center">
+          {!hasFullAccess() ? (
+            <>
+              <div className="font-bold text-lg mb-2">
+                🔐 請登入以存取更多功能 / Please login for more features
+              </div>
+              <div className="font-bold text-sm">
+                @Audrey Chung 2026
+              </div>
+            </>
+          ) : (
+            <div className="font-bold text-lg">
+              @Audrey Chung 2026
+            </div>
+          )}
+        </div>
+      </footer>
 
       {/* 遮罩層 */}
       {menuOpen && (
@@ -930,11 +1295,11 @@ export default function AACApp() {
 
       {/* 選擇分類圖示表情符號選擇器 */}
       {showCategoryEmojiPickerFor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={() => setShowCategoryEmojiPickerFor(null)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl p-6 max-w-sm mx-4 border-4 border-[#f97316]">
-            <h3 className="text-2xl font-bold text-[#1e3a5f] mb-4">選擇分類圖示</h3>
-            <div className="grid grid-cols-5 gap-2">
+          <div className="relative bg-white rounded-2xl shadow-2xl p-4 sm:p-6 w-[95%] sm:w-[85%] md:w-[80%] max-h-[65vh] border-4 border-[#f97316] flex flex-col">
+            <h3 className="text-xl sm:text-2xl font-bold text-[#1e3a5f] mb-3 sm:mb-4 flex-shrink-0">選擇分類圖示</h3>
+            <div className="grid grid-cols-4 gap-2 sm:gap-3 overflow-y-auto flex-1 pb-4">
               {COMMON_EMOJIS.map((emoji) => (
                 <button
                   key={emoji}
@@ -942,7 +1307,7 @@ export default function AACApp() {
                     updateCategoryEmoji(showCategoryEmojiPickerFor, emoji);
                     setShowCategoryEmojiPickerFor(null);
                   }}
-                  className={`text-4xl p-3 rounded-lg hover:bg-[#f97316] hover:scale-110 transition-all duration-300 ${
+                  className={`text-3xl sm:text-5xl md:text-6xl p-2 sm:p-3 md:p-4 rounded-lg hover:bg-[#f97316] hover:scale-110 transition-all duration-300 ${
                     (customCategoryIcons[showCategoryEmojiPickerFor] || CATEGORY_ICONS[showCategoryEmojiPickerFor]) === emoji ? 'bg-[#f97316] scale-110' : 'bg-white'
                   }`}
                 >
@@ -952,7 +1317,7 @@ export default function AACApp() {
             </div>
             <button
               onClick={() => setShowCategoryEmojiPickerFor(null)}
-              className="mt-4 w-full px-4 py-2 bg-gray-400 text-white rounded-xl font-bold hover:bg-gray-500 transition-all duration-300"
+              className="mt-3 sm:mt-4 w-full px-4 py-2 sm:py-3 bg-gray-400 text-white rounded-xl font-bold hover:bg-gray-500 transition-all duration-300 flex-shrink-0"
             >
               關閉
             </button>
@@ -988,8 +1353,342 @@ export default function AACApp() {
       )}
 
       {/* 主要內容 */}
-      <div className="pt-24 px-4 sm:px-6 lg:px-8 pb-8">
+      <div className="pt-24 px-4 sm:px-6 lg:px-8 pb-24">
         <div className="max-w-7xl mx-auto">
+          {/* 登入碼模態 - First Step Login */}
+          {showLoginCodeModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={() => setShowLoginCodeModal(false)} />
+              <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 border-4 border-[#1e3a5f]">
+                <h3 className="text-3xl font-bold text-[#1e3a5f] mb-6 flex items-center gap-2">
+                  <Icon emoji="🔐" size={40} />
+                  登入 / Login
+                </h3>
+                <div className="space-y-4 mb-6">
+                  <input
+                    type="text"
+                    placeholder="登入碼 (Login Code)"
+                    value={loginCode}
+                    onChange={(e) => setLoginCode(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-[#1e3a5f] rounded-xl font-bold text-lg bg-white text-[#1e3a5f] outline-none focus:border-[#f97316] focus:bg-yellow-50"
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowLoginCodeModal(false)}
+                    className="flex-1 px-6 py-3 bg-gray-400 text-white rounded-xl font-bold hover:bg-gray-500 transition-all duration-300"
+                  >
+                    取消 / Cancel
+                  </button>
+                  <button
+                    onClick={handleLoginCode}
+                    disabled={!loginCode}
+                    className="flex-1 px-6 py-3 bg-[#1e3a5f] text-white rounded-xl font-bold hover:bg-[#0a1a2e] transition-all duration-300 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    登入 / Login
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 登入模態 - Admin Email & Password Login */}
+          {showLoginModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={() => setShowLoginModal(false)} />
+              <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 border-4 border-[#1e3a5f]">
+                <h3 className="text-3xl font-bold text-[#1e3a5f] mb-6 flex items-center gap-2">
+                  <Icon emoji="🔐" size={40} />
+                  登入 / Login
+                </h3>
+                <div className="space-y-4 mb-6">
+                  <input
+                    type="email"
+                    placeholder="Email (admin for admin role)"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-[#1e3a5f] rounded-xl font-bold text-lg bg-white text-[#1e3a5f] outline-none focus:border-[#f97316] focus:bg-yellow-50"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-[#1e3a5f] rounded-xl font-bold text-lg bg-white text-[#1e3a5f] outline-none focus:border-[#f97316] focus:bg-yellow-50"
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowLoginModal(false)}
+                    className="flex-1 px-6 py-3 bg-gray-400 text-white rounded-xl font-bold hover:bg-gray-500 transition-all duration-300"
+                  >
+                    取消 / Cancel
+                  </button>
+                  <button
+                    onClick={handleLogin}
+                    disabled={!loginEmail}
+                    className="flex-1 px-6 py-3 bg-[#1e3a5f] text-white rounded-xl font-bold hover:bg-[#0a1a2e] transition-all duration-300 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    登入 / Login
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Dashboard Modal - User Management */}
+          {showDashboard && user?.role === 'admin' && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto">
+              <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={() => setShowDashboard(false)} />
+              <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-4xl w-full mx-4 border-4 border-[#f97316] my-8">
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-4xl font-bold text-[#1e3a5f] flex items-center gap-2">
+                    <Icon emoji="📊" size={48} />
+                    管理員儀表板 / Admin Dashboard
+                  </h3>
+                  <button
+                    onClick={() => setShowDashboard(false)}
+                    className="text-[#1e3a5f] hover:text-[#f97316] text-3xl font-bold transition-all duration-300"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Add User Button */}
+                <button
+                  onClick={() => setShowAddUserModal(true)}
+                  className="mb-6 px-6 py-3 bg-[#1e3a5f] text-white rounded-xl font-bold text-lg hover:bg-[#0a1a2e] transition-all duration-300 flex items-center gap-2"
+                >
+                  <Icon emoji="➕" size={24} />
+                  新增使用者 / Add User
+                </button>
+
+                {/* Add User Modal */}
+                {showAddUserModal && (
+                  <div className="fixed inset-0 z-[60] flex items-center justify-center">
+                    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={() => setShowAddUserModal(false)} />
+                    <div className="relative bg-white rounded-2xl shadow-2xl p-6 max-w-md mx-4 border-4 border-[#f97316]">
+                      <h4 className="text-2xl font-bold text-[#1e3a5f] mb-4">新增使用者 / Add User</h4>
+                      <div className="space-y-4">
+                        {/* User Type Selection */}
+                        <select
+                          value={newUserType}
+                          onChange={(e) => {
+                            setNewUserType(e.target.value as 'admin' | 'user');
+                            setNewUserEmail('');
+                            setNewUserPassword('');
+                            setNewUserLoginCode('');
+                          }}
+                          className="w-full px-4 py-3 border-2 border-[#1e3a5f] rounded-xl font-bold text-lg bg-white text-[#1e3a5f] outline-none focus:border-[#f97316]"
+                        >
+                          <option value="user">一般使用者 / Normal User</option>
+                          <option value="admin">管理員 / Admin</option>
+                        </select>
+
+                        {/* Admin User Fields */}
+                        {newUserType === 'admin' && (
+                          <>
+                            <input
+                              type="email"
+                              placeholder="Email"
+                              value={newUserEmail}
+                              onChange={(e) => setNewUserEmail(e.target.value)}
+                              className="w-full px-4 py-3 border-2 border-[#1e3a5f] rounded-xl font-bold text-lg bg-white text-[#1e3a5f] outline-none focus:border-[#f97316]"
+                            />
+                            <input
+                              type="password"
+                              placeholder="Password"
+                              value={newUserPassword}
+                              onChange={(e) => setNewUserPassword(e.target.value)}
+                              className="w-full px-4 py-3 border-2 border-[#1e3a5f] rounded-xl font-bold text-lg bg-white text-[#1e3a5f] outline-none focus:border-[#f97316]"
+                            />
+                            <div className="text-sm text-[#1e3a5f] font-bold bg-blue-50 p-3 rounded-lg">
+                              試用期限 / Trial: 無限制 (Unlimited)
+                            </div>
+                          </>
+                        )}
+
+                        {/* Normal User Fields */}
+                        {newUserType === 'user' && (
+                          <>
+                            <input
+                              type="text"
+                              placeholder="登入碼 (Login Code)"
+                              value={newUserLoginCode}
+                              onChange={(e) => setNewUserLoginCode(e.target.value)}
+                              className="w-full px-4 py-3 border-2 border-[#1e3a5f] rounded-xl font-bold text-lg bg-white text-[#1e3a5f] outline-none focus:border-[#f97316]"
+                            />
+                            <div className="text-sm text-[#1e3a5f] font-bold bg-blue-50 p-3 rounded-lg">
+                              試用期限 / Trial: 14日 (14 Days)
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      <div className="flex gap-3 mt-6">
+                        <button
+                          onClick={() => {
+                            setShowAddUserModal(false);
+                            setNewUserEmail('');
+                            setNewUserPassword('');
+                            setNewUserLoginCode('');
+                          }}
+                          className="flex-1 px-4 py-3 bg-gray-400 text-white rounded-xl font-bold hover:bg-gray-500"
+                        >
+                          取消 / Cancel
+                        </button>
+                        <button
+                          onClick={addUser}
+                          className="flex-1 px-4 py-3 bg-[#1e3a5f] text-white rounded-xl font-bold hover:bg-[#0a1a2e]"
+                        >
+                          新增 / Add
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Users Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-[#1e3a5f] text-white">
+                        <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">身份 / Info</th>
+                        <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">角色 / Role</th>
+                        <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">建立日期 / Created</th>
+                        <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">試用期限 / Trial</th>
+                        <th className="border-2 border-[#1e3a5f] px-4 py-3 text-center font-bold">操作 / Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allUsers.map((u) => {
+                        const trialStatus = getTrialStatus(u);
+                        return (
+                          <tr key={u.id} className="border-b-2 border-[#1e3a5f]">
+                            <td className="border-2 border-[#1e3a5f] px-4 py-3 font-bold text-[#1e3a5f]">
+                              {u.role === 'admin' ? `📧 ${u.email}` : `🔐 ${u.loginCode}`}
+                            </td>
+                            <td className="border-2 border-[#1e3a5f] px-4 py-3 font-bold">
+                              {editingUserId === u.id && !editingUserId?.endsWith('_trial') ? (
+                                <select
+                                  value={editingUserRole}
+                                  onChange={(e) => setEditingUserRole(e.target.value as 'admin' | 'user')}
+                                  className="px-3 py-2 border-2 border-[#f97316] rounded-lg font-bold bg-white text-[#1e3a5f]"
+                                >
+                                  <option value="user">使用者 / User</option>
+                                  <option value="admin">管理員 / Admin</option>
+                                </select>
+                              ) : (
+                                <span className={`px-3 py-1 rounded-lg font-bold text-white ${u.role === 'admin' ? 'bg-[#f97316]' : 'bg-[#1e3a5f]'}`}>
+                                  {u.role === 'admin' ? '管理員' : '使用者'}
+                                </span>
+                              )}
+                            </td>
+                            <td className="border-2 border-[#1e3a5f] px-4 py-3 font-bold text-[#1e3a5f] text-sm">
+                              {new Date(u.createdAt).toLocaleDateString('zh-HK')}
+                            </td>
+                            <td className="border-2 border-[#1e3a5f] px-4 py-3 font-bold text-center">
+                              {editingUserId === `${u.id}_trial` ? (
+                                <select
+                                  value={editingUserTrial}
+                                  onChange={(e) => setEditingUserTrial(e.target.value as 'unlimited' | '14days' | 'notrial')}
+                                  className="px-3 py-2 border-2 border-[#f97316] rounded-lg font-bold bg-white text-[#1e3a5f] w-full"
+                                >
+                                  <option value="unlimited">Unlimited</option>
+                                  <option value="14days">14日</option>
+                                  <option value="notrial">No Trial</option>
+                                </select>
+                              ) : (
+                                <span className={`px-3 py-1 rounded-lg font-bold text-white cursor-pointer hover:opacity-80 ${
+                                  u.trialType === 'unlimited' ? 'bg-green-600' : u.trialType === '14days' ? 'bg-blue-500' : 'bg-red-500'
+                                }`}
+                                  onClick={() => {
+                                    setEditingUserId(`${u.id}_trial`);
+                                    setEditingUserTrial(u.trialType);
+                                  }}
+                                >
+                                  {u.trialType === 'unlimited' ? '無限制' : u.trialType === '14days' ? `14日 (${trialStatus.daysLeft}天)` : '無試用'}
+                                </span>
+                              )}
+                            </td>
+                            <td className="border-2 border-[#1e3a5f] px-4 py-3 text-center">
+                              {editingUserId?.startsWith(u.id) ? (
+                                <div className="flex gap-2 justify-center">
+                                  <button
+                                    onClick={() => {
+                                      if (editingUserId.endsWith('_trial')) {
+                                        updateUserTrial(u.id, editingUserTrial);
+                                      } else {
+                                        updateUserRole(u.id, editingUserRole);
+                                      }
+                                    }}
+                                    className="px-3 py-2 bg-green-500 text-white rounded-lg font-bold hover:bg-green-600 text-sm"
+                                  >
+                                    ✔
+                                  </button>
+                                  <button
+                                    onClick={() => setEditingUserId(null)}
+                                    className="px-3 py-2 bg-gray-400 text-white rounded-lg font-bold hover:bg-gray-500 text-sm"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex gap-2 justify-center">
+                                  <button
+                                    onClick={() => {
+                                      setEditingUserId(u.id);
+                                      setEditingUserRole(u.role);
+                                    }}
+                                    className="px-3 py-2 bg-[#1e3a5f] text-white rounded-lg font-bold hover:bg-[#0a1a2e] text-sm"
+                                  >
+                                    編輯
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteUserConfirm(u.id)}
+                                    className="px-3 py-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 text-sm"
+                                  >
+                                    刪除
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Delete Confirmation */}
+                {deleteUserConfirm && (
+                  <div className="fixed inset-0 z-[70] flex items-center justify-center">
+                    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
+                    <div className="relative bg-white rounded-2xl shadow-2xl p-6 max-w-sm mx-4 border-4 border-red-500">
+                      <h4 className="text-2xl font-bold text-[#1e3a5f] mb-4">確認刪除 / Confirm Delete</h4>
+                      <p className="text-lg font-bold text-[#1e3a5f] mb-6">
+                        確定要刪除 {allUsers.find(u => u.id === deleteUserConfirm)?.email} 嗎? / Are you sure?
+                      </p>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => setDeleteUserConfirm(null)}
+                          className="flex-1 px-4 py-3 bg-gray-400 text-white rounded-xl font-bold hover:bg-gray-500"
+                        >
+                          取消 / Cancel
+                        </button>
+                        <button
+                          onClick={() => deleteUser(deleteUserConfirm)}
+                          className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600"
+                        >
+                          刪除 / Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* 語音設定面板 */}
           {showSettings && (
             <div className="fixed top-20 left-0 right-0 z-40 p-6 bg-white rounded-2xl shadow-xl border-4 border-[#1e3a5f] animate-fadeIn mx-4 sm:mx-6 lg:mx-8" style={{ marginLeft: 'auto', marginRight: 'auto' }}>
@@ -1037,8 +1736,8 @@ export default function AACApp() {
                   </label>
                   <input
                     type="range"
-                    min="0.5"
-                    max="2.0"
+                    min="0.1"
+                    max="1.2"
                     step="0.1"
                     value={speechRate}
                     onChange={(e) => setSpeechRate(parseFloat(e.target.value))}
@@ -1086,51 +1785,71 @@ export default function AACApp() {
 
           {/* Add Vocabulary Panel */}
           {showAddVocab && (
-            <div className="mb-6 p-6 bg-white rounded-2xl shadow-2xl border-4 border-[#f97316] animate-fadeIn">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-3xl font-bold text-[#1e3a5f] flex items-center gap-2">
-                  <Icon emoji="➕" size={40} />
-                  <BilingualText zh="加入新詞語" en="Add New Words" enClassName="text-lg" />
-                </h3>
+            <div className="fixed inset-0 z-50 bg-[#f5f5dc] overflow-y-auto">
+              {/* Header with back button */}
+              <div className="fixed top-0 left-0 right-0 bg-[#1e3a5f] text-white shadow-lg z-50 px-4 py-3 flex items-center justify-between">
                 <button
                   onClick={() => {
                     setShowAddVocab(false);
                     resetAddVocabForm();
                   }}
-                  className="text-[#1e3a5f] hover:text-[#f97316] text-2xl font-bold transition-all duration-300"
-                  aria-label="關閉 Close"
+                  className="p-3 bg-[#f97316] rounded-xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 transform min-h-[60px] min-w-[60px] flex items-center justify-center"
+                  aria-label="返回 Back"
                 >
-                  ✕
+                  <span className="text-white text-3xl font-bold">←</span>
                 </button>
+                
+                <h1 className="text-2xl sm:text-3xl font-bold flex-1 text-center">
+                  <BilingualText
+                    zh="加入新詞語"
+                    en="Add New Words"
+                    className="items-center"
+                    enClassName="text-base sm:text-lg font-semibold"
+                  />
+                </h1>
+                
+                <div className="min-h-[60px] min-w-[60px]"></div>
               </div>
 
-              {/* Success Message */}
-              {vocabSuccess && (
-                <div className="mb-4 p-4 bg-green-100 border-3 border-green-500 rounded-xl text-green-800 font-bold text-lg text-center animate-pulse">
-                  ✅ 詞語已加入! / Word added successfully!
-                </div>
-              )}
+              {/* Main Content */}
+              <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 pt-24">
+                <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 border-4 border-[#f97316]">
+                  {/* Success Message */}
+                  {vocabSuccess && (
+                    <div className="mb-6 p-6 bg-green-50 border-4 border-green-500 rounded-2xl text-center animate-pulse shadow-lg">
+                      <div className="text-4xl mb-3">✅</div>
+                      <div className="text-2xl font-bold text-green-700 mb-2">詞語已加入！</div>
+                      <div className="text-lg font-semibold text-green-600">Word added successfully!</div>
+                    </div>
+                  )}
 
-              {/* Error Message */}
-              {vocabError && (
-                <div className="mb-4 p-4 bg-red-100 border-3 border-red-500 rounded-xl text-red-800 font-bold text-lg">
-                  ❌ {vocabError}
-                </div>
-              )}
+                  {/* Error Message */}
+                  {vocabError && (
+                    <div className="mb-6 p-4 bg-red-100 border-3 border-red-500 rounded-xl text-red-800 font-bold text-lg">
+                      ❌ {vocabError}
+                    </div>
+                  )}
 
               <div className="space-y-6">
                 {/* Image Upload */}
                 <div>
-                  <h4 className="text-2xl font-bold text-[#1e3a5f] mb-3">
-                    <BilingualText zh="1️⃣ 上傳圖片" en="1️⃣ Upload Image" enClassName="text-lg" />
-                  </h4>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-[#f97316] text-white rounded-full flex items-center justify-center font-bold text-xl shadow-lg">1</div>
+                    <h4 className="text-2xl font-bold text-[#1e3a5f]">
+                      <BilingualText zh="上傳圖片" en="Upload Image" enClassName="text-lg" />
+                    </h4>
+                  </div>
                   <div className="bg-[#f5f5dc] p-4 rounded-2xl">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="flex-1 px-4 py-3 border-2 border-[#1e3a5f] rounded-xl text-2xl text-center font-bold bg-white text-[#1e3a5f]">
-                        {addVocabInput.icon}
+                    <div className="flex items-center justify-center gap-2 mb-4">
+                      <div className="flex-1 px-4 py-3 border-2 border-[#1e3a5f] rounded-xl text-center font-bold bg-white text-[#1e3a5f] flex items-center justify-center min-h-[120px]">
+                        {addVocabInput.icon && typeof addVocabInput.icon === 'string' && addVocabInput.icon.startsWith('data:image') ? (
+                          <img src={addVocabInput.icon} alt="Uploaded" className="max-w-[90%] max-h-[100px] object-contain" />
+                        ) : (
+                          <span className="text-2xl">{addVocabInput.icon || '📝'}</span>
+                        )}
                       </div>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap gap-3">
                       {/* Camera Button */}
                       <button
                         onClick={() => {
@@ -1150,7 +1869,7 @@ export default function AACApp() {
                           };
                           input.click();
                         }}
-                        className="flex-1 px-6 py-4 bg-[#f97316] text-white rounded-2xl font-bold text-lg border-3 border-[#f97316] shadow-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2"
+                        className="flex-1 min-w-[120px] px-6 py-4 bg-[#f97316] text-white rounded-2xl font-bold text-lg border-3 border-[#f97316] shadow-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2"
                       >
                         <Icon emoji="📷" size={32} />
                         <span>拍照 / Camera</span>
@@ -1174,7 +1893,7 @@ export default function AACApp() {
                           };
                           input.click();
                         }}
-                        className="flex-1 px-6 py-4 bg-[#f97316] text-white rounded-2xl font-bold text-lg border-3 border-[#f97316] shadow-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2"
+                        className="flex-1 min-w-[120px] px-6 py-4 bg-[#f97316] text-white rounded-2xl font-bold text-lg border-3 border-[#f97316] shadow-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2"
                       >
                         <Icon emoji="📁" size={32} />
                         <span>上傳 / Upload</span>
@@ -1183,7 +1902,7 @@ export default function AACApp() {
                       {/* Emoji Keyboard Button */}
                       <button
                         onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                        className="flex-1 px-6 py-4 bg-[#f97316] text-white rounded-2xl font-bold text-lg border-3 border-[#f97316] shadow-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2"
+                        className="flex-1 min-w-[120px] px-6 py-4 bg-[#f97316] text-white rounded-2xl font-bold text-lg border-3 border-[#f97316] shadow-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2"
                       >
                         <Icon emoji="😀" size={32} />
                         <span>表情 / Emoji</span>
@@ -1214,9 +1933,12 @@ export default function AACApp() {
 
                 {/* Text Inputs */}
                 <div>
-                  <h4 className="text-2xl font-bold text-[#1e3a5f] mb-3">
-                    <BilingualText zh="2️⃣ 輸入詞語" en="2️⃣ Enter Words" enClassName="text-lg" />
-                  </h4>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-[#f97316] text-white rounded-full flex items-center justify-center font-bold text-xl shadow-lg">2</div>
+                    <h4 className="text-2xl font-bold text-[#1e3a5f]">
+                      <BilingualText zh="輸入詞語" en="Enter Words" enClassName="text-lg" />
+                    </h4>
+                  </div>
                   <div className="space-y-3">
                     <div>
                       <label className="block text-lg font-bold text-[#1e3a5f] mb-2">
@@ -1248,9 +1970,12 @@ export default function AACApp() {
 
                 {/* Category Selector */}
                 <div>
-                  <h4 className="text-2xl font-bold text-[#1e3a5f] mb-3">
-                    <BilingualText zh="3️⃣ 選擇分類" en="3️⃣ Choose Category" enClassName="text-lg" />
-                  </h4>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-[#f97316] text-white rounded-full flex items-center justify-center font-bold text-xl shadow-lg">3</div>
+                    <h4 className="text-2xl font-bold text-[#1e3a5f]">
+                      <BilingualText zh="選擇分類" en="Choose Category" enClassName="text-lg" />
+                    </h4>
+                  </div>
                   <div className="space-y-3">
                     {getUniqueCategories().length > 0 && (
                       <select
@@ -1344,8 +2069,10 @@ export default function AACApp() {
                     className="flex-1 px-8 py-5 bg-[#1e3a5f] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#2a5a8f] hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-2"
                   >
                     <Icon emoji="❌" size={40} />
-                    <BilingualText zh="取消" en="Cancel" className="items-center" enClassName="text-lg" />
+                    <BilingualText zh="返回" en="Back" className="items-center" enClassName="text-lg" />
                   </button>
+                </div>
+              </div>
                 </div>
               </div>
             </div>
@@ -1533,7 +2260,13 @@ export default function AACApp() {
                   animationFillMode: 'both'
                 }}
               >
-                <Icon emoji={phrase.icon} size={96} className="transition-all duration-300 group-hover:scale-125 group-hover:rotate-12 group-active:scale-90" />
+                <div className="transition-all duration-300 group-hover:scale-125 group-hover:rotate-12 group-active:scale-90 flex items-center justify-center">
+                  {phrase.icon && typeof phrase.icon === 'string' && phrase.icon.startsWith('data:image') ? (
+                    <img src={phrase.icon} alt={phrase.text} className="max-w-[90%] max-h-[120px] object-contain" />
+                  ) : (
+                    <Icon emoji={phrase.icon || '📝'} size={96} />
+                  )}
+                </div>
                 <div className="text-center transition-all duration-300 group-hover:scale-110">
                   <BilingualText
                     zh={phrase.text}
