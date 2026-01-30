@@ -949,13 +949,18 @@ export default function AACApp() {
           </span>
         </button>
         
-        <h1 className="text-2xl sm:text-3xl font-bold flex-1 text-center">
+        <h1 className="text-lg sm:text-3xl font-bold flex-1 text-center mx-2 sm:mx-0">
           <BilingualText
             zh="AAC 輔助通訊"
             en=""
-            className="items-center"
-            enClassName="text-base sm:text-lg font-semibold"
+            className="items-center flex-col sm:flex-row gap-1 sm:gap-0"
+            enClassName="text-base sm:text-lg font-semibold hidden sm:inline"
           />
+          <div className="sm:hidden text-sm leading-tight">
+            <div>AAC</div>
+            <div>輔助</div>
+            <div>通訊</div>
+          </div>
         </h1>
         
         <div className="flex gap-2">
@@ -1202,7 +1207,7 @@ export default function AACApp() {
               <h2 className="text-3xl font-bold text-[#1e3a5f] mb-6">
                 <BilingualText zh="分類選單" en="Categories" enClassName="text-lg sm:text-xl" />
               </h2>
-              <nav className="space-y-3 mb-8">
+              <nav className="space-y-3 mb-32">
                 {['個人物品', '家居用品', '水果', '地方'].map((category, index) => (
                   <div
                     key={category}
@@ -1270,15 +1275,18 @@ export default function AACApp() {
         <div className="max-w-7xl mx-auto px-6 py-4 text-center">
           {!hasFullAccess() ? (
             <>
-              <div className="font-bold text-lg mb-2">
-                🔐 請登入以存取更多功能 / Please login for more features
-              </div>
-              <div className="font-bold text-sm">
+              <button
+                onClick={() => setShowLoginCodeModal(true)}
+                className="w-full font-bold text-sm sm:text-lg mb-2 hover:opacity-80 transition-all duration-300 truncate"
+              >
+                🔐 <span className="hidden sm:inline">請登入以存取更多功能 / </span><span className="sm:hidden">登入存取</span><span className="hidden sm:inline">Please login for more features</span><span className="sm:hidden">更多功能</span>
+              </button>
+              <div className="font-bold text-xs sm:text-sm">
                 @Audrey Chung 2026
               </div>
             </>
           ) : (
-            <div className="font-bold text-lg">
+            <div className="font-bold text-xs sm:text-sm">
               @Audrey Chung 2026
             </div>
           )}
