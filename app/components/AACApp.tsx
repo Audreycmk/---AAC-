@@ -120,9 +120,22 @@ const CATEGORY_LABELS: Record<string, string> = {
 // 句子啟動器和建議詞語
 const SENTENCE_STARTERS = [
   { text: '我想', en: 'I want to', icon: '💭' },
-  { text: '可唔可以', en: 'Could you', icon: '🙏' },
+  { text: '唔記得', en: 'Cannot remember', icon: '🤔' },
   { text: '幫我', en: 'Help me', icon: '🤝' },
   { text: '我要', en: 'I need to', icon: '✋' },
+];
+
+// Additional starters for logged-in users (elderly-friendly)
+const ADDITIONAL_STARTERS = [
+  { text: '請問', en: 'May I ask', icon: '❓' },
+  { text: '好辛苦', en: 'Feel uncomfortable', icon: '😣' },
+  { text: '我唔舒服', en: 'Not feeling well', icon: '🤒' },
+  { text: '好攰喇', en: 'Very tired', icon: '😴' },
+ 
+  { text: '好凍呀', en: 'Feeling cold', icon: '🥶' },
+  { text: '好熱呀', en: 'Feeling hot', icon: '🥵' },
+  { text: '痛呀', en: 'Feeling pain', icon: '😖' },
+  { text: '好悶呀', en: 'Feeling bored', icon: '😑' },
 ];
 
 const SUGGESTED_WORDS: Record<string, Array<{text: string, en: string, icon: string}>> = {
@@ -132,23 +145,82 @@ const SUGGESTED_WORDS: Record<string, Array<{text: string, en: string, icon: str
     { text: '休息', en: 'rest', icon: '🛏️' },
     { text: '睇電視', en: 'watch TV', icon: '📺' }
   ],
-  '可唔可以': [
-    { text: '開燈', en: 'turn on the light', icon: '💡' },
-    { text: '熄燈', en: 'turn off the light', icon: '🌙' },
-    { text: '開窗', en: 'open the window', icon: '🪟' },
-    { text: '閉窗', en: 'close the window', icon: '🪟' }
-  ],
+
   '幫我': [
     { text: '拎嘢', en: 'get it for me', icon: '📦' },
-    { text: '開門', en: 'open the door', icon: '🚪' },
-    { text: '閉門', en: 'close the door', icon: '🚪' },
-    { text: '倒水', en: 'pour water', icon: '💧' }
+    { text: '倒水', en: 'pour water', icon: '💧' },
+    { text: '開門', en: 'open the door', icon: '✅🚪' },
+    { text: '關門', en: 'close the door', icon: '❌🚪' },
+    { text: '開燈', en: 'turn on the light', icon: '✅💡' },
+    { text: '熄燈', en: 'turn off the light', icon: '❌💡' },
+    { text: '開窗', en: 'open the window', icon: '✅🪟' },
+    { text: '閂窗', en: 'close the window', icon: '❌🪟' }
   ],
   '我要': [
     { text: '食藥', en: 'take medicine', icon: '💊' },
     { text: '換衫', en: 'change clothes', icon: '👕' },
     { text: '沖涼', en: 'take a shower', icon: '🚿' },
     { text: '睇醫生', en: 'see a doctor', icon: '👨‍⚕️' }
+  ],
+  '請問': [
+    { text: '廁所喺邊', en: 'where is the toilet', icon: '🚻' },
+    { text: '你嘅電話號碼', en: 'what is your contact number', icon: '📱' },
+    { text: '你係邊個', en: 'who are you', icon: '👤' },
+    { text: '你叫咩名', en: 'what is your name', icon: '🗣️' },
+    { text: '幾多錢', en: 'how much', icon: '💰' },
+    { text: '今日幾月幾日', en: 'what date is today', icon: '📅' },
+    { text: '幾點鐘', en: 'what time is it', icon: '⏰' },
+    { text: '天氣點呀', en: 'how is the weather', icon: '🌤️' }
+    
+  ],
+    '唔記得': [
+    { text: '食咗藥未', en: 'took medicine or not', icon: '💊' },
+    { text: '佢叫乜名', en: 'what\'s the name', icon: '❓' },
+    { text: '放喺邊', en: 'where I put it', icon: '🔍' },
+    { text: '幾點鐘', en: 'what time', icon: '⏰' }
+  ],
+  '好辛苦': [
+    { text: '頭暈', en: 'dizzy', icon: '😵' },
+    { text: '冇力', en: 'no energy', icon: '😩' },
+    { text: '心翳', en: 'chest discomfort', icon: '💔' },
+    { text: '唔想郁', en: 'don\'t want to move', icon: '🛋️' }
+  ],
+  '我唔舒服': [
+    { text: '肚痛', en: 'stomachache', icon: '🤢' },
+    { text: '頭痛', en: 'headache', icon: '🤕' },
+    { text: '周身痛', en: 'aching all over', icon: '😣' },
+    { text: '想嘔', en: 'feel like vomiting', icon: '🤮' }
+  ],
+  '好攰喇': [
+    { text: '想瞓', en: 'want to sleep', icon: '😴' },
+    { text: '想坐低', en: 'want to sit', icon: '🪑' },
+    { text: '想抖吓', en: 'want to rest', icon: '🛋️' },
+    { text: '冇精神', en: 'no energy', icon: '😪' }
+  ],
+
+  '好凍呀': [
+    { text: '要被', en: 'need blanket', icon: '🛏️' },
+    { text: '關窗', en: 'close window', icon: '🪟' },
+    { text: '著多件', en: 'wear more', icon: '🧥' },
+    { text: '開暖氣', en: 'turn on heater', icon: '♨️' }
+  ],
+  '好熱呀': [
+    { text: '開風扇', en: 'turn on fan', icon: '💨' },
+    { text: '開冷氣', en: 'turn on AC', icon: '❄️' },
+    { text: '開窗', en: 'open window', icon: '🪟' },
+    { text: '脫件衫', en: 'take off clothes', icon: '👕' }
+  ],
+  '痛呀': [
+    { text: '腰痛', en: 'back pain', icon: '🦴' },
+    { text: '腳痛', en: 'leg pain', icon: '🦵' },
+    { text: '手痛', en: 'hand pain', icon: '🤲' },
+    { text: '好痛', en: 'very painful', icon: '😣' }
+  ],
+  '好悶呀': [
+    { text: '想傾偈', en: 'want to chat', icon: '💬' },
+    { text: '想出街', en: 'want to go out', icon: '🚶' },
+    { text: '想睇報紙', en: 'want to read newspaper', icon: '📰' },
+    { text: '想聽歌', en: 'want to listen to music', icon: '🎵' }
   ],
 };
 
@@ -239,6 +311,8 @@ export default function AACApp() {
   const [speechRate, setSpeechRate] = useState(0.5);
   const [speechVolume, setSpeechVolume] = useState(1.0);
   const [speechLanguage, setSpeechLanguage] = useState<'zh-HK' | 'en-US'>('zh-HK');
+  const [selectedVoice, setSelectedVoice] = useState<string>('');
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [history, setHistory] = useState<string[]>([]);
   const [showSettings, setShowSettings] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -261,6 +335,7 @@ export default function AACApp() {
   const [addVocabLang, setAddVocabLang] = useState<'zh' | 'en'>('zh');
   const [vocabError, setVocabError] = useState('');
   const [vocabSuccess, setVocabSuccess] = useState(false);
+  const [lastAddedWord, setLastAddedWord] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showCategoryEmojiPicker, setShowCategoryEmojiPicker] = useState(false);
   const [showCreateCategory, setShowCreateCategory] = useState(false);
@@ -288,9 +363,16 @@ export default function AACApp() {
       // 監聽語音列表變化
       window.speechSynthesis.onvoiceschanged = () => {
         const voices = window.speechSynthesis.getVoices();
+        setAvailableVoices(voices);
         console.log('Available voices:', voices.length);
         console.log('Cantonese voices:', voices.filter(v => v.lang.includes('zh-HK')));
       };
+      
+      // Load voices immediately if already available
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        setAvailableVoices(voices);
+      }
     }
     
     // 從 localStorage 載入用戶列表
@@ -347,6 +429,27 @@ export default function AACApp() {
     if (savedCustomPhrases) {
       setCustomPhrases(JSON.parse(savedCustomPhrases));
     }
+    
+    // 從 localStorage 載入語音設定
+    const savedSpeechRate = localStorage.getItem('aac-speech-rate');
+    if (savedSpeechRate) {
+      setSpeechRate(parseFloat(savedSpeechRate));
+    }
+    
+    const savedSpeechVolume = localStorage.getItem('aac-speech-volume');
+    if (savedSpeechVolume) {
+      setSpeechVolume(parseFloat(savedSpeechVolume));
+    }
+    
+    const savedSpeechLanguage = localStorage.getItem('aac-speech-language');
+    if (savedSpeechLanguage) {
+      setSpeechLanguage(savedSpeechLanguage as 'zh-HK' | 'en-US');
+    }
+    
+    const savedSelectedVoice = localStorage.getItem('aac-selected-voice');
+    if (savedSelectedVoice) {
+      setSelectedVoice(savedSelectedVoice);
+    }
   }, []);
 
   // Save allUsers to API and localStorage whenever it changes
@@ -365,6 +468,27 @@ export default function AACApp() {
       localStorage.removeItem('aac-current-user');
     }
   }, [user]);
+  
+  // Save speech settings to localStorage
+  useEffect(() => {
+    localStorage.setItem('aac-speech-rate', speechRate.toString());
+  }, [speechRate]);
+  
+  useEffect(() => {
+    localStorage.setItem('aac-speech-volume', speechVolume.toString());
+  }, [speechVolume]);
+  
+  useEffect(() => {
+    localStorage.setItem('aac-speech-language', speechLanguage);
+  }, [speechLanguage]);
+  
+  useEffect(() => {
+    if (selectedVoice) {
+      localStorage.setItem('aac-selected-voice', selectedVoice);
+    } else {
+      localStorage.removeItem('aac-selected-voice');
+    }
+  }, [selectedVoice]);
 
   const resolveEnglishText = (text: string) => {
     if (PHRASE_TRANSLATIONS[text]) {
@@ -641,6 +765,28 @@ export default function AACApp() {
     return false;
   };
 
+  const playVoiceDemo = (voiceName: string) => {
+    if (!speechSupported) {
+      alert('您的瀏覽器不支援語音功能 / Your browser does not support speech');
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    
+    const demoText = speechLanguage === 'zh-HK' ? '你好，呢個係試聽' : 'Hello, this is a demo sound';
+    const utterance = new SpeechSynthesisUtterance(demoText);
+    
+    const voice = availableVoices.find(v => v.name === voiceName);
+    if (voice) {
+      utterance.voice = voice;
+      utterance.lang = voice.lang;
+    }
+    utterance.rate = speechRate;
+    utterance.volume = speechVolume;
+    
+    window.speechSynthesis.speak(utterance);
+  };
+
   const speak = (text: string) => {
     if (!speechSupported) {
       alert('您的瀏覽器不支援語音功能 / Your browser does not support speech');
@@ -662,12 +808,21 @@ export default function AACApp() {
     utterance.pitch = 1.0;
     utterance.volume = speechVolume;
 
-    // 嘗試選擇對應語音
+    // 使用用戶選擇的語音，如果沒有選擇則使用默認邏輯
     const voices = window.speechSynthesis.getVoices();
-    const targetVoice = speechLanguage === 'zh-HK'
-      ? voices.find(voice => voice.lang === 'zh-HK' || voice.lang === 'zh_HK')
-      : voices.find(voice => voice.lang.startsWith('en') && /(female|woman|girl|samantha|victoria|zoe|serena|tessa|karen|moira|susan)/i.test(voice.name))
-        || voices.find(voice => voice.lang.startsWith('en'));
+    let targetVoice = null;
+    
+    if (selectedVoice) {
+      targetVoice = voices.find(voice => voice.name === selectedVoice);
+    }
+    
+    if (!targetVoice) {
+      targetVoice = speechLanguage === 'zh-HK'
+        ? voices.find(voice => voice.lang === 'zh-HK' || voice.lang === 'zh_HK')
+        : voices.find(voice => voice.lang.startsWith('en') && /(female|woman|girl|samantha|victoria|zoe|serena|tessa|karen|moira|susan)/i.test(voice.name))
+          || voices.find(voice => voice.lang.startsWith('en'));
+    }
+    
     if (targetVoice) {
       utterance.voice = targetVoice;
       console.log('Using voice:', targetVoice.name);
@@ -889,11 +1044,21 @@ export default function AACApp() {
     // Save to localStorage
     localStorage.setItem('custom-vocab', JSON.stringify(updatedCustomPhrases));
 
+    // Store the added word and show success message
+    setLastAddedWord(addVocabInput.text);
     setVocabSuccess(true);
+    
+    // Auto scroll to top to show success message
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Reset form but keep the page open
+    resetAddVocabForm();
+    
+    // Hide success message after 3 seconds
     setTimeout(() => {
-      resetAddVocabForm();
-      setShowAddVocab(false);
-    }, 1500);
+      setVocabSuccess(false);
+      setLastAddedWord('');
+    }, 3000);
   };
 
   const handleVocabInputChange = (field: string, value: string) => {
@@ -920,11 +1085,18 @@ export default function AACApp() {
     ? allPhrases
     : allPhrases.filter(p => p.category === selectedCategory);
 
-  const visibleStarters = showSuggestions && currentStarter
-    ? SENTENCE_STARTERS.filter((starter) => starter.text === currentStarter)
-    : SENTENCE_STARTERS;
+  // Combine starters - always show all, but guests can't access additional ones
+  const allAvailableStarters = [...SENTENCE_STARTERS, ...ADDITIONAL_STARTERS];
 
-  const starterMatch = SENTENCE_STARTERS.find((starter) => customText.startsWith(starter.text));
+  const visibleStarters = showSuggestions && currentStarter
+    ? allAvailableStarters.filter((starter) => starter.text === currentStarter)
+    : allAvailableStarters;
+  
+  // Check if a starter is from the base 4 or the additional ones
+  const isBasicStarter = (starterText: string) => 
+    SENTENCE_STARTERS.some(s => s.text === starterText);
+
+  const starterMatch = allAvailableStarters.find((starter) => customText.startsWith(starter.text));
   const starterTail = starterMatch ? customText.slice(starterMatch.text.length) : '';
   const suggestionMatch = starterMatch && starterTail
     ? SUGGESTED_WORDS[starterMatch.text]?.find((word) => word.text === starterTail)
@@ -964,7 +1136,7 @@ export default function AACApp() {
             className="p-3 bg-[#f97316] rounded-xl shadow-lg hover:bg-[#ea580c] hover:scale-110 active:scale-95 transition-all duration-300 min-h-[60px] min-w-[60px] flex items-center justify-center"
             aria-label="歷史記錄 History"
           >
-            <Icon emoji="📜" size={32} />
+            <Icon emoji="⭐️" size={32} />
           </button>
           
           {/* 設定按鈕 */}
@@ -1012,7 +1184,7 @@ export default function AACApp() {
       <div
         className={`fixed top-0 left-0 h-full bg-white shadow-2xl z-40 transition-all duration-500 ease-out ${
           menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
-        } w-80 pt-20`}
+        } w-80 pt-20 pb-24 sm:pb-20`}
       >
         <div className="p-6 h-full overflow-y-auto">
           {/* 自訂句子按鈕（在菜單內） */}
@@ -1021,7 +1193,7 @@ export default function AACApp() {
               setShowCustomPanel(!showCustomPanel);
               setMenuOpen(false);
             }}
-            className={`w-full px-6 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-3 mb-6 transform ${
+            className={`w-full mt-6 px-6 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-3 mb-6 transform ${
               menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'
             }`}
             style={{ 
@@ -1242,25 +1414,31 @@ export default function AACApp() {
             </>
           )}
 
-          {/* Add Vocabulary Button - Only show when logged in with full access */}
-          {hasFullAccess() && (
-            <button
-              onClick={() => {
+          {/* Add Vocabulary Button - Show for all users, grey for non-logged in */}
+          <button
+            onClick={() => {
+              if (hasFullAccess()) {
                 setShowAddVocab(true);
                 setMenuOpen(false);
-              }}
-              className={`w-full mt-8 mb-20 px-6 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-3 transform ${
-                menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'
-              }`}
-              style={{ 
-                transitionDelay: menuOpen ? `${categories.length * 50 + 100}ms` : '0ms'
-              }}
-              aria-label="加入詞語 Add Vocabulary"
-            >
-              <Icon emoji="➕" size={40} />
-              <BilingualText zh="加入詞語" en="Add Words" className="items-center text-center" enClassName="text-lg" />
-            </button>
-          )}
+              } else {
+                alert('請登入以使用此功能\nPlease log in to use this function');
+              }
+            }}
+            className={`w-full mt-8 mb-20 px-6 py-5 rounded-2xl font-bold text-2xl shadow-lg transition-all duration-300 min-h-[70px] flex items-center justify-center gap-3 transform ${
+              menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'
+            } ${
+              hasFullAccess() 
+                ? 'bg-[#f97316] text-white hover:bg-[#ea580c] hover:shadow-2xl hover:scale-[1.02] active:scale-95' 
+                : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+            }`}
+            style={{ 
+              transitionDelay: menuOpen ? `${categories.length * 50 + 100}ms` : '0ms'
+            }}
+            aria-label="加入詞語 Add Vocabulary"
+          >
+            <Icon emoji="➕" size={40} />
+            <BilingualText zh="加入詞語" en="Add Words" className="items-center text-center" enClassName="text-lg" />
+          </button>
         </div>
       </div>
 
@@ -1355,7 +1533,7 @@ export default function AACApp() {
       )}
 
       {/* 主要內容 */}
-      <div className="pt-24 px-4 sm:px-6 lg:px-8 pb-24">
+      <div className="pt-28 sm:pt-24 px-4 sm:px-6 lg:px-8 pb-32 sm:pb-24">
         <div className="max-w-7xl mx-auto">
           {/* 登入碼模態 - First Step Login */}
           {showLoginCodeModal && (
@@ -1749,6 +1927,93 @@ export default function AACApp() {
                     English
                   </button>
                 </div>
+                
+                {/* Voice Selection - Show for all users, grey out for guests */}
+                {availableVoices.length > 0 && (
+                  <div className="space-y-3">
+                    <label 
+                      className={`block text-xl font-bold ${hasFullAccess() ? 'text-[#1e3a5f]' : 'text-gray-400 cursor-pointer'}`}
+                      onClick={() => {
+                        if (!hasFullAccess()) {
+                          alert('請登入以使用此功能\nPlease log in to use this function');
+                        }
+                      }}
+                    >
+                      選擇語音 / Select Voice
+                    </label>
+                    <div 
+                      className="flex flex-col sm:flex-row gap-3"
+                      onClick={(e) => {
+                        if (!hasFullAccess() && (e.target as HTMLElement).tagName !== 'SELECT') {
+                          alert('請登入以使用此功能\nPlease log in to use this function');
+                        }
+                      }}
+                    >
+                      <select
+                        value={hasFullAccess() ? selectedVoice : ''}
+                        onChange={(e) => {
+                          if (hasFullAccess()) {
+                            setSelectedVoice(e.target.value);
+                          } else {
+                            alert('請登入以使用此功能\nPlease log in to use this function');
+                          }
+                        }}
+                        onClick={(e) => {
+                          if (!hasFullAccess()) {
+                            e.preventDefault();
+                            alert('請登入以使用此功能\nPlease log in to use this function');
+                          }
+                        }}
+                        className={`flex-1 px-4 py-3 rounded-xl font-bold text-lg border-2 focus:outline-none ${
+                          hasFullAccess() 
+                            ? 'bg-[#f5f5dc] text-[#1e3a5f] border-[#1e3a5f] focus:border-[#f97316] cursor-pointer' 
+                            : 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed'
+                        }`}
+                        disabled={!hasFullAccess()}
+                      >
+                        <option value="">預設語音 / Default Voice</option>
+                        {availableVoices
+                          .filter(v => {
+                            const langCode = speechLanguage === 'zh-HK' ? 'zh' : 'en';
+                            return v.lang.toLowerCase().includes(langCode);
+                          })
+                          .map(voice => (
+                            <option key={voice.name} value={voice.name}>
+                              {voice.name} ({voice.lang})
+                            </option>
+                          ))}
+                      </select>
+                      <button
+                        onClick={() => {
+                          if (!hasFullAccess()) {
+                            alert('請登入以使用此功能\nPlease log in to use this function');
+                            return;
+                          }
+                          if (selectedVoice) {
+                            playVoiceDemo(selectedVoice);
+                          } else {
+                            // Play default voice demo
+                            const defaultVoice = availableVoices.find(v => {
+                              const langCode = speechLanguage === 'zh-HK' ? 'zh' : 'en';
+                              return v.lang.toLowerCase().includes(langCode);
+                            });
+                            if (defaultVoice) {
+                              playVoiceDemo(defaultVoice.name);
+                            }
+                          }
+                        }}
+                        className={`px-6 py-3 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap min-w-[140px] ${
+                          hasFullAccess()
+                            ? 'bg-[#f97316] text-white hover:bg-[#ea580c]'
+                            : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                        }`}
+                      >
+                        🔊 試聽 / Demo
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
                 <div>
                   <label className="block text-xl font-bold text-[#1e3a5f] mb-2">
                     語速: {speechRate.toFixed(1)}x
@@ -1785,7 +2050,7 @@ export default function AACApp() {
           {showHistory && history.length > 0 && (
             <div className="mb-6 p-6 bg-white rounded-2xl shadow-xl border-4 border-[#1e3a5f] animate-fadeIn">
               <h3 className="text-2xl font-bold text-[#1e3a5f] mb-4 flex items-center gap-2">
-                <Icon emoji="📜" size={40} />
+                <Icon emoji="⭐️" size={40} />
                 歷史記錄
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -1832,13 +2097,16 @@ export default function AACApp() {
 
               {/* Main Content */}
               <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 pt-24">
-                <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 border-4 border-[#f97316]">
-                  {/* Success Message */}
+                <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 border-4 border-[#f97316] relative">
+                  {/* Success Message Overlay */}
                   {vocabSuccess && (
-                    <div className="mb-6 p-6 bg-green-50 border-4 border-green-500 rounded-2xl text-center animate-pulse shadow-lg">
-                      <div className="text-4xl mb-3">✅</div>
-                      <div className="text-2xl font-bold text-green-700 mb-2">詞語已加入！</div>
-                      <div className="text-lg font-semibold text-green-600">Word added successfully!</div>
+                    <div className="absolute inset-0 z-50 bg-green-500 rounded-2xl flex items-center justify-center p-8 animate-fadeIn">
+                      <div className="text-center">
+                        <div className="text-6xl mb-4">✅</div>
+                        <div className="text-4xl font-bold text-white mb-3">{lastAddedWord}</div>
+                        <div className="text-2xl font-bold text-white mb-2">詞語已加入！</div>
+                        <div className="text-xl font-semibold text-green-100">Word added successfully!</div>
+                      </div>
                     </div>
                   )}
 
@@ -2101,7 +2369,7 @@ export default function AACApp() {
           {!showCustomPanel ? (
             <button
               onClick={() => setShowCustomPanel(true)}
-              className="w-full mb-6 px-6 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-3"
+              className="w-full mt-6 mb-6 px-6 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-3"
               aria-label="自訂句子 Custom Sentence"
             >
               <Icon emoji="📝" size={40} />
@@ -2128,26 +2396,41 @@ export default function AACApp() {
               </div>
 
               {/* 句子啟動按鈕 */}
-              <div className="mb-4 flex flex-col gap-3 items-center">
-                {visibleStarters.map((starter) => (
-                  <button
-                    key={starter.text}
-                    onClick={() => handleStarterClick(starter.text)}
-                    className={`w-full px-6 py-5 rounded-2xl font-bold text-[110%] border-3 transition-all duration-300 min-h-[80px] flex items-center justify-center gap-4 ${
-                      currentStarter === starter.text
-                        ? 'bg-[#f97316] text-white border-[#f97316] shadow-lg scale-[1.02]'
-                        : 'bg-[#f5f5dc] text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-[1.02]'
-                    }`}
-                  >
-                    <Icon emoji={starter.icon} size={40} />
-                    <BilingualText
-                      zh={starter.text}
-                      en={starter.en}
-                      className="items-center text-center"
-                      enClassName="text-lg"
-                    />
-                  </button>
-                ))}
+              <div className="mb-4 p-4 bg-[#f5f5dc] rounded-2xl border-3 border-[#1e3a5f] max-h-[300px] sm:max-h-[320px] md:max-h-[315px] lg:max-h-[400px] overflow-y-auto">
+                <div className="grid grid-cols-2 gap-3">
+                  {visibleStarters.map((starter) => {
+                    const isBasic = isBasicStarter(starter.text);
+                    const isDisabled = !hasFullAccess() && !isBasic;
+                    
+                    return (
+                      <button
+                        key={starter.text}
+                        onClick={() => {
+                          if (isDisabled) {
+                            alert('請登入以使用此功能\nPlease log in to use this function');
+                          } else {
+                            handleStarterClick(starter.text);
+                          }
+                        }}
+                        className={`px-4 py-4 rounded-2xl font-bold text-base border-3 transition-all duration-300 min-h-[80px] flex flex-col items-center justify-center gap-2 ${
+                          isDisabled
+                            ? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed'
+                            : currentStarter === starter.text
+                            ? 'bg-[#f97316] text-white border-[#f97316] shadow-lg scale-[1.02]'
+                            : 'bg-white text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-[1.02]'
+                        }`}
+                      >
+                        <Icon emoji={starter.icon} size={32} />
+                        <BilingualText
+                          zh={starter.text}
+                          en={starter.en}
+                          className="items-center text-center"
+                          enClassName="text-sm"
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               
               {/* 建議詞語面板 */}
