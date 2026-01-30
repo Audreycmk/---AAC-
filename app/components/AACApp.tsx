@@ -448,7 +448,7 @@ export default function AACApp() {
             <BilingualText zh="常用選單" en="Favorites" enClassName="text-lg sm:text-xl" />
           </h2>
           <nav className="space-y-3 mb-8">
-            {['個人物品', '家居用品', '水果', '地方'].map((category, index) => (
+            {favorites.map((category, index) => (
               <button
                 key={category}
                 onClick={() => {
@@ -765,6 +765,15 @@ export default function AACApp() {
             <div className="inline-flex items-center gap-4 px-10 py-5 bg-[#1e3a5f] text-white rounded-2xl shadow-xl transition-all duration-500 hover:shadow-2xl hover:scale-110 transform border-4 border-[#f97316]">
               <Icon emoji={CATEGORY_ICONS[selectedCategory] || '📁'} size={64} className="transition-transform duration-300 hover:rotate-12 hover:scale-125" />
               <span className="text-3xl font-bold">{selectedCategory}</span>
+              {selectedCategory !== '全部' && (
+                <button
+                  onClick={() => toggleFavorite(selectedCategory)}
+                  className="ml-4 transition-all duration-300 hover:scale-125"
+                  aria-label={favorites.includes(selectedCategory) ? '移除最愛' : '加入最愛'}
+                >
+                  <Icon emoji={favorites.includes(selectedCategory) ? '❤️' : '🤍'} size={48} />
+                </button>
+              )}
             </div>
           </div>
 

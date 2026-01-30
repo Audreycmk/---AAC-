@@ -551,11 +551,14 @@ video {
 .mb-6 {
   margin-bottom: 1.5rem;
 }
-.mt-12 {
-  margin-top: 3rem;
-}
 .mb-8 {
   margin-bottom: 2rem;
+}
+.ml-4 {
+  margin-left: 1rem;
+}
+.mt-12 {
+  margin-top: 3rem;
 }
 .block {
   display: block;
