@@ -158,6 +158,7 @@ export default function AACApp() {
   const [customText, setCustomText] = useState('');
   const [speechRate, setSpeechRate] = useState(0.9);
   const [speechVolume, setSpeechVolume] = useState(1.0);
+  const [speechLanguage, setSpeechLanguage] = useState<'zh-HK' | 'en-US'>('zh-HK');
   const [history, setHistory] = useState<string[]>([]);
   const [showSettings, setShowSettings] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -191,6 +192,22 @@ export default function AACApp() {
     }
   }, []);
 
+  const resolveEnglishText = (text: string) => {
+    if (PHRASE_TRANSLATIONS[text]) {
+      return PHRASE_TRANSLATIONS[text];
+    }
+    const starterMatch = SENTENCE_STARTERS.find((starter) => text.startsWith(starter.text));
+    if (!starterMatch) {
+      return '';
+    }
+    const tail = text.slice(starterMatch.text.length);
+    if (!tail) {
+      return starterMatch.en;
+    }
+    const suggestion = SUGGESTED_WORDS[starterMatch.text]?.find((word) => word.text === tail);
+    return suggestion ? `${starterMatch.en} ${suggestion.en}` : '';
+  };
+
   const speak = (text: string) => {
     if (!speechSupported) {
       alert('您的瀏覽器不支援語音功能 / Your browser does not support speech');
@@ -202,26 +219,31 @@ export default function AACApp() {
     // 停止任何正在播放的語音
     window.speechSynthesis.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    const englishText = resolveEnglishText(text);
+    const spokenText = speechLanguage === 'en-US' && englishText ? englishText : text;
+    const utterance = new SpeechSynthesisUtterance(spokenText);
     
-    // 設置為廣東話
-    utterance.lang = 'zh-HK';
+    // 設置語言
+    utterance.lang = speechLanguage;
     utterance.rate = speechRate;
     utterance.pitch = 1.0;
     utterance.volume = speechVolume;
 
-    // 嘗試選擇廣東話語音
+    // 嘗試選擇對應語音
     const voices = window.speechSynthesis.getVoices();
-    const cantonese = voices.find(voice => voice.lang === 'zh-HK' || voice.lang === 'zh_HK');
-    if (cantonese) {
-      utterance.voice = cantonese;
-      console.log('Using voice:', cantonese.name);
+    const targetVoice = speechLanguage === 'zh-HK'
+      ? voices.find(voice => voice.lang === 'zh-HK' || voice.lang === 'zh_HK')
+      : voices.find(voice => voice.lang.startsWith('en') && /(female|woman|girl|samantha|victoria|zoe|serena|tessa|karen|moira|susan)/i.test(voice.name))
+        || voices.find(voice => voice.lang.startsWith('en'));
+    if (targetVoice) {
+      utterance.voice = targetVoice;
+      console.log('Using voice:', targetVoice.name);
     } else {
-      console.warn('No Cantonese voice found, using default');
+      console.warn('No matching voice found, using default');
     }
 
     utterance.onstart = () => {
-      console.log('Speech started:', text);
+      console.log('Speech started:', spokenText);
     };
 
     utterance.onend = () => {
@@ -303,14 +325,9 @@ export default function AACApp() {
           className="p-3 bg-[#f97316] rounded-xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 transform min-h-[60px] min-w-[60px] flex items-center justify-center"
           aria-label="選單 Menu"
         >
-          <svg 
-            className={`w-8 h-8 transition-transform duration-300 ${menuOpen ? 'rotate-90' : 'rotate-0'}`} 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
+          <span className="text-white text-3xl font-bold transition-all duration-500">
+            {menuOpen ? '✕' : '≡'}
+          </span>
         </button>
         
         <h1 className="text-2xl sm:text-3xl font-bold flex-1 text-center">
@@ -350,6 +367,24 @@ export default function AACApp() {
         } w-80 pt-20`}
       >
         <div className="p-6 h-full overflow-y-auto">
+          {/* 自訂訊息按鈕（在菜單內） */}
+          <button
+            onClick={() => {
+              setShowCustomPanel(!showCustomPanel);
+              setMenuOpen(false);
+            }}
+            className={`w-full px-6 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-3 mb-6 transform ${
+              menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'
+            }`}
+            style={{ 
+              transitionDelay: menuOpen ? '50ms' : '0ms'
+            }}
+            aria-label="自訂訊息 Custom Message"
+          >
+            <Icon emoji="📝" size={40} />
+            <BilingualText zh="自訂訊息" en="Custom Message" className="items-center text-center" enClassName="text-lg" />
+          </button>
+          
           <h2 className={`text-3xl font-bold text-[#1e3a5f] mb-6 transition-all duration-700 ${
             menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
           }`}>
@@ -398,12 +433,45 @@ export default function AACApp() {
         <div className="max-w-7xl mx-auto">
           {/* 語音設定面板 */}
           {showSettings && (
-            <div className="mb-6 p-6 bg-white rounded-2xl shadow-xl border-4 border-[#1e3a5f] animate-fadeIn">
-              <h3 className="text-2xl font-bold text-[#1e3a5f] mb-4 flex items-center gap-2">
-                <Icon emoji="⚙" size={40} />
-                語音設定
-              </h3>
+            <div className="fixed top-20 left-0 right-0 z-40 p-6 bg-white rounded-2xl shadow-xl border-4 border-[#1e3a5f] animate-fadeIn mx-4 sm:mx-6 lg:mx-8" style={{ marginLeft: 'auto', marginRight: 'auto' }}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-2xl font-bold text-[#1e3a5f] flex items-center gap-2">
+                  <Icon emoji="⚙" size={40} />
+                  語音設定
+                </h3>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="text-[#1e3a5f] hover:text-[#f97316] text-2xl font-bold transition-all duration-300"
+                  aria-label="關閉 Close"
+                >
+                  ✕
+                </button>
+              </div>
               <div className="space-y-4">
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => setSpeechLanguage('zh-HK')}
+                    className={`px-6 py-4 rounded-2xl font-bold text-xl border-3 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2 ${
+                      speechLanguage === 'zh-HK'
+                        ? 'bg-[#1e3a5f] text-white border-[#1e3a5f] shadow-lg'
+                        : 'bg-[#f5f5dc] text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white'
+                    }`}
+                    aria-label="廣東話 Cantonese"
+                  >
+                    廣東話
+                  </button>
+                  <button
+                    onClick={() => setSpeechLanguage('en-US')}
+                    className={`px-6 py-4 rounded-2xl font-bold text-xl border-3 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2 ${
+                      speechLanguage === 'en-US'
+                        ? 'bg-[#1e3a5f] text-white border-[#1e3a5f] shadow-lg'
+                        : 'bg-[#f5f5dc] text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white'
+                    }`}
+                    aria-label="English"
+                  >
+                    English
+                  </button>
+                </div>
                 <div>
                   <label className="block text-xl font-bold text-[#1e3a5f] mb-2">
                     語速: {speechRate.toFixed(1)}x
