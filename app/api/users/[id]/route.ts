@@ -3,10 +3,11 @@ import { getUserById, updateUser, deleteUser } from '@/lib/users-db';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = getUserById(params.id);
+    const { id } = await params;
+    const user = getUserById(id);
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -24,11 +25,12 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
-    const updatedUser = updateUser(params.id, body);
+    const updatedUser = updateUser(id, body);
     return NextResponse.json(updatedUser);
   } catch (error) {
     return NextResponse.json(
@@ -40,10 +42,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    deleteUser(params.id);
+    const { id } = await params;
+    deleteUser(id);
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(
