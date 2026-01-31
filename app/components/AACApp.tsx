@@ -11,6 +11,7 @@ import AddVocabularyPanel from './AddVocabularyPanel';
 import HistoryPanel from './HistoryPanel';
 import CategoryDisplay from './CategoryDisplay';
 import PhrasesGrid from './PhrasesGrid';
+import MeasureWordPanel from './MeasureWordPanel';
 
 // 常用廣東話短語（附圖示）- 按新分類重組
 const PHRASES = [
@@ -126,12 +127,41 @@ const CATEGORY_LABELS: Record<string, string> = {
   '地方': 'Places',
 };
 
+const DISPLAY_CATEGORIES = ['個人物品', '家居用品', '水果', '地方'] as const;
+
+// 量詞 (Measure Words / Classifiers)
+const MEASURE_WORD_CLASSIFIERS = [
+  { text: '個', en: 'item', icon: '1️⃣' },
+  { text: '十', en: 'ten', icon: '🔟' },
+  { text: '百', en: 'hundred', icon: '💯' },
+  { text: '千', en: 'thousand', icon: '🔠' },
+  { text: '萬', en: 'ten thousand', icon: '📊' },
+];
+
+const VALID_CLASSIFIER_COMBINATIONS = [
+  { display: '十萬', en: 'hundred thousand', classifiers: ['十', '萬'] },
+  { display: '百萬', en: 'million', classifiers: ['百', '萬'] },
+  { display: '千萬', en: 'ten million', classifiers: ['千', '萬'] },
+];
+
+const MEASURE_WORD_UNITS = [
+  { text: '蚊', en: 'dollars', icon: '💵' },
+  { text: '個', en: '', icon: '1️⃣' },
+  { text: '隻', en: '', icon: '🦆' },
+  { text: '次', en: 'times', icon: '🔄' },
+  { text: '位', en: 'people', icon: '👤' },
+  { text: '粒', en: '', icon: '🫘' },
+  { text: '條', en: '', icon: '➖' },
+  { text: '枝', en: '', icon: '✏️' },
+  { text: '張', en: 'pieces', icon: '🎫' },
+];
+
 // 句子啟動器和建議詞語
 const SENTENCE_STARTERS = [
+  { text: '我要', en: 'I need', icon: '✋' },
   { text: '我想', en: 'I want to', icon: '💭' },
-  { text: '唔記得', en: 'Cannot remember', icon: '🤔' },
   { text: '幫我', en: 'Help me', icon: '🤝' },
-  { text: '我要', en: 'I need to', icon: '✋' },
+  { text: '唔記得', en: 'Cannot remember', icon: '🤔' },
 ];
 
 // Additional starters for logged-in users (elderly-friendly)
@@ -167,10 +197,11 @@ const SUGGESTED_WORDS: Record<string, Array<{ text: string; en: string; icon: st
     { text: '閂窗', en: 'close the window', icon: '❌🪟' },
   ],
   '我要': [
-    { text: '食藥', en: 'take medicine', icon: '💊' },
-    { text: '換衫', en: 'change clothes', icon: '👕' },
-    { text: '沖涼', en: 'take a shower', icon: '🚿' },
-    { text: '睇醫生', en: 'see a doctor', icon: '👨‍⚕️' },
+    { text: '更多', en: 'More', icon: '➕' },
+    { text: '食藥', en: 'to take medicine', icon: '💊' },
+    { text: '換衫', en: 'tochange clothes', icon: '👕' },
+    { text: '沖涼', en: 'to take a shower', icon: '🚿' },
+    // { text: '睇醫生', en: 'to see a doctor', icon: '👨‍⚕️' },
   ],
   '請問': [
     { text: '廁所喺邊', en: 'where is the toilet', icon: '🚻' },
@@ -315,7 +346,7 @@ export default function AACApp() {
   const [editingUserRole, setEditingUserRole] = useState<'admin' | 'user'>('user');
   const [editingUserTrial, setEditingUserTrial] = useState<'unlimited' | '14days' | 'notrial'>('14days');
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('全部');
+  const [selectedCategory, setSelectedCategory] = useState<string>(DISPLAY_CATEGORIES[0]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [customText, setCustomText] = useState('');
   const [speechRate, setSpeechRate] = useState(0.7);
@@ -330,7 +361,9 @@ export default function AACApp() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [currentStarter, setCurrentStarter] = useState('');
   const [showCustomPanel, setShowCustomPanel] = useState(false);
-  const [favorites, setFavorites] = useState<string[]>(['個人物品', '家居用品', '水果', '地方']);
+  const [showVocabSelector, setShowVocabSelector] = useState(false);
+  const [vocabSelectorCategory, setVocabSelectorCategory] = useState<string>('全部');
+  const [favorites, setFavorites] = useState<string[]>([...DISPLAY_CATEGORIES]);
 
   // Add Vocabulary Feature States
   const [showAddVocab, setShowAddVocab] = useState(false);
@@ -352,11 +385,11 @@ export default function AACApp() {
   const [editCategoriesMode, setEditCategoriesMode] = useState(false);
   const [editingCategoryName, setEditingCategoryName] = useState<Record<string, { zh: string; en: string }>>({});
 
+  // Measure Word States
+  const [showMeasureWord, setShowMeasureWord] = useState(false);
+
   // ========== UTILITY FUNCTIONS ==========
-  const getUniqueCategories = () => {
-    const allCategories = [...PHRASES, ...customPhrases].map((p) => p.category);
-    return ['全部', ...Array.from(new Set(allCategories)).filter((c) => c !== '全部')];
-  };
+  const getUniqueCategories = () => [...DISPLAY_CATEGORIES];
 
   const getTrialStatus = (u: any) => {
     if (u.trialType === 'unlimited') return { daysLeft: Infinity, isExpired: false };
@@ -424,7 +457,21 @@ export default function AACApp() {
   };
 
   const handleSuggestionClick = (word: { text: string; en: string; icon: string }) => {
-    setCustomText(currentStarter + word.text);
+    if (word.text === '更多') {
+      setShowVocabSelector(true);
+      setVocabSelectorCategory(DISPLAY_CATEGORIES[0]);
+    } else {
+      setCustomText(currentStarter + word.text);
+    }
+  };
+
+  const handleVocabSelection = (phrase: { text: string; en: string }) => {
+    setCustomText(currentStarter + phrase.text);
+    setShowVocabSelector(false);
+  };
+
+  const handleMeasureWordSelected = (measureWord: string, english: string) => {
+    setCustomText(currentStarter + measureWord);
   };
 
   const handleCustomSpeak = (englishOverride?: string) => {
@@ -835,11 +882,36 @@ export default function AACApp() {
       return starterMatch.en;
     }
     const suggestionMatch = SUGGESTED_WORDS[starterMatch.text]?.find((word) => word.text === tail);
-    return suggestionMatch ? `${starterMatch.en} ${suggestionMatch.en}` : '';
+    if (suggestionMatch) {
+      return `${starterMatch.en} ${suggestionMatch.en}`;
+    }
+
+    const phraseMatch = [...PHRASES, ...customPhrases].find((phrase) => phrase.text === tail);
+    if (phraseMatch?.en) {
+      return `${starterMatch.en} ${phraseMatch.en}`;
+    }
+
+    if (tail.startsWith('去')) {
+      const placeMatch = [...PHRASES, ...customPhrases].find((phrase) => phrase.text === tail.slice(1));
+      if (placeMatch?.en) {
+        return `${starterMatch.en} ${placeMatch.en}`;
+      }
+    }
+
+    return '';
   };
 
-  const allPhrases = [...PHRASES, ...customPhrases];
-  const filteredPhrases = selectedCategory === '全部' ? allPhrases : allPhrases.filter((p) => p.category === selectedCategory);
+  const allPhrases = [...PHRASES, ...customPhrases].filter((p) => DISPLAY_CATEGORIES.includes(p.category as typeof DISPLAY_CATEGORIES[number]));
+
+  const applyPlacePrefix = (phrase: (typeof PHRASES)[0]) => {
+    if (phrase.category !== '地方') return phrase;
+    if (phrase.text.startsWith('去')) return phrase;
+    return { ...phrase, text: `去${phrase.text}` };
+  };
+
+  const displayPhrases = allPhrases.map(applyPlacePrefix);
+
+  const filteredPhrases = displayPhrases.filter((p) => p.category === selectedCategory);
 
   const allAvailableStarters = [...SENTENCE_STARTERS, ...ADDITIONAL_STARTERS];
   const visibleStarters = showSuggestions && currentStarter
@@ -850,10 +922,7 @@ export default function AACApp() {
   const starterTail = starterMatch ? customText.slice(starterMatch.text.length) : '';
   const suggestionMatch =
     starterMatch && starterTail ? SUGGESTED_WORDS[starterMatch.text]?.find((word) => word.text === starterTail) : undefined;
-  const customEnglish =
-    PHRASE_TRANSLATIONS[customText] ||
-    (starterMatch && suggestionMatch ? `${starterMatch.en} ${suggestionMatch.en}` : '') ||
-    (starterMatch && !starterTail ? starterMatch.en : '');
+  const customEnglish = resolveEnglishText(customText);
 
   return (
     <div className="min-h-screen bg-[#f5f5dc]">
@@ -1061,6 +1130,28 @@ export default function AACApp() {
             handleSuggestionClick={handleSuggestionClick}
             handleCustomSpeak={handleCustomSpeak}
             isLoading={isLoading}
+            showVocabSelector={showVocabSelector}
+            setShowVocabSelector={setShowVocabSelector}
+            vocabSelectorCategory={vocabSelectorCategory}
+            setVocabSelectorCategory={setVocabSelectorCategory}
+            allPhrases={displayPhrases}
+            handleVocabSelection={handleVocabSelection}
+            getUniqueCategories={getUniqueCategories}
+            CATEGORY_ICONS={CATEGORY_ICONS}
+            CATEGORY_LABELS={CATEGORY_LABELS}
+            customCategoryIcons={customCategoryIcons}
+            showMeasureWord={showMeasureWord}
+            setShowMeasureWord={setShowMeasureWord}
+          />
+
+          {/* Measure Word Panel Component */}
+          <MeasureWordPanel
+            showMeasureWord={showMeasureWord}
+            setShowMeasureWord={setShowMeasureWord}
+            MEASURE_WORD_CLASSIFIERS={MEASURE_WORD_CLASSIFIERS}
+            VALID_CLASSIFIER_COMBINATIONS={VALID_CLASSIFIER_COMBINATIONS}
+            MEASURE_WORD_UNITS={MEASURE_WORD_UNITS}
+            onMeasureWordSelected={handleMeasureWordSelected}
           />
 
           {/* Category Display Component */}

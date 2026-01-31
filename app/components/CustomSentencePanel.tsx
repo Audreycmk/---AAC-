@@ -20,6 +20,18 @@ interface CustomSentencePanelProps {
   handleSuggestionClick: (word: { text: string; en: string; icon: string }) => void;
   handleCustomSpeak: (englishOverride?: string) => void;
   isLoading: boolean;
+  showVocabSelector: boolean;
+  setShowVocabSelector: (show: boolean) => void;
+  vocabSelectorCategory: string;
+  setVocabSelectorCategory: (category: string) => void;
+  allPhrases: Array<{ id: number; text: string; en: string; category: string; icon: string }>;
+  handleVocabSelection: (phrase: { text: string; en: string }) => void;
+  getUniqueCategories: () => string[];
+  CATEGORY_ICONS: Record<string, string>;
+  CATEGORY_LABELS: Record<string, string>;
+  customCategoryIcons: Record<string, string>;
+  showMeasureWord: boolean;
+  setShowMeasureWord: (show: boolean) => void;
 }
 
 const BilingualText = ({
@@ -57,6 +69,18 @@ export default function CustomSentencePanel({
   handleSuggestionClick,
   handleCustomSpeak,
   isLoading,
+  showVocabSelector,
+  setShowVocabSelector,
+  vocabSelectorCategory,
+  setVocabSelectorCategory,
+  allPhrases,
+  handleVocabSelection,
+  getUniqueCategories,
+  CATEGORY_ICONS,
+  CATEGORY_LABELS,
+  customCategoryIcons,
+  showMeasureWord,
+  setShowMeasureWord,
 }: CustomSentencePanelProps) {
   if (!showCustomPanel) {
     return (
@@ -164,6 +188,99 @@ export default function CustomSentencePanel({
                 />
               </button>
             ))}
+            {/* Measure Word Button */}
+            <button
+              onClick={() => setShowMeasureWord(true)}
+              className="px-4 py-4 bg-purple-200 text-purple-700 rounded-xl font-bold text-lg border-2 border-purple-500 hover:bg-purple-500 hover:text-white hover:scale-110 transition-all duration-300 shadow-md flex flex-col items-center gap-2"
+            >
+              <span className="text-3xl">🔢</span>
+              <BilingualText
+                zh="量詞"
+                en="Measure"
+                className="items-center text-center"
+                enClassName="text-base"
+              />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Vocabulary Selector Modal */}
+      {showVocabSelector && (
+        <div className="mb-4 p-4 bg-[#f5f5dc] rounded-2xl border-3 border-[#1e3a5f] animate-fadeIn">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-xl font-bold text-[#1e3a5f] flex items-center gap-2">
+              <Icon emoji="📚" size={32} />
+              <BilingualText zh="選擇詞語" en="Select Vocabulary" enClassName="text-lg" />
+            </h4>
+            <button
+              onClick={() => setShowVocabSelector(false)}
+              className="text-[#1e3a5f] hover:text-[#f97316] text-2xl font-bold"
+              aria-label="關閉 Close"
+            >
+              ✕
+            </button>
+          </div>
+          
+          {/* Category Tabs */}
+          <div className="mb-3 flex flex-wrap gap-2">
+            {getUniqueCategories().map((cat) => {
+              const isRestrictedCategory = !hasFullAccess() && (cat === '水果' || cat === '地方');
+
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setVocabSelectorCategory(cat)}
+                  className={`px-4 py-2 rounded-xl font-bold text-base transition-all duration-300 ${
+                    isRestrictedCategory
+                      ? 'bg-gray-200 text-gray-400 border-2 border-gray-300'
+                      : vocabSelectorCategory === cat
+                      ? 'bg-[#f97316] text-white scale-105'
+                      : 'bg-white text-[#1e3a5f] border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white'
+                  }`}
+                >
+                  <span className="mr-2">
+                    {customCategoryIcons[cat] || CATEGORY_ICONS[cat] || '📁'}
+                  </span>
+                  {cat}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Vocabulary Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-[300px] overflow-y-auto">
+            {allPhrases
+              .filter((p) => p.category === vocabSelectorCategory)
+              .map((phrase) => {
+                const isRestrictedCategory = !hasFullAccess() && (phrase.category === '水果' || phrase.category === '地方');
+
+                return (
+                  <button
+                    key={phrase.id}
+                    onClick={() => {
+                      if (isRestrictedCategory) {
+                        alert('請登入以使用此功能\nPlease log in to use this function');
+                        return;
+                      }
+                      handleVocabSelection(phrase);
+                    }}
+                    className={`px-3 py-3 rounded-xl font-bold text-base border-2 transition-all duration-300 shadow-md flex flex-col items-center gap-1 ${
+                      isRestrictedCategory
+                        ? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed'
+                        : 'bg-white text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-105'
+                    }`}
+                  >
+                    <Icon emoji={phrase.icon} size={28} />
+                    <BilingualText
+                      zh={phrase.text}
+                      en={phrase.en}
+                      className="items-center text-center"
+                      enClassName="text-xs"
+                    />
+                  </button>
+                );
+              })}
           </div>
         </div>
       )}
