@@ -5,8 +5,8 @@ import Icon from './Icon';
 interface SettingsPanelProps {
   showSettings: boolean;
   setShowSettings: (show: boolean) => void;
-  speechLanguage: 'zh-HK' | 'en-US';
-  setSpeechLanguage: (lang: 'zh-HK' | 'en-US') => void;
+  speechLanguage: 'zh-HK' | 'en-US' | 'en-AU';
+  setSpeechLanguage: (lang: 'zh-HK' | 'en-US' | 'en-AU') => void;
   availableVoices: SpeechSynthesisVoice[];
   selectedVoice: string;
   setSelectedVoice: (voice: string) => void;
@@ -92,7 +92,7 @@ export default function SettingsPanel({
             }`}
             aria-label="English"
           >
-            🇬🇧 English
+            🇺🇸 English
           </button>
         </div>
 

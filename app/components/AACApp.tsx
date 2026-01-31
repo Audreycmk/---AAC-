@@ -318,9 +318,9 @@ export default function AACApp() {
   const [selectedCategory, setSelectedCategory] = useState<string>('全部');
   const [menuOpen, setMenuOpen] = useState(false);
   const [customText, setCustomText] = useState('');
-  const [speechRate, setSpeechRate] = useState(0.5);
+  const [speechRate, setSpeechRate] = useState(0.7);
   const [speechVolume, setSpeechVolume] = useState(1.0);
-  const [speechLanguage, setSpeechLanguage] = useState<'zh-HK' | 'en-US'>('zh-HK');
+  const [speechLanguage, setSpeechLanguage] = useState<'zh-HK' | 'en-US' | 'en-AU'>('zh-HK');
   const [selectedVoice, setSelectedVoice] = useState<string>('');
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [history, setHistory] = useState<string[]>([]);
@@ -371,6 +371,43 @@ export default function AACApp() {
 
   const isBasicStarter = (starterText: string) => SENTENCE_STARTERS.some((s) => s.text === starterText);
 
+  const getLanguageCodeForVoice = (lang: 'zh-HK' | 'en-US' | 'en-AU') => (lang === 'zh-HK' ? 'zh' : 'en');
+
+  const getDefaultVoiceForLanguage = (
+    voices: SpeechSynthesisVoice[],
+    lang: 'zh-HK' | 'en-US' | 'en-AU'
+  ) => {
+    const langCode = getLanguageCodeForVoice(lang);
+    const matchingVoices = voices.filter((v) => v.lang.toLowerCase().includes(langCode));
+
+    if (lang === 'en-US') {
+      const preferredFemaleNames = [
+        'Samantha',
+        'Victoria',
+        'Tessa',
+        'Moira',
+        'Serena',
+        'Karen',
+        'Fiona',
+        'Ava',
+        'Nicky',
+        'Allison',
+        'Susan',
+        'Google US English',
+      ];
+
+      const preferredFemaleVoice = matchingVoices.find((voice) =>
+        preferredFemaleNames.some((name) => voice.name.toLowerCase().includes(name.toLowerCase()))
+      );
+
+      if (preferredFemaleVoice) {
+        return preferredFemaleVoice;
+      }
+    }
+
+    return matchingVoices[0];
+  };
+
   const handleStarterClick = (text: string) => {
     setShowSuggestions(!showSuggestions);
     setCurrentStarter(text);
@@ -380,9 +417,10 @@ export default function AACApp() {
     setCustomText(currentStarter + word.text);
   };
 
-  const handleCustomSpeak = () => {
-    if (customText.trim()) {
-      speak(customText);
+  const handleCustomSpeak = (englishOverride?: string) => {
+    const textToSpeak = speechLanguage === 'en-US' && englishOverride ? englishOverride : customText;
+    if (textToSpeak.trim()) {
+      speak(textToSpeak);
     }
   };
 
@@ -393,8 +431,19 @@ export default function AACApp() {
     }
 
     setIsLoading(true);
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = speechLanguage === 'zh-HK' ? 'zh-HK' : 'en-US';
+    const resolvedEnglishText = speechLanguage === 'en-US' ? resolveEnglishText(text) : '';
+    const speechText = resolvedEnglishText || text;
+    const utterance = new SpeechSynthesisUtterance(speechText);
+    
+    // Set language based on selected language
+    if (speechLanguage === 'zh-HK') {
+      utterance.lang = 'zh-HK';
+    } else if (speechLanguage === 'en-AU') {
+      utterance.lang = 'en-AU';
+    } else {
+      utterance.lang = 'en-US';
+    }
+    
     utterance.rate = speechRate;
     utterance.volume = speechVolume;
 
@@ -411,6 +460,10 @@ export default function AACApp() {
       });
     };
 
+    utterance.onerror = () => {
+      setIsLoading(false);
+    };
+
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utterance);
   };
@@ -418,8 +471,16 @@ export default function AACApp() {
   const playVoiceDemo = (voiceName: string) => {
     const demoText = speechLanguage === 'zh-HK' ? '你好' : 'Hello';
     const utterance = new SpeechSynthesisUtterance(demoText);
-    utterance.lang = speechLanguage === 'zh-HK' ? 'zh-HK' : 'en-US';
-    utterance.rate = 0.8;
+    
+    if (speechLanguage === 'zh-HK') {
+      utterance.lang = 'zh-HK';
+    } else if (speechLanguage === 'en-AU') {
+      utterance.lang = 'en-AU';
+    } else {
+      utterance.lang = 'en-US';
+    }
+    
+    utterance.rate = speechRate;
     utterance.volume = speechVolume;
 
     const voice = availableVoices.find((v) => v.name === voiceName);
@@ -605,11 +666,29 @@ export default function AACApp() {
       window.speechSynthesis.onvoiceschanged = () => {
         const voices = window.speechSynthesis.getVoices();
         setAvailableVoices(voices);
+
+        const savedVoice = localStorage.getItem('aac-selected-voice');
+        if (!savedVoice) {
+          const defaultVoice = getDefaultVoiceForLanguage(voices, speechLanguage);
+          if (defaultVoice) {
+            setSelectedVoice(defaultVoice.name);
+            localStorage.setItem('aac-selected-voice', defaultVoice.name);
+          }
+        }
       };
 
       const voices = window.speechSynthesis.getVoices();
       if (voices.length > 0) {
         setAvailableVoices(voices);
+
+        const savedVoice = localStorage.getItem('aac-selected-voice');
+        if (!savedVoice) {
+          const defaultVoice = getDefaultVoiceForLanguage(voices, speechLanguage);
+          if (defaultVoice) {
+            setSelectedVoice(defaultVoice.name);
+            localStorage.setItem('aac-selected-voice', defaultVoice.name);
+          }
+        }
       }
     }
 
@@ -662,8 +741,8 @@ export default function AACApp() {
     }
 
     const savedSpeechLanguage = localStorage.getItem('aac-speech-language');
-    if (savedSpeechLanguage) {
-      setSpeechLanguage(savedSpeechLanguage as 'zh-HK' | 'en-US');
+    if (savedSpeechLanguage === 'zh-HK' || savedSpeechLanguage === 'en-US') {
+      setSpeechLanguage(savedSpeechLanguage);
     }
 
     const savedSelectedVoice = localStorage.getItem('aac-selected-voice');
@@ -713,11 +792,35 @@ export default function AACApp() {
   }, [selectedVoice]);
 
   useEffect(() => {
+    if (availableVoices.length === 0) return;
+
+    if (selectedVoice) {
+      const voice = availableVoices.find((v) => v.name === selectedVoice);
+      if (voice) {
+        const langCode = getLanguageCodeForVoice(speechLanguage);
+        if (!voice.lang.toLowerCase().includes(langCode)) {
+          setSelectedVoice('');
+        }
+        return;
+      }
+    }
+
+    const defaultVoice = getDefaultVoiceForLanguage(availableVoices, speechLanguage);
+    if (defaultVoice && !selectedVoice) {
+      setSelectedVoice(defaultVoice.name);
+    }
+  }, [availableVoices, speechLanguage, selectedVoice]);
+
+  useEffect(() => {
     const defaultCategory = favorites.length > 0 ? favorites[0] : '個人物品';
     setSelectedCategory(defaultCategory);
   }, [favorites]);
 
   const resolveEnglishText = (text: string) => {
+    const customMatch = customPhrases.find((phrase) => phrase.text === text);
+    if (customMatch?.en) {
+      return customMatch.en;
+    }
     if (PHRASE_TRANSLATIONS[text]) {
       return PHRASE_TRANSLATIONS[text];
     }
@@ -1015,23 +1118,7 @@ export default function AACApp() {
       {/* Footer */}
       <footer className="fixed bottom-0 left-0 right-0 bg-[#1e3a5f] text-white border-t-4 border-[#f97316] shadow-2xl z-40">
         <div className="max-w-7xl mx-auto px-6 py-[12px] text-center">
-          {!hasFullAccess() ? (
-            <button
-              type="button"
-              onClick={() => setShowLoginCodeModal(true)}
-              className="w-full text-center space-y-1 hover:opacity-90 transition-opacity duration-200"
-              aria-label="登入 Login"
-            >
-              <div className="space-y-1">
-                <p className="text-sm sm:text-base font-semibold">
-                  登入以獲得完整功能 / Login for full features
-                </p>
-                <p className="text-xs sm:text-sm">
-                  ©2026 Audrey Chung
-                </p>
-              </div>
-            </button>
-          ) : (
+          {hasFullAccess() && (
             <p className="text-sm sm:text-base font-semibold">
               ©2026 Audrey Chung
             </p>
