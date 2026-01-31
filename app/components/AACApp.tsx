@@ -323,6 +323,7 @@ export default function AACApp() {
   const [speechLanguage, setSpeechLanguage] = useState<'zh-HK' | 'en-US' | 'en-AU'>('zh-HK');
   const [selectedVoice, setSelectedVoice] = useState<string>('');
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const isSelectingVoiceRef = useRef(false);
   const [history, setHistory] = useState<string[]>([]);
   const [showSettings, setShowSettings] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -784,32 +785,24 @@ export default function AACApp() {
   }, [selectedVoice]);
 
   useEffect(() => {
-    if (selectedVoice) {
-      localStorage.setItem('aac-selected-voice', selectedVoice);
-    } else {
-      localStorage.removeItem('aac-selected-voice');
-    }
-  }, [selectedVoice]);
+    if (availableVoices.length === 0 || isSelectingVoiceRef.current) return;
 
-  useEffect(() => {
-    if (availableVoices.length === 0) return;
+    const langCode = getLanguageCodeForVoice(speechLanguage);
+    const currentVoice = availableVoices.find((v) => v.name === selectedVoice);
 
-    if (selectedVoice) {
-      const voice = availableVoices.find((v) => v.name === selectedVoice);
-      if (voice) {
-        const langCode = getLanguageCodeForVoice(speechLanguage);
-        if (!voice.lang.toLowerCase().includes(langCode)) {
-          setSelectedVoice('');
-        }
-        return;
-      }
+    if (currentVoice && currentVoice.lang.toLowerCase().includes(langCode)) {
+      return;
     }
 
     const defaultVoice = getDefaultVoiceForLanguage(availableVoices, speechLanguage);
-    if (defaultVoice && !selectedVoice) {
+    if (defaultVoice) {
+      isSelectingVoiceRef.current = true;
       setSelectedVoice(defaultVoice.name);
+      setTimeout(() => {
+        isSelectingVoiceRef.current = false;
+      }, 100);
     }
-  }, [availableVoices, speechLanguage, selectedVoice]);
+  }, [availableVoices, speechLanguage]);
 
   useEffect(() => {
     const defaultCategory = favorites.length > 0 ? favorites[0] : '個人物品';
