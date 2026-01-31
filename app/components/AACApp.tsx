@@ -99,22 +99,26 @@ const PHRASES = [
   { id: 65, text: '公園', en: 'Park', category: '地方', icon: '🌳' },
   { id: 66, text: '茶餐廳', en: 'Cha Chaan Teng', category: '地方', icon: '☕' },
 
-  // 量詞 (Numbers)
-  { id: 67, text: '個', en: 'item', category: '量詞', icon: '1️⃣' },
+  // 量詞 (Numbers) set1
   { id: 68, text: '十', en: 'ten', category: '量詞', icon: '🔟' },
   { id: 69, text: '百', en: 'hundred', category: '量詞', icon: '💯' },
   { id: 70, text: '千', en: 'thousand', category: '量詞', icon: '🔠' },
   { id: 71, text: '萬', en: 'ten thousand', category: '量詞', icon: '📊' },
-  { id: 72, text: '蚊', en: 'dollars', category: '量詞', icon: '💵' },
-  { id: 73, text: '隻', en: 'animal/object', category: '量詞', icon: '🦆' },
-  { id: 74, text: '次', en: 'times', category: '量詞', icon: '🔄' },
-  { id: 75, text: '位', en: 'person', category: '量詞', icon: '👤' },
-  { id: 76, text: '粒', en: 'grain/pill', category: '量詞', icon: '🫘' },
-  { id: 77, text: '條', en: 'object', category: '量詞', icon: '➖' },
-  { id: 78, text: '枝', en: 'stick/pen', category: '量詞', icon: '✏️' },
-  { id: 79, text: '張', en: 'sheet/ticket', category: '量詞', icon: '🎫' },
+    // 量詞 (Numbers) set2
+  { id: 72, text: '分鐘', en: 'minutes', category: '量詞', icon: '⏱️' },
+  { id: 73, text: '小時', en: 'hours', category: '量詞', icon: '⏰' },
+  { id: 74, text: '日', en: 'days', category: '量詞', icon: '📅' },
+  { id: 75, text: '禮拜', en: 'week', category: '量詞', icon: '📆' },
+  { id: 76, text: '月', en: 'month', category: '量詞', icon: '🗓️' },
+  { id: 77, text: '年', en: 'year', category: '量詞', icon: '📈' },
+  { id: 78, text: '歲', en: 'years old', category: '量詞', icon: '🎂' },
+    // 量詞 (Numbers) set3
+  { id: 79, text: '斤', en: 'catty (0.5 kg)', category: '量詞', icon: '⚖️' },
+  { id: 80, text: '両', en: 'tael (38 g)', category: '量詞', icon: '🏺' },
+  { id: 81, text: '寸', en: 'inch', category: '量詞', icon: '📏' },
+  { id: 82, text: '磅', en: 'pound', category: '量詞', icon: '⚖️' },
+  { id: 83, text: '厘米', en: 'cm', category: '量詞', icon: '📐' },
 ];
-
 // 分類圖示映射（新配色主題）
 const CATEGORY_ICONS: Record<string, string> = {
   '全部': '📋',
@@ -148,7 +152,6 @@ const DISPLAY_CATEGORIES = ['個人物品', '家居用品', '水果', '地方', 
 
 // 量詞 (Numbers)
 const MEASURE_WORD_CLASSIFIERS = [
-  { text: '個', en: 'item', icon: '1️⃣' },
   { text: '十', en: 'ten', icon: '🔟' },
   { text: '百', en: 'hundred', icon: '💯' },
   { text: '千', en: 'thousand', icon: '🔠' },
@@ -162,15 +165,12 @@ const VALID_CLASSIFIER_COMBINATIONS = [
 ];
 
 const MEASURE_WORD_UNITS = [
-  { text: '蚊', en: 'dollars', icon: '💵' },
-  { text: '個', en: '', icon: '1️⃣' },
-  { text: '隻', en: '', icon: '🦆' },
-  { text: '次', en: 'times', icon: '🔄' },
-  { text: '位', en: 'people', icon: '👤' },
-  { text: '粒', en: '', icon: '🫘' },
-  { text: '張', en: 'pieces', icon: '🎫' },
-  { text: '條', en: '', icon: '➖' },
-  { text: '枝', en: '', icon: '✏️' },
+  { text: '蚊', en: 'dollars', icon: '💲' },
+  { text: '斤', en: 'catty (0.5 kg)', icon: '⚖️' },
+  { text: '両', en: 'tael (38 g)', icon: '🏺' },
+  { text: '寸', en: 'inch', icon: '📏' },
+  { text: '磅', en: 'pound', icon: '⚖️' },
+  { text: '厘米', en: 'cm', icon: '📐' },
 ];
 
 // 句子啟動器和建議詞語
@@ -935,6 +935,7 @@ export default function AACApp() {
   const displayPhrases = allPhrases;
 
   const filteredPhrases = displayPhrases.filter((p) => p.category === selectedCategory);
+  const isGuest = !user;
 
   const allAvailableStarters = [...SENTENCE_STARTERS, ...ADDITIONAL_STARTERS];
   const visibleStarters = showSuggestions && currentStarter
@@ -1195,14 +1196,167 @@ export default function AACApp() {
             speak={speak}
           />
 
-          {/* Phrases Grid Component */}
-          <PhrasesGrid
-            filteredPhrases={filteredPhrases}
-            speak={speak}
-            isLoading={isLoading}
-            user={user}
-            CATEGORY_LABELS={CATEGORY_LABELS}
-          />
+          {/* Phrases Grid Component or Calculator */}
+          {selectedCategory === '量詞' ? (
+            // Calculator Interface for Numbers Category
+            <div className="mt-8 p-6 bg-white rounded-3xl shadow-2xl">
+              
+              {/* Display Screen */}
+              <div className="mb-6 p-6 bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f] rounded-2xl shadow-inner">
+                <div className="text-right">
+                  <div className="text-4xl sm:text-5xl font-bold text-white min-h-[60px] flex items-center justify-end">
+                    {customText || '0'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Calculator Buttons */}
+              <div className="flex flex-col lg:flex-row gap-6 lg:items-stretch">
+                {/* Number Pad - Left Side */}
+                <div className="w-full lg:w-[40%] lg:mr-[30px] lg:h-full lg:self-stretch flex flex-col">
+                  <div className="grid grid-cols-3 gap-3 sm:gap-6 h-full lg:auto-rows-fr flex-1">
+                    {/* Numbers 7-9, 4-6, 1-3 */}
+                    {[7, 8, 9, 4, 5, 6, 1, 2, 3].map((num) => (
+                      <button
+                        key={num}
+                        onClick={() => setCustomText(prev => prev + num)}
+                        className="rounded-3xl bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white text-4xl sm:text-5xl font-bold shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2 transition-all duration-200 transform flex items-center justify-center min-h-[80px] sm:min-h-[100px]"
+                      >
+                        {num}
+                      </button>
+                    ))}
+
+                    {/* Decimal Point */}
+                    <button
+                      onClick={() => setCustomText(prev => prev + '.')}
+                      className="rounded-full bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white text-4xl sm:text-5xl font-bold shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2 transition-all duration-200 transform flex items-center justify-center min-h-[80px] sm:min-h-[100px]"
+                    >
+                      .
+                    </button>
+
+                     {/* Number 0 */}
+                    <button
+                      onClick={() => setCustomText(prev => prev + '0')}
+                      className="rounded-full bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white text-4xl sm:text-5xl font-bold shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2 transition-all duration-200 transform flex items-center justify-center min-h-[80px] sm:min-h-[100px]"
+                    >
+                      0
+                    </button>
+
+                    {/* Clear Button */}
+                    <button
+                      onClick={() => setCustomText('')}
+                      className="rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white text-3xl sm:text-4xl font-bold shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2 transition-all duration-200 transform flex items-center justify-center min-h-[80px] sm:min-h-[100px]"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+
+                {/* Measure Words Section - Right Side */}
+                <div className="w-full lg:w-[60%] flex flex-col gap-3 lg:h-full">
+                {/* <h3 className="text-2xl font-bold text-[#1e3a5f] mb-4">
+                  量詞 Measure Words
+                </h3> */}
+                
+                {/* Large Units - Time Related */}
+                <div className="flex-1 flex flex-col lg:max-h-[350px]">
+                  <p className="text-lg font-bold text-gray-700 mb-2">時間 Time:</p>
+                  <div className="space-y-3 lg:space-y-1.5 flex-1 flex flex-col justify-center">
+                    {/* Row 1: 日 月 年 歲 */}
+                    <div className="grid grid-cols-4 gap-3 lg:gap-1.5 justify-center">
+                      {[...PHRASES, ...customPhrases].filter(p => ['日', '月', '年', '歲'].includes(p.text)).map((phrase) => (
+                        <button
+                          key={phrase.id}
+                          onClick={() => (isGuest ? setShowLoginModal(true) : setCustomText(prev => prev + phrase.text))}
+                          aria-disabled={isGuest}
+                          className={`aspect-square rounded-full text-2xl sm:text-3xl lg:text-xl font-bold transition-all duration-200 transform flex flex-col items-center justify-center max-h-[100px] sm:min-h-[100px] lg:max-h-[100px] gap-0.5 lg:gap-0.5 cursor-pointer ${
+                            isGuest
+                              ? 'bg-gray-300 text-gray-500 shadow-inner'
+                              : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2'
+                          }`}
+                        >
+                          <span className="text-xl lg:text-lg">{phrase.icon}</span>
+                          <span className="text-xl sm:text-2xl lg:text-lg">{phrase.text}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {/* Row 2: 分鐘 小時 禮拜 */}
+                    <div className="grid grid-cols-3 gap-3 lg:gap-1.5 justify-center">
+                      {[...PHRASES, ...customPhrases].filter(p => ['分鐘', '小時', '禮拜'].includes(p.text)).map((phrase) => (
+                        <button
+                          key={phrase.id}
+                          onClick={() => (isGuest ? setShowLoginModal(true) : setCustomText(prev => prev + phrase.text))}
+                          aria-disabled={isGuest}
+                          className={`aspect-square rounded-full text-2xl sm:text-3xl lg:text-xl font-bold transition-all duration-200 transform flex flex-col items-center justify-center max-h-[100px] sm:max-h-[100px] lg:max-h-[140px] gap-0.5 lg:gap-0.5 cursor-pointer ${
+                            isGuest
+                              ? 'bg-gray-300 text-gray-500 shadow-inner'
+                              : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2'
+                          }`}
+                        >
+                          <span className="text-xl lg:text-lg">{phrase.icon}</span>
+                          <span className="text-xl sm:text-2xl lg:text-lg">{phrase.text}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Units */}
+                <div className="flex-1 flex flex-col">
+                  <p className="text-lg font-bold text-gray-700 mb-2">單位 Units:</p>
+                  <div className="grid grid-cols-3 gap-3 flex-1 content-center justify-center">
+                    {MEASURE_WORD_UNITS.map((unit) => (
+                      <button
+                        key={unit.text}
+                        onClick={() => (isGuest ? setShowLoginModal(true) : setCustomText(prev => prev + unit.text))}
+                        aria-disabled={isGuest}
+                        className={`aspect-square rounded-full text-2xl sm:text-3xl font-bold transition-all duration-200 transform flex flex-col items-center justify-center max-h-[100px] sm:max-h-[140px] gap-1 cursor-pointer ${
+                          isGuest
+                            ? 'bg-gray-300 text-gray-500 shadow-inner'
+                            : 'bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2'
+                        }`}
+                      >
+                        <span>{unit.icon}</span>
+                        <span className="text-xl sm:text-2xl">{unit.text}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-8 flex gap-4">
+                <button
+                  onClick={() => handleCustomSpeak()}
+                  disabled={isLoading || !customText}
+                  className={`flex-1 p-6 rounded-2xl font-bold text-2xl shadow-xl transition-all duration-300 transform ${
+                    isLoading || !customText
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f] text-white hover:shadow-2xl hover:scale-105 active:scale-95'
+                  }`}
+                >
+                  {isLoading ? (
+                    <span className="flex items-center justify-center gap-3">
+                      <span className="animate-spin">⏳</span> 播放中...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-3">
+                      🔊 播放 Speak
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <PhrasesGrid
+              filteredPhrases={filteredPhrases}
+              speak={speak}
+              isLoading={isLoading}
+              user={user}
+              CATEGORY_LABELS={CATEGORY_LABELS}
+            />
+          )}
 
           {/* 使用說明 */}
           <div className="mt-12 p-8 bg-white rounded-3xl shadow-2xl transition-all duration-500 hover:shadow-[0_20px_50px_rgba(30,58,95,0.3)] hover:scale-105 transform border-4 border-[#1e3a5f]">

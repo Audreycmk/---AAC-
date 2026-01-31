@@ -121,7 +121,7 @@ export default function MeasureWordPanel({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[60vh] sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl sm:text-2xl font-bold text-[#1e3a5f]">
             <BilingualText zh="量詞" en="Numbers" />
