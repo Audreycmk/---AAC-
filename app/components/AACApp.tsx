@@ -120,9 +120,9 @@ const CATEGORY_LABELS: Record<string, string> = {
 // 句子啟動器和建議詞語
 const SENTENCE_STARTERS = [
   { text: '我想', en: 'I want to', icon: '💭' },
-  { text: '唔記得', en: 'Cannot remember', icon: '🤔' },
-  { text: '幫我', en: 'Help me', icon: '🤝' },
   { text: '我要', en: 'I need to', icon: '✋' },
+  { text: '幫我', en: 'Help me', icon: '🤝' },
+  { text: '唔記得', en: 'Cannot remember', icon: '🤔' },
 ];
 
 // Additional starters for logged-in users (elderly-friendly)
@@ -273,7 +273,7 @@ type CustomPhrase = (typeof PHRASES)[0];
 export default function AACApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
-  const [user, setUser] = useState<{ email: string; role: 'admin' | 'user' } | null>(null);
+  const [user, setUser] = useState<{ email?: string; loginCode?: string; role: 'admin' | 'user' } | null>(null);
   const [showLoginCodeModal, setShowLoginCodeModal] = useState(false);
   const [loginCode, setLoginCode] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -501,6 +501,12 @@ export default function AACApp() {
       localStorage.removeItem('aac-selected-voice');
     }
   }, [selectedVoice]);
+
+  // Initialize selectedCategory based on favorites list (default: "Personal Items")
+  useEffect(() => {
+    const defaultCategory = favorites.length > 0 ? favorites[0] : '個人物品';
+    setSelectedCategory(defaultCategory);
+  }, [favorites]);
 
   const resolveEnglishText = (text: string) => {
     if (PHRASE_TRANSLATIONS[text]) {
@@ -2578,7 +2584,10 @@ export default function AACApp() {
                 }}
               >
                 <div className="transition-all duration-300 group-hover:scale-125 group-hover:rotate-12 group-active:scale-90 flex items-center justify-center">
-                  {phrase.icon && typeof phrase.icon === 'string' && phrase.icon.startsWith('data:image') ? (
+                  {/* Custom icon for specific users */}
+                  {user?.loginCode === 'btc2026' && phrase.id === 35 ? (
+                    <img src="/Wallet.png" alt={phrase.text} className="max-w-[90%] max-h-[120px] object-contain" />
+                  ) : phrase.icon && typeof phrase.icon === 'string' && phrase.icon.startsWith('data:image') ? (
                     <img src={phrase.icon} alt={phrase.text} className="max-w-[90%] max-h-[120px] object-contain" />
                   ) : (
                     <Icon emoji={phrase.icon || '📝'} size={96} />

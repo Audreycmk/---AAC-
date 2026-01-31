@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         user: {
-          email: user.loginCode,
+          loginCode: user.loginCode,
           role: user.role,
         },
         userData: user
