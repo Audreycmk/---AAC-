@@ -1016,12 +1016,24 @@ export default function AACApp() {
       <footer className="fixed bottom-0 left-0 right-0 bg-[#1e3a5f] text-white border-t-4 border-[#f97316] shadow-2xl z-40">
         <div className="max-w-7xl mx-auto px-6 py-[12px] text-center">
           {!hasFullAccess() ? (
-            <p className="text-sm sm:text-base font-semibold">
-              登入以獲得完整功能 / Login for full features
-            </p>
+            <button
+              type="button"
+              onClick={() => setShowLoginCodeModal(true)}
+              className="w-full text-center space-y-1 hover:opacity-90 transition-opacity duration-200"
+              aria-label="登入 Login"
+            >
+              <div className="space-y-1">
+                <p className="text-sm sm:text-base font-semibold">
+                  登入以獲得完整功能 / Login for full features
+                </p>
+                <p className="text-xs sm:text-sm">
+                  ©2026 Audrey Chung
+                </p>
+              </div>
+            </button>
           ) : (
             <p className="text-sm sm:text-base font-semibold">
-              您已登入 / You are logged in
+              ©2026 Audrey Chung
             </p>
           )}
         </div>

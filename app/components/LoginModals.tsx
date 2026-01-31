@@ -59,7 +59,7 @@ export default function LoginModals({
                   className="w-full px-4 py-3 bg-[#f97316] text-white rounded-xl font-bold hover:bg-[#ea580c] transition-all duration-300 flex items-center justify-center gap-2"
                 >
                   <Icon emoji="📧" size={24} />
-                  <span>取得登入碼 / Get Login Code</span>
+                  <span>取得登入碼 / Get Code</span>
                 </a>
                 <p className="text-xs text-gray-600 mt-2 text-center">audreycmk@gmail.com</p>
               </div>

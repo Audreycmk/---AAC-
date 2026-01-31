@@ -86,9 +86,9 @@ export default function SideMenu({
       <div
         className={`fixed top-0 left-0 h-full bg-white shadow-2xl z-40 transition-all duration-500 ease-out ${
           menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
-        } w-80 pt-20 pb-24 sm:pb-20`}
+        } w-80 pt-20`}
       >
-        <div className="p-6 h-full overflow-y-auto">
+        <div className="p-6 h-full overflow-y-auto pb-20">
           {/* Custom Sentence Button in Menu */}
           <button
             onClick={() => {

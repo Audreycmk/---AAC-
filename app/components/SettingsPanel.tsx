@@ -54,7 +54,7 @@ export default function SettingsPanel({
 
   return (
     <div
-      className="fixed top-20 left-0 right-0 z-40 p-6 bg-white rounded-2xl shadow-xl border-4 border-[#1e3a5f] animate-fadeIn mx-4 sm:mx-6 lg:mx-8"
+      className="fixed top-20 left-0 right-0 z-40 p-6 bg-white rounded-2xl shadow-xl border-4 border-[#1e3a5f] animate-fadeIn mx-4 sm:mx-6 lg:mx-8 mt-6"
       style={{ marginLeft: 'auto', marginRight: 'auto' }}
     >
       <div className="flex items-center justify-between mb-4">
