@@ -75,12 +75,12 @@ export default function PhrasesGrid({
             animationFillMode: 'both',
           }}
         >
-          <div className="transition-all duration-300 group-hover:scale-125 group-hover:rotate-12 group-active:scale-90 flex items-center justify-center">
+          <div className="flex items-center justify-center">
             {/* Custom icon for specific users */}
             {user?.loginCode === 'btc2026' && phrase.id === 35 ? (
               <img src="/Wallet.png" alt={phrase.text} className="max-w-[90%] max-h-[120px] object-contain" />
-            ) : phrase.icon && typeof phrase.icon === 'string' && phrase.icon.startsWith('data:image') ? (
-              <img src={phrase.icon} alt={phrase.text} className="max-w-[90%] max-h-[120px] object-contain" />
+            ) : phrase.icon && typeof phrase.icon === 'string' && (phrase.icon.startsWith('data:image') || phrase.icon.startsWith('http')) ? (
+              <img src={phrase.icon} alt={phrase.text} className="max-w-[90%] max-h-[120px] object-contain" style={{ display: 'inline-block' }} />
             ) : (
               <Icon emoji={phrase.icon || '📝'} size={96} />
             )}

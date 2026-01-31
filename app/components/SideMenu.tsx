@@ -242,7 +242,7 @@ export default function SideMenu({
                   style={{ transitionDelay: menuOpen ? '300ms' : '0ms' }}
                   aria-label="Add Vocabulary"
                 >
-                  <Icon emoji="📚" size={32} />
+                  <Icon emoji="➕" size={32} />
                   <span>加入詞語</span>
                 </button>
                 {user?.role === 'admin' && (

@@ -73,7 +73,7 @@ const PHRASES = [
   { id: 44, text: '門', en: 'Door', category: '家居用品', icon: '🚪' },
   { id: 45, text: '冷氣', en: 'Air conditioner', category: '家居用品', icon: '❄️' },
   { id: 46, text: '暖爐', en: 'Heater', category: '家居用品', icon: '🔥' },
-  { id: 47, text: '窗', en: 'Window', category: '家居用品', icon: '🪟' },
+  { id: 47, text: '窗', en: 'Window', category: '家居用品', icon: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1fa9f.png' },
   { id: 48, text: '燈', en: 'Light', category: '家居用品', icon: '💡' },
   { id: 49, text: '匙羹', en: 'Spoon', category: '家居用品', icon: '🥄' },
   { id: 50, text: '叉', en: 'Fork', category: '家居用品', icon: '🍴' },
@@ -218,14 +218,14 @@ const SUGGESTED_WORDS: Record<string, Array<{ text: string; en: string; icon: st
 
   '好凍呀': [
     { text: '要被', en: 'need blanket', icon: '🛏️' },
-    { text: '關窗', en: 'close window', icon: '🪟' },
+    { text: '閂窗', en: 'close window', icon: '❌🪟' },
     { text: '著多件', en: 'wear more', icon: '🧥' },
     { text: '開暖氣', en: 'turn on heater', icon: '♨️' },
   ],
   '好熱呀': [
     { text: '開風扇', en: 'turn on fan', icon: '💨' },
     { text: '開冷氣', en: 'turn on AC', icon: '❄️' },
-    { text: '開窗', en: 'open window', icon: '🪟' },
+    { text: '開窗', en: 'open window', icon: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1fa9f.png' },
     { text: '脫件衫', en: 'take off clothes', icon: '👕' },
   ],
   '痛呀': [

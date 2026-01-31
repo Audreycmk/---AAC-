@@ -9,6 +9,22 @@ interface IconProps {
 export default function Icon({ emoji, size = 64, className = '' }: IconProps) {
   const [showEmoji, setShowEmoji] = useState(false);
 
+  // If emoji is a URL, render as img directly
+  if (emoji && typeof emoji === 'string' && (emoji.startsWith('http://') || emoji.startsWith('https://'))) {
+    // Determine alt text based on URL - use window emoji for window images
+    const alt = emoji.includes('1fa9f') ? '🪟' : 'icon';
+    return (
+      <img 
+        src={emoji} 
+        alt={alt}
+        width={size} 
+        height={size} 
+        className={className}
+        style={{ display: 'inline-block' }}
+      />
+    );
+  }
+
   // Convert emoji to Unicode codepoint for Twemoji CDN
   // Remove variation selectors (U+FE0F) and other modifiers
   const cleanEmoji = emoji.replace(/\uFE0F/g, '');

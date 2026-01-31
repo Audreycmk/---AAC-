@@ -99,11 +99,11 @@ export default function AddVocabularyPanel({
           {/* Success Message Overlay */}
           {vocabSuccess && (
             <div className="absolute inset-0 z-50 bg-green-500 rounded-2xl flex items-center justify-center p-8 animate-fadeIn">
-              <div className="text-center">
-                <div className="text-6xl mb-4">✅</div>
-                <div className="text-4xl font-bold text-white mb-3">{lastAddedWord}</div>
-                <div className="text-2xl font-bold text-white mb-2">詞語已加入！</div>
-                <div className="text-xl font-semibold text-green-100">Word added successfully!</div>
+              <div className="text-center max-w-[60%] max-h-[60%] overflow-auto">
+                <div className="text-4xl sm:text-5xl mb-3">✅</div>
+                <div className="text-2xl sm:text-3xl font-bold text-white mb-2 break-words">{lastAddedWord}</div>
+                <div className="text-lg sm:text-xl font-bold text-white mb-1">詞語已加入！</div>
+                <div className="text-base sm:text-lg font-semibold text-green-100">Word added successfully!</div>
               </div>
             </div>
           )}
@@ -125,12 +125,21 @@ export default function AddVocabularyPanel({
                 </h4>
               </div>
               <div className="bg-[#f5f5dc] p-4 rounded-2xl">
-                <div className="flex items-center justify-center gap-2 mb-4">
-                  <div className="flex-1 px-4 py-3 border-2 border-[#1e3a5f] rounded-xl text-center font-bold bg-white text-[#1e3a5f] flex items-center justify-center min-h-[120px]">
+                <div className="flex flex-col items-center justify-center gap-2 mb-4">
+                  <div className="flex-1 px-4 py-3 border-2 border-[#1e3a5f] rounded-xl text-center font-bold bg-white text-[#1e3a5f] flex flex-col items-center justify-center min-h-[120px]">
                     {addVocabInput.icon && typeof addVocabInput.icon === 'string' && addVocabInput.icon.startsWith('data:image') ? (
                       <img src={addVocabInput.icon} alt="Uploaded" className="max-w-[90%] max-h-[100px] object-contain" />
                     ) : (
-                      <span className="text-2xl">{addVocabInput.icon || '📝'}</span>
+                      <>
+                        <img
+                          src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f5bc.png"
+                          alt="Default img icon"
+                          className="w-10 h-10 mb-2"
+                        />
+                        <div className="text-sm text-[#1e3a5f]">
+                          選擇圖片<br />Choose an image
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
@@ -341,20 +350,30 @@ export default function AddVocabularyPanel({
             <div className="flex gap-3 pt-4">
               <button
                 onClick={handleAddVocab}
-                className="flex-1 px-8 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-105 active:scale-95 disabled:bg-gray-400 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-2"
+                className="flex-1 px-8 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-105 active:scale-95 disabled:bg-gray-400 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-1 sm:gap-2 flex-col sm:flex-row text-center"
               >
-                <Icon emoji="💾" size={40} />
-                <BilingualText zh="加入詞語" en="Add Word" className="items-center" enClassName="text-lg" />
+                <img
+                  src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f4be.png"
+                  alt="Save"
+                  className="w-10 h-10"
+                />
+                <span className="text-xl sm:text-2xl font-bold">加入<br />詞語</span>
+                <span className="text-lg sm:text-xl opacity-80">Add Word</span>
               </button>
               <button
                 onClick={() => {
                   setShowAddVocab(false);
                   resetAddVocabForm();
                 }}
-                className="flex-1 px-8 py-5 bg-[#1e3a5f] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#2a5a8f] hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-2"
+                className="flex-1 px-8 py-5 bg-[#1e3a5f] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#2a5a8f] hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-1 sm:gap-2 flex-col sm:flex-row text-center"
               >
-                <Icon emoji="❌" size={40} />
-                <BilingualText zh="返回" en="Back" className="items-center" enClassName="text-lg" />
+                <img
+                  src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/274c.png"
+                  alt="Back"
+                  className="w-10 h-10"
+                />
+                <span className="text-xl sm:text-2xl font-bold">返回</span>
+                <span className="text-lg sm:text-xl opacity-80">Back</span>
               </button>
             </div>
           </div>
