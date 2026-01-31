@@ -510,7 +510,7 @@ export default function AACApp() {
     }
   };
 
-  const speak = (text: string) => {
+  const speak = (text: string, rateOverride?: number) => {
     if (!speechSupported) {
       alert('您的瀏覽器不支援語音合成\nYour browser does not support speech synthesis');
       return;
@@ -530,7 +530,7 @@ export default function AACApp() {
       utterance.lang = 'en-US';
     }
     
-    utterance.rate = speechRate;
+    utterance.rate = rateOverride ?? speechRate;
     utterance.volume = speechVolume;
 
     if (selectedVoice) {
@@ -552,6 +552,10 @@ export default function AACApp() {
 
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utterance);
+  };
+
+  const speakAtRate = (text: string, rate: number) => {
+    speak(text, rate);
   };
 
   const playVoiceDemo = (voiceName: string) => {
@@ -1202,8 +1206,26 @@ export default function AACApp() {
             <div className="mt-8 p-6 bg-white rounded-3xl shadow-2xl">
               
               {/* Display Screen */}
-              <div className="mb-6 p-6 bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f] rounded-2xl shadow-inner">
-                <div className="text-right">
+              <div
+                className="mb-4 p-4 bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f] rounded-2xl shadow-inner cursor-pointer"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleCustomSpeak()}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    handleCustomSpeak();
+                  }
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="text-white/90 font-semibold flex items-center gap-3">
+                    <span className="text-3xl sm:text-3xl leading-1">🔊</span>
+                    <span className="flex flex-col leading-[1.2] text-[1em] sm:text-[1em] gap-2 text-white/70">
+                      <span>播</span>
+                      <span>放</span>
+                    </span>
+                  </div>
                   <div className="text-4xl sm:text-5xl font-bold text-white min-h-[60px] flex items-center justify-end">
                     {customText || '0'}
                   </div>
@@ -1214,12 +1236,15 @@ export default function AACApp() {
               <div className="flex flex-col lg:flex-row gap-6 lg:items-stretch">
                 {/* Number Pad - Left Side */}
                 <div className="w-full lg:w-[40%] lg:mr-[30px] lg:h-full lg:self-stretch flex flex-col">
-                  <div className="grid grid-cols-3 gap-3 sm:gap-6 h-full lg:auto-rows-fr flex-1">
+                  <div className="grid grid-cols-3 gap-3 sm:gap-4 h-full lg:auto-rows-fr flex-1">
                     {/* Numbers 7-9, 4-6, 1-3 */}
                     {[7, 8, 9, 4, 5, 6, 1, 2, 3].map((num) => (
                       <button
                         key={num}
-                        onClick={() => setCustomText(prev => prev + num)}
+                        onClick={() => {
+                          speakAtRate(String(num), 1.0);
+                          setCustomText(prev => prev + num);
+                        }}
                         className="rounded-3xl bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white text-4xl sm:text-5xl font-bold shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2 transition-all duration-200 transform flex items-center justify-center min-h-[80px] sm:min-h-[100px]"
                       >
                         {num}
@@ -1228,7 +1253,10 @@ export default function AACApp() {
 
                     {/* Decimal Point */}
                     <button
-                      onClick={() => setCustomText(prev => prev + '.')}
+                      onClick={() => {
+                        speakAtRate('.', 1.0);
+                        setCustomText(prev => prev + '.');
+                      }}
                       className="rounded-full bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white text-4xl sm:text-5xl font-bold shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2 transition-all duration-200 transform flex items-center justify-center min-h-[80px] sm:min-h-[100px]"
                     >
                       .
@@ -1236,7 +1264,10 @@ export default function AACApp() {
 
                      {/* Number 0 */}
                     <button
-                      onClick={() => setCustomText(prev => prev + '0')}
+                      onClick={() => {
+                        speakAtRate('0', 1.0);
+                        setCustomText(prev => prev + '0');
+                      }}
                       className="rounded-full bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white text-4xl sm:text-5xl font-bold shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2 transition-all duration-200 transform flex items-center justify-center min-h-[80px] sm:min-h-[100px]"
                     >
                       0
@@ -1244,7 +1275,10 @@ export default function AACApp() {
 
                     {/* Clear Button */}
                     <button
-                      onClick={() => setCustomText('')}
+                      onClick={() => {
+                        speakAtRate('清除', 1.0);
+                        setCustomText('');
+                      }}
                       className="rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white text-3xl sm:text-4xl font-bold shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2 transition-all duration-200 transform flex items-center justify-center min-h-[80px] sm:min-h-[100px]"
                     >
                       ✕
@@ -1267,7 +1301,14 @@ export default function AACApp() {
                       {[...PHRASES, ...customPhrases].filter(p => ['日', '月', '年', '歲'].includes(p.text)).map((phrase) => (
                         <button
                           key={phrase.id}
-                          onClick={() => (isGuest ? setShowLoginModal(true) : setCustomText(prev => prev + phrase.text))}
+                          onClick={() => {
+                            if (isGuest) {
+                              setShowLoginModal(true);
+                              return;
+                            }
+                            speakAtRate(phrase.text, 1.0);
+                            setCustomText(prev => prev + phrase.text);
+                          }}
                           aria-disabled={isGuest}
                           className={`aspect-square rounded-full text-2xl sm:text-3xl lg:text-xl font-bold transition-all duration-200 transform flex flex-col items-center justify-center max-h-[100px] sm:min-h-[100px] lg:max-h-[100px] gap-0.5 lg:gap-0.5 cursor-pointer ${
                             isGuest
@@ -1285,7 +1326,14 @@ export default function AACApp() {
                       {[...PHRASES, ...customPhrases].filter(p => ['分鐘', '小時', '禮拜'].includes(p.text)).map((phrase) => (
                         <button
                           key={phrase.id}
-                          onClick={() => (isGuest ? setShowLoginModal(true) : setCustomText(prev => prev + phrase.text))}
+                          onClick={() => {
+                            if (isGuest) {
+                              setShowLoginModal(true);
+                              return;
+                            }
+                            speakAtRate(phrase.text, 1.0);
+                            setCustomText(prev => prev + phrase.text);
+                          }}
                           aria-disabled={isGuest}
                           className={`aspect-square rounded-full text-2xl sm:text-3xl lg:text-xl font-bold transition-all duration-200 transform flex flex-col items-center justify-center max-h-[100px] sm:max-h-[100px] lg:max-h-[140px] gap-0.5 lg:gap-0.5 cursor-pointer ${
                             isGuest
@@ -1308,7 +1356,14 @@ export default function AACApp() {
                     {MEASURE_WORD_UNITS.map((unit) => (
                       <button
                         key={unit.text}
-                        onClick={() => (isGuest ? setShowLoginModal(true) : setCustomText(prev => prev + unit.text))}
+                        onClick={() => {
+                          if (isGuest) {
+                            setShowLoginModal(true);
+                            return;
+                          }
+                          speakAtRate(unit.text, 1.0);
+                          setCustomText(prev => prev + unit.text);
+                        }}
                         aria-disabled={isGuest}
                         className={`aspect-square rounded-full text-2xl sm:text-3xl font-bold transition-all duration-200 transform flex flex-col items-center justify-center max-h-[100px] sm:max-h-[140px] gap-1 cursor-pointer ${
                           isGuest
