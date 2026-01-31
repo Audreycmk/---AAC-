@@ -128,6 +128,7 @@ const SENTENCE_STARTERS = [
 // Additional starters for logged-in users (elderly-friendly)
 const ADDITIONAL_STARTERS = [
   { text: '請問', en: 'May I ask', icon: '❓' },
+  { text: '唔該', en: 'Please', icon: '🙏' },
   { text: '好辛苦', en: 'Feel uncomfortable', icon: '😣' },
   { text: '我唔舒服', en: 'Not feeling well', icon: '🤒' },
   { text: '好攰喇', en: 'Very tired', icon: '😴' },
@@ -148,7 +149,7 @@ const SUGGESTED_WORDS: Record<string, Array<{text: string, en: string, icon: str
 
   '幫我': [
     { text: '拎嘢', en: 'get it for me', icon: '📦' },
-    { text: '倒水', en: 'pour water', icon: '💧' },
+    { text: '加水', en: 'pour water', icon: '💧' },
     { text: '開門', en: 'open the door', icon: '✅🚪' },
     { text: '關門', en: 'close the door', icon: '❌🚪' },
     { text: '開燈', en: 'turn on the light', icon: '✅💡' },
@@ -171,6 +172,17 @@ const SUGGESTED_WORDS: Record<string, Array<{text: string, en: string, icon: str
     { text: '今日幾月幾日', en: 'what date is today', icon: '📅' },
     { text: '幾點鐘', en: 'what time is it', icon: '⏰' },
     { text: '天氣點呀', en: 'how is the weather', icon: '🌤️' }
+    
+  ],
+  '唔該': [
+    { text: '唔該', en: 'and thank you', icon: '🙏' },
+    { text: '等一等', en: 'wait', icon: '✋' },
+    { text: '借借', en: 'excuse me', icon: '🏃' },
+    { text: '講多次', en: 'say it again', icon: '🗣️' },
+    { text: '落單', en: 'take my order', icon: '📝' },
+    { text: '埋單', en: 'check the bill', icon: '💵' },
+    { text: '有落', en: 'let me off', icon: '🚗' },
+
     
   ],
     '唔記得': [
@@ -1913,8 +1925,8 @@ export default function AACApp() {
                     }`}
                     aria-label="廣東話 Cantonese"
                   >
-                    廣東話
-                  </button>
+                    🇭🇰 廣東話
+                  </button> 
                   <button
                     onClick={() => setSpeechLanguage('en-US')}
                     className={`px-6 py-4 rounded-2xl font-bold text-xl border-3 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2 ${
@@ -1924,7 +1936,7 @@ export default function AACApp() {
                     }`}
                     aria-label="English"
                   >
-                    English
+                  🇬🇧 English
                   </button>
                 </div>
                 
