@@ -1072,7 +1072,12 @@ export default function AACApp() {
           />
 
           {/* History Panel Component */}
-          <HistoryPanel showHistory={showHistory} history={history} speak={speak} />
+          <HistoryPanel
+            showHistory={showHistory}
+            setShowHistory={setShowHistory}
+            history={history}
+            speak={speak}
+          />
 
           {/* Phrases Grid Component */}
           <PhrasesGrid
