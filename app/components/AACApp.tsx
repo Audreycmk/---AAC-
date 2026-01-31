@@ -378,6 +378,15 @@ export default function AACApp() {
     voices: SpeechSynthesisVoice[],
     lang: 'zh-HK' | 'en-US' | 'en-AU'
   ) => {
+    if (lang === 'zh-HK') {
+      const hkVoices = voices.filter((v) => v.lang.toLowerCase().includes('zh-hk'));
+      if (hkVoices.length > 0) {
+        return hkVoices[0];
+      }
+      const zhVoices = voices.filter((v) => v.lang.toLowerCase().includes('zh'));
+      return zhVoices[0];
+    }
+
     const langCode = getLanguageCodeForVoice(lang);
     const matchingVoices = voices.filter((v) => v.lang.toLowerCase().includes(langCode));
 
