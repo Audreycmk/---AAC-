@@ -16,27 +16,27 @@ import MeasureWordPanel from './MeasureWordPanel';
 // 常用廣東話短語（附圖示）- 按新分類重組
 const PHRASES = [
   // 日常
-  { id: 1, text: '你好', en: 'Hello', category: '日常', icon: '👋' },
-  { id: 2, text: '多謝', en: 'Thank you', category: '日常', icon: '🙏' },
-  { id: 3, text: '唔該', en: 'Please / Thanks', category: '日常', icon: '🙏' },
-  { id: 4, text: '對唔住', en: 'Sorry', category: '日常', icon: '😔' },
-  { id: 5, text: '再見', en: 'Goodbye', category: '日常', icon: '👋' },
   { id: 6, text: '好', en: 'Okay', category: '日常', icon: '👍' },
   { id: 7, text: '唔好', en: 'No', category: '日常', icon: '👎' },
   { id: 8, text: '係', en: 'Yes', category: '日常', icon: '✅' },
   { id: 9, text: '唔係', en: 'No', category: '日常', icon: '❌' },
   { id: 10, text: '明白', en: 'I understand', category: '日常', icon: '💡' },
   { id: 11, text: '唔明白', en: "I don't understand", category: '日常', icon: '❓' },
+   { id: 1, text: '你好', en: 'Hello', category: '日常', icon: '👋' },
+  { id: 2, text: '多謝', en: 'Thank you', category: '日常', icon: '🙏' },
+  { id: 3, text: '唔該', en: 'Please / Thanks', category: '日常', icon: '🙇🏻‍♀️' },
+  { id: 4, text: '對唔住', en: 'Sorry', category: '日常', icon: '😔' },
+  { id: 5, text: '再見', en: 'Goodbye', category: '日常', icon: '👋' },
 
   // 飲食
-  { id: 12, text: '我想飲水', en: 'I want water', category: '飲食', icon: '💧' },
-  { id: 13, text: '我肚餓', en: "I'm hungry", category: '飲食', icon: '🍚' },
-  { id: 14, text: '我想食飯', en: 'I want to eat', category: '飲食', icon: '🍱' },
-  { id: 15, text: '我想飲奶', en: 'I want milk', category: '飲食', icon: '🥛' },
-  { id: 16, text: '蘋果', en: 'Apple', category: '飲食', icon: '🍎' },
-  { id: 17, text: '橙', en: 'Orange', category: '飲食', icon: '🍊' },
-  { id: 18, text: '香蕉', en: 'Banana', category: '飲食', icon: '🍌' },
-
+  { id: 12, text: '口渴', en: 'thirsty', category: '飲食', icon: '💧' },
+  { id: 13, text: '肚餓', en: 'Hungry', category: '飲食', icon: '🍽️' },
+  { id: 14, text: '飯', en: 'Rice', category: '飲食', icon: '🍚' },
+  { id: 15, text: '麵', en: 'Noodles', category: '飲食', icon: '🍜' },
+  { id: 16, text: '茶', en: 'Tea', category: '飲食', icon: '🍵' },
+  { id: 17, text: '奶', en: 'Milk', category: '飲食', icon: '🥛' },
+  { id: 18, text: '藥', en: 'Medicine', category: '飲食', icon: '💊' },
+  
   // 醫療
   { id: 19, text: '我唔舒服', en: 'I feel unwell', category: '醫療', icon: '🤒' },
   { id: 20, text: '我頭痛', en: 'I have a headache', category: '醫療', icon: '🤕' },
@@ -98,6 +98,21 @@ const PHRASES = [
   { id: 64, text: '酒樓', en: 'Chinese restaurant', category: '地方', icon: '🍽️' },
   { id: 65, text: '公園', en: 'Park', category: '地方', icon: '🌳' },
   { id: 66, text: '茶餐廳', en: 'Cha Chaan Teng', category: '地方', icon: '☕' },
+
+  // 量詞 (Numbers)
+  { id: 67, text: '個', en: 'item', category: '量詞', icon: '1️⃣' },
+  { id: 68, text: '十', en: 'ten', category: '量詞', icon: '🔟' },
+  { id: 69, text: '百', en: 'hundred', category: '量詞', icon: '💯' },
+  { id: 70, text: '千', en: 'thousand', category: '量詞', icon: '🔠' },
+  { id: 71, text: '萬', en: 'ten thousand', category: '量詞', icon: '📊' },
+  { id: 72, text: '蚊', en: 'dollars', category: '量詞', icon: '💵' },
+  { id: 73, text: '隻', en: 'animal/object', category: '量詞', icon: '🦆' },
+  { id: 74, text: '次', en: 'times', category: '量詞', icon: '🔄' },
+  { id: 75, text: '位', en: 'person', category: '量詞', icon: '👤' },
+  { id: 76, text: '粒', en: 'grain/pill', category: '量詞', icon: '🫘' },
+  { id: 77, text: '條', en: 'object', category: '量詞', icon: '➖' },
+  { id: 78, text: '枝', en: 'stick/pen', category: '量詞', icon: '✏️' },
+  { id: 79, text: '張', en: 'sheet/ticket', category: '量詞', icon: '🎫' },
 ];
 
 // 分類圖示映射（新配色主題）
@@ -112,6 +127,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   '家居用品': '🏠',
   '水果': '🍎',
   '地方': '📍',
+  '量詞': '🔢',
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -125,11 +141,12 @@ const CATEGORY_LABELS: Record<string, string> = {
   '家居用品': 'Home Items',
   '水果': 'Fruits',
   '地方': 'Places',
+  '量詞': 'Numbers',
 };
 
-const DISPLAY_CATEGORIES = ['個人物品', '家居用品', '水果', '地方'] as const;
+const DISPLAY_CATEGORIES = ['個人物品', '家居用品', '水果', '地方', '量詞'] as const;
 
-// 量詞 (Measure Words / Classifiers)
+// 量詞 (Numbers)
 const MEASURE_WORD_CLASSIFIERS = [
   { text: '個', en: 'item', icon: '1️⃣' },
   { text: '十', en: 'ten', icon: '🔟' },
@@ -151,9 +168,9 @@ const MEASURE_WORD_UNITS = [
   { text: '次', en: 'times', icon: '🔄' },
   { text: '位', en: 'people', icon: '👤' },
   { text: '粒', en: '', icon: '🫘' },
+  { text: '張', en: 'pieces', icon: '🎫' },
   { text: '條', en: '', icon: '➖' },
   { text: '枝', en: '', icon: '✏️' },
-  { text: '張', en: 'pieces', icon: '🎫' },
 ];
 
 // 句子啟動器和建議詞語
@@ -389,7 +406,14 @@ export default function AACApp() {
   const [showMeasureWord, setShowMeasureWord] = useState(false);
 
   // ========== UTILITY FUNCTIONS ==========
-  const getUniqueCategories = () => [...DISPLAY_CATEGORIES];
+  const getUniqueCategories = () => {
+    if (hasFullAccess()) {
+      // Show all categories when logged in
+      return Object.keys(CATEGORY_ICONS).filter(cat => cat !== '全部');
+    }
+    // Show limited categories when not logged in
+    return [...DISPLAY_CATEGORIES];
+  };
 
   const getTrialStatus = (u: any) => {
     if (u.trialType === 'unlimited') return { daysLeft: Infinity, isExpired: false };
@@ -465,8 +489,13 @@ export default function AACApp() {
     }
   };
 
-  const handleVocabSelection = (phrase: { text: string; en: string }) => {
-    setCustomText(currentStarter + phrase.text);
+  const handleVocabSelection = (phrase: { text: string; en: string; category?: string }) => {
+    let textToAdd = phrase.text;
+    // Add 去 prefix only for 地方 category in custom sentences
+    if (phrase.category === '地方' && !phrase.text.startsWith('去')) {
+      textToAdd = `去${phrase.text}`;
+    }
+    setCustomText(currentStarter + textToAdd);
     setShowVocabSelector(false);
   };
 
@@ -903,13 +932,7 @@ export default function AACApp() {
 
   const allPhrases = [...PHRASES, ...customPhrases].filter((p) => DISPLAY_CATEGORIES.includes(p.category as typeof DISPLAY_CATEGORIES[number]));
 
-  const applyPlacePrefix = (phrase: (typeof PHRASES)[0]) => {
-    if (phrase.category !== '地方') return phrase;
-    if (phrase.text.startsWith('去')) return phrase;
-    return { ...phrase, text: `去${phrase.text}` };
-  };
-
-  const displayPhrases = allPhrases.map(applyPlacePrefix);
+  const displayPhrases = allPhrases;
 
   const filteredPhrases = displayPhrases.filter((p) => p.category === selectedCategory);
 
