@@ -1699,11 +1699,9 @@ export default function AACApp() {
                     <div className="text-4xl sm:text-5xl font-bold text-white min-h-[60px] flex items-center justify-end">
                       {numberText || '0'}
                     </div>
-                    {numberText && (
-                      <div className="text-sm text-white/70 mt-1">
-                        {translateNumberForDisplay(numberText)}
-                      </div>
-                    )}
+                    <div className="text-sm text-white/70 mt-1">
+                      {numberText ? translateNumberForDisplay(numberText) : 'Enter number'}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1860,9 +1858,9 @@ export default function AACApp() {
               <div className="mt-8 flex gap-4">
                 <button
                   onClick={() => handleCustomSpeak()}
-                  disabled={isLoading || !customText}
+                  disabled={isLoading || !numberText}
                   className={`flex-1 p-6 rounded-2xl font-bold text-2xl shadow-xl transition-all duration-300 transform ${
-                    isLoading || !customText
+                    isLoading || !numberText
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f] text-white hover:shadow-2xl hover:scale-105 active:scale-95'
                   }`}
