@@ -824,9 +824,10 @@ export default function AACApp() {
     }
 
     setTimeout(() => {
+      setVocabSuccess(false);
       resetAddVocabForm();
       setShowAddVocab(false);
-    }, 2000);
+    }, 3000);
   };
 
   const addUser = async () => {
@@ -1108,6 +1109,16 @@ export default function AACApp() {
     if (savedSelectedVoice) {
       setSelectedVoice(savedSelectedVoice);
     }
+
+    // Listen for custom event to close vocab success message
+    const handleCloseVocabSuccess = () => {
+      setVocabSuccess(false);
+    };
+    window.addEventListener('closeVocabSuccess', handleCloseVocabSuccess);
+    
+    return () => {
+      window.removeEventListener('closeVocabSuccess', handleCloseVocabSuccess);
+    };
   }, []);
 
   useEffect(() => {

@@ -16,10 +16,20 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/users/route.js"
     ],
+    "/api/login-history/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/login-history/route.js"
+    ],
     "/api/auth/login/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/auth/login/route.js"
+    ],
+    "/api/users/[id]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/users/[id]/route.js"
     ]
   }
 }

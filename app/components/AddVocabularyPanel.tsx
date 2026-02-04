@@ -101,9 +101,9 @@ export default function AddVocabularyPanel({
         <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 border-4 border-[#f97316] relative">
           {/* Success Message Overlay */}
           {vocabSuccess && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => window.dispatchEvent(new CustomEvent('closeVocabSuccess'))}>
               <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
-              <div className="relative bg-green-500 rounded-2xl shadow-2xl p-8 max-w-md mx-4 border-4 border-green-600 animate-fadeIn">
+              <div className="relative bg-green-500 rounded-2xl shadow-2xl p-8 max-w-md mx-4 border-4 border-green-600 animate-fadeIn" onClick={(e) => e.stopPropagation()}>
                 <div className="text-center">
                   <div className="text-4xl sm:text-5xl mb-3">✅</div>
                   <div className="text-3xl font-bold text-white mb-2 break-words">{lastAddedWord}</div>

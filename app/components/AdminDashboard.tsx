@@ -80,7 +80,7 @@ export default function AdminDashboard({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto">
       <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={() => setShowDashboard(false)} />
-      <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-4xl w-full mx-4 border-4 border-[#f97316] my-8">
+      <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-4xl w-full mx-4 border-4 border-[#f97316] my-8 max-h-[70vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-8">
           <h3 className="text-4xl font-bold text-[#1e3a5f] flex items-center gap-2">
             <Icon emoji="📊" size={48} />
