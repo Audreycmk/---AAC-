@@ -1451,6 +1451,7 @@ export default function AACApp() {
             customCategoryIcons={customCategoryIcons}
             favorites={favorites}
             toggleFavorite={toggleFavorite}
+            onCategoryClick={(category) => speak(category)}
           />
 
           {/* History Panel Component */}
@@ -1511,7 +1512,6 @@ export default function AACApp() {
                         key={num}
                         onClick={() => {
                           speakAtRate(String(num), 1.0);
-                          setCustomText(prev => prev + num);
                         }}
                         className="rounded-3xl bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white text-4xl sm:text-5xl font-bold shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2 transition-all duration-200 transform flex items-center justify-center min-h-[80px] sm:min-h-[100px]"
                       >
@@ -1523,7 +1523,6 @@ export default function AACApp() {
                     <button
                       onClick={() => {
                         speakAtRate('.', 1.0);
-                        setCustomText(prev => prev + '.');
                       }}
                       className="rounded-full bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white text-4xl sm:text-5xl font-bold shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2 transition-all duration-200 transform flex items-center justify-center min-h-[80px] sm:min-h-[100px]"
                     >
@@ -1534,7 +1533,6 @@ export default function AACApp() {
                     <button
                       onClick={() => {
                         speakAtRate('0', 1.0);
-                        setCustomText(prev => prev + '0');
                       }}
                       className="rounded-full bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white text-4xl sm:text-5xl font-bold shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2 transition-all duration-200 transform flex items-center justify-center min-h-[80px] sm:min-h-[100px]"
                     >
@@ -1545,7 +1543,6 @@ export default function AACApp() {
                     <button
                       onClick={() => {
                         speakAtRate('清除', 1.0);
-                        setCustomText('');
                       }}
                       className="rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white text-3xl sm:text-4xl font-bold shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2 transition-all duration-200 transform flex items-center justify-center min-h-[80px] sm:min-h-[100px]"
                     >
@@ -1576,7 +1573,6 @@ export default function AACApp() {
                             }
                             const textToSpeak = speechLanguage === 'en-US' ? phrase.en : phrase.text;
                             speakAtRate(textToSpeak, 1.0);
-                            setCustomText(prev => prev + phrase.text);
                           }}
                           aria-disabled={isGuest}
                           className={`aspect-square rounded-full text-2xl sm:text-3xl lg:text-xl font-bold transition-all duration-200 transform flex flex-col items-center justify-center max-h-[100px] sm:min-h-[100px] lg:max-h-[100px] gap-0.5 lg:gap-0.5 cursor-pointer ${
@@ -1602,7 +1598,6 @@ export default function AACApp() {
                             }
                             const textToSpeak = speechLanguage === 'en-US' ? phrase.en : phrase.text;
                             speakAtRate(textToSpeak, 1.0);
-                            setCustomText(prev => prev + phrase.text);
                           }}
                           aria-disabled={isGuest}
                           className={`aspect-square rounded-full text-2xl sm:text-3xl lg:text-xl font-bold transition-all duration-200 transform flex flex-col items-center justify-center max-h-[100px] sm:max-h-[100px] lg:max-h-[140px] gap-0.5 lg:gap-0.5 cursor-pointer ${
@@ -1633,7 +1628,6 @@ export default function AACApp() {
                           }
                           const textToSpeak = speechLanguage === 'en-US' ? unit.en : unit.text;
                           speakAtRate(textToSpeak, 1.0);
-                          setCustomText(prev => prev + unit.text);
                         }}
                         aria-disabled={isGuest}
                         className={`aspect-square rounded-full text-2xl sm:text-3xl font-bold transition-all duration-200 transform flex flex-col items-center justify-center max-h-[100px] sm:max-h-[140px] gap-1 cursor-pointer ${
