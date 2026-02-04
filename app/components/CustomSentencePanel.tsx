@@ -313,13 +313,13 @@ export default function CustomSentencePanel({
             type="text"
             value={customText}
             onChange={(e) => setCustomText(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleCustomSpeak()}
+            onKeyPress={(e) => e.key === 'Enter' && handleCustomSpeak(undefined, true)}
             aria-label="輸入要說的話 / Type your message"
             className="absolute inset-0 w-full h-full bg-transparent text-transparent caret-[#1e3a5f] px-6 py-5 text-2xl font-bold rounded-2xl focus:outline-none"
           />
         </div>
         <button
-          onClick={() => handleCustomSpeak()}
+          onClick={() => handleCustomSpeak(undefined, true)}
           disabled={!customText.trim() || isLoading}
           className="px-8 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-110 active:scale-95 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 min-h-[70px] min-w-[120px] flex items-center justify-center gap-2"
         >

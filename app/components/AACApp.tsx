@@ -530,15 +530,15 @@ export default function AACApp() {
     setNumberText(prev => prev + measureWord);
   };
 
-  const handleCustomSpeak = (englishOverride?: string) => {
-    let textToSpeak = selectedCategory === '量詞' ? numberText : customText;
+  const handleCustomSpeak = (englishOverride?: string, forceCustomText?: boolean) => {
+    let textToSpeak = forceCustomText ? customText : (selectedCategory === '量詞' ? numberText : customText);
     if (speechLanguage === 'en-US') {
       if (englishOverride) {
         textToSpeak = englishOverride;
-      } else {
+      } else if (!forceCustomText && selectedCategory === '量詞') {
         // For number category, translate to English
-        const translated = translateNumberToEnglish(selectedCategory === '量詞' ? numberText : customText);
-        textToSpeak = translated || (selectedCategory === '量詞' ? numberText : customText);
+        const translated = translateNumberToEnglish(numberText);
+        textToSpeak = translated || numberText;
       }
     }
     if (textToSpeak.trim()) {
@@ -1780,6 +1780,7 @@ export default function AACApp() {
                               setShowLoginCodeModal(true);
                               return;
                             }
+                            setNumberText(prev => prev + phrase.text);
                             const textToSpeak = speechLanguage === 'en-US' ? phrase.en : phrase.text;
                             speakAtRate(textToSpeak, 1.0);
                           }}
@@ -1805,6 +1806,7 @@ export default function AACApp() {
                               setShowLoginCodeModal(true);
                               return;
                             }
+                            setNumberText(prev => prev + phrase.text);
                             const textToSpeak = speechLanguage === 'en-US' ? phrase.en : phrase.text;
                             speakAtRate(textToSpeak, 1.0);
                           }}
@@ -1835,6 +1837,7 @@ export default function AACApp() {
                             setShowLoginCodeModal(true);
                             return;
                           }
+                          setNumberText(prev => prev + unit.text);
                           const textToSpeak = speechLanguage === 'en-US' ? unit.en : unit.text;
                           speakAtRate(textToSpeak, 1.0);
                         }}
