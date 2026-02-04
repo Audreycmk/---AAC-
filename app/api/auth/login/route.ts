@@ -23,10 +23,16 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Update last login time
-      updateUser(admin.id, {
-        lastLoginAt: new Date().toISOString()
-      });
+      // Update last login time (may fail on serverless/read-only filesystem)
+      try {
+        updateUser(admin.id, {
+          lastLoginAt: new Date().toISOString()
+        });
+        console.log('Admin login data updated successfully');
+      } catch (error) {
+        console.log('Failed to update admin data (read-only filesystem):', error);
+        // Continue with login even if update fails
+      }
 
       return NextResponse.json({
         success: true,
@@ -57,11 +63,17 @@ export async function POST(request: NextRequest) {
       
       console.log('User found:', user.id, 'Updating email to:', userEmail);
 
-      // Update user email and last login time
-      updateUser(user.id, {
-        userEmail: userEmail || user.userEmail,
-        lastLoginAt: new Date().toISOString()
-      });
+      // Try to update user email and last login time (may fail on serverless/read-only filesystem)
+      try {
+        updateUser(user.id, {
+          userEmail: userEmail || user.userEmail,
+          lastLoginAt: new Date().toISOString()
+        });
+        console.log('User data updated successfully');
+      } catch (error) {
+        console.log('Failed to update user data (read-only filesystem):', error);
+        // Continue with login even if update fails
+      }
 
       return NextResponse.json({
         success: true,
