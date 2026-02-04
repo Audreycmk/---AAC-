@@ -390,6 +390,7 @@ export default function AACApp() {
   const [selectedCategory, setSelectedCategory] = useState<string>(DISPLAY_CATEGORIES[0]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [customText, setCustomText] = useState('');
+  const [numberText, setNumberText] = useState('');
   const [speechRate, setSpeechRate] = useState(0.7);
   const [speechVolume, setSpeechVolume] = useState(1.0);
   const [speechLanguage, setSpeechLanguage] = useState<'zh-HK' | 'en-US' | 'en-AU'>('zh-HK');
@@ -526,18 +527,18 @@ export default function AACApp() {
   };
 
   const handleMeasureWordSelected = (measureWord: string, english: string) => {
-    setCustomText(currentStarter + measureWord);
+    setNumberText(prev => prev + measureWord);
   };
 
   const handleCustomSpeak = (englishOverride?: string) => {
-    let textToSpeak = customText;
+    let textToSpeak = selectedCategory === '量詞' ? numberText : customText;
     if (speechLanguage === 'en-US') {
       if (englishOverride) {
         textToSpeak = englishOverride;
       } else {
         // For number category, translate to English
-        const translated = translateNumberToEnglish(customText);
-        textToSpeak = translated || customText;
+        const translated = translateNumberToEnglish(selectedCategory === '量詞' ? numberText : customText);
+        textToSpeak = translated || (selectedCategory === '量詞' ? numberText : customText);
       }
     }
     if (textToSpeak.trim()) {
@@ -1691,11 +1692,11 @@ export default function AACApp() {
                   </div>
                   <div className="flex flex-col items-end">
                     <div className="text-4xl sm:text-5xl font-bold text-white min-h-[60px] flex items-center justify-end">
-                      {customText || '0'}
+                      {numberText || '0'}
                     </div>
-                    {customText && (
+                    {numberText && (
                       <div className="text-sm text-white/70 mt-1">
-                        {translateNumberForDisplay(customText)}
+                        {translateNumberForDisplay(numberText)}
                       </div>
                     )}
                   </div>
@@ -1712,6 +1713,7 @@ export default function AACApp() {
                       <button
                         key={num}
                         onClick={() => {
+                          setNumberText(prev => prev + String(num));
                           speakAtRate(String(num), 1.0);
                         }}
                         className="rounded-3xl bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white text-4xl sm:text-5xl font-bold shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2 transition-all duration-200 transform flex items-center justify-center min-h-[80px] sm:min-h-[100px]"
@@ -1723,6 +1725,7 @@ export default function AACApp() {
                     {/* Decimal Point */}
                     <button
                       onClick={() => {
+                        setNumberText(prev => prev + '.');
                         speakAtRate('.', 1.0);
                       }}
                       className="rounded-full bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white text-4xl sm:text-5xl font-bold shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2 transition-all duration-200 transform flex items-center justify-center min-h-[80px] sm:min-h-[100px]"
@@ -1733,6 +1736,7 @@ export default function AACApp() {
                      {/* Number 0 */}
                     <button
                       onClick={() => {
+                        setNumberText(prev => prev + '0');
                         speakAtRate('0', 1.0);
                       }}
                       className="rounded-full bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white text-4xl sm:text-5xl font-bold shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2 transition-all duration-200 transform flex items-center justify-center min-h-[80px] sm:min-h-[100px]"
@@ -1743,6 +1747,7 @@ export default function AACApp() {
                     {/* Clear Button */}
                     <button
                       onClick={() => {
+                        setNumberText('');
                         speakAtRate('清除', 1.0);
                       }}
                       className="rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white text-3xl sm:text-4xl font-bold shadow-lg hover:shadow-md hover:translate-y-1 active:shadow-sm active:translate-y-2 transition-all duration-200 transform flex items-center justify-center min-h-[80px] sm:min-h-[100px]"
