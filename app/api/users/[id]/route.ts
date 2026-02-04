@@ -72,69 +72,69 @@ export async function PUT(
     
     const sql = getDb();
     
-    // Build update object
-    const updates: any = {};
-    if (body.email !== undefined) updates.email = body.email;
-    if (body.password !== undefined) updates.password = body.password;
-    if (body.userEmail !== undefined) updates.user_email = body.userEmail;
-    if (body.role !== undefined) updates.role = body.role;
-    if (body.trialType !== undefined) updates.trial_type = body.trialType;
-    if (body.trialStartDate !== undefined) updates.trial_start_date = body.trialStartDate;
-    if (body.lastLoginAt !== undefined) updates.last_login_at = body.lastLoginAt;
+    // For customizations-only updates (most common case)
+    if (body.customizations && Object.keys(body).length === 1) {
+      const result = await sql`
+        UPDATE users
+        SET customizations = ${JSON.stringify(body.customizations)}::jsonb
+        WHERE id = ${id}
+        RETURNING 
+          id,
+          email,
+          login_code as "loginCode",
+          user_email as "userEmail",
+          role,
+          trial_type as "trialType",
+          trial_start_date as "trialStartDate",
+          last_login_at as "lastLoginAt",
+          created_at as "createdAt",
+          customizations
+      `;
+      
+      if (result.length === 0) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+      
+      return NextResponse.json(result[0]);
+    }
     
-    if (Object.keys(updates).length === 0 && !body.customizations) {
+    // For other field updates, build query with explicit fields
+    const setters = [];
+    if (body.email !== undefined) setters.push(sql`email = ${body.email}`);
+    if (body.password !== undefined) setters.push(sql`password = ${body.password}`);
+    if (body.userEmail !== undefined) setters.push(sql`user_email = ${body.userEmail}`);
+    if (body.role !== undefined) setters.push(sql`role = ${body.role}`);
+    if (body.trialType !== undefined) setters.push(sql`trial_type = ${body.trialType}`);
+    if (body.trialStartDate !== undefined) setters.push(sql`trial_start_date = ${body.trialStartDate}`);
+    if (body.lastLoginAt !== undefined) setters.push(sql`last_login_at = ${body.lastLoginAt}`);
+    if (body.customizations !== undefined) setters.push(sql`customizations = ${JSON.stringify(body.customizations)}::jsonb`);
+    
+    if (setters.length === 0) {
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
     }
     
-    // Handle customizations separately if provided
-    if (body.customizations) {
-      const result = await sql`
-        UPDATE users
-        SET ${sql(updates, Object.keys(updates))},
-            customizations = customizations || ${JSON.stringify(body.customizations)}::jsonb
-        WHERE id = ${id}
-        RETURNING 
-          id,
-          email,
-          login_code as "loginCode",
-          user_email as "userEmail",
-          role,
-          trial_type as "trialType",
-          trial_start_date as "trialStartDate",
-          last_login_at as "lastLoginAt",
-          created_at as "createdAt",
-          customizations
-      `;
-      
-      if (result.length === 0) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
-      }
-      
-      return NextResponse.json(result[0]);
-    } else {
-      const result = await sql`
-        UPDATE users
-        SET ${sql(updates, Object.keys(updates))}
-        WHERE id = ${id}
-        RETURNING 
-          id,
-          email,
-          login_code as "loginCode",
-          user_email as "userEmail",
-          role,
-          trial_type as "trialType",
-          trial_start_date as "trialStartDate",
-          last_login_at as "lastLoginAt",
-          created_at as "createdAt",
-          customizations
-      `;
-      
-      if (result.length === 0) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
-      }
-      
-      return NextResponse.json(result[0]);
+    const result = await sql`
+      UPDATE users
+      SET ${sql.join(setters, sql`, `)}
+      WHERE id = ${id}
+      RETURNING 
+        id,
+        email,
+        login_code as "loginCode",
+        user_email as "userEmail",
+        role,
+        trial_type as "trialType",
+        trial_start_date as "trialStartDate",
+        last_login_at as "lastLoginAt",
+        created_at as "createdAt",
+        customizations
+    `;
+    
+    if (result.length === 0) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+    
+    return NextResponse.json(result[0]);
   } catch (error) {
     console.error('Error updating user:', error);
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
