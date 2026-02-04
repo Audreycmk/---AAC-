@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import type { CreateUserInput } from '@/lib/types';
+import { readUsers, writeUsers } from '@/lib/users-db';
 
 // GET /api/users - Get all users
 export async function GET() {
   try {
+    // Fallback to file-based system if POSTGRES_URL not set
+    if (!process.env.POSTGRES_URL) {
+      const users = readUsers();
+      return NextResponse.json(users);
+    }
+    
     const sql = getDb();
     const result = await sql`
       SELECT 
@@ -33,6 +40,21 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body: CreateUserInput = await request.json();
+    
+    // Fallback to file-based system if POSTGRES_URL not set
+    if (!process.env.POSTGRES_URL) {
+      const users = readUsers();
+      const newUser: any = {
+        id: String(users.length + 1),
+        ...body,
+        createdAt: new Date().toISOString(),
+        customizations: { favorites: [], customPhrases: [], customCategoryIcons: {}, customCategoryNames: {} }
+      };
+      users.push(newUser);
+      writeUsers(users);
+      return NextResponse.json(newUser, { status: 201 });
+    }
+    
     const sql = getDb();
     
     const result = await sql`

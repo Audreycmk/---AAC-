@@ -1,10 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
+import { readUsers, writeUsers } from '@/lib/users-db';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, password, loginCode, role, userEmail } = body;
+    
+    // Fallback to file-based system if POSTGRES_URL not set
+    if (!process.env.POSTGRES_URL) {
+      const users: any[] = readUsers();
+      
+      if (role === 'admin') {
+        const admin = users.find((u: any) => u.email === email && u.password === password && u.role === 'admin');
+        if (!admin) {
+          return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+        }
+        return NextResponse.json({
+          success: true,
+          user: { email: admin.email, role: admin.role },
+          userData: { id: admin.id, email: admin.email, role: admin.role, customizations: admin.customizations || {} }
+        });
+      } else {
+        const user = users.find((u: any) => u.loginCode === loginCode && u.role === 'user');
+        if (!user) {
+          return NextResponse.json({ error: 'Invalid login code' }, { status: 401 });
+        }
+        return NextResponse.json({
+          success: true,
+          user: { loginCode: user.loginCode, role: user.role },
+          userData: { id: user.id, loginCode: user.loginCode, role: user.role, customizations: user.customizations || {} }
+        });
+      }
+    }
+    
     const sql = getDb();
 
     if (role === 'admin') {

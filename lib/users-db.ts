@@ -63,6 +63,20 @@ export function getAllUsers() {
   }
 }
 
+// Alias for compatibility
+export const readUsers = getAllUsers;
+
+// Save users to file
+export function writeUsers(users: any[]) {
+  try {
+    ensureDataDir();
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+  } catch (error) {
+    console.error('Error writing users:', error);
+    throw error;
+  }
+}
+
 // Get user by ID
 export function getUserById(id: string) {
   const users = getAllUsers();

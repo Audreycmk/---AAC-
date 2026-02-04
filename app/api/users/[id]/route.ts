@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import type { UpdateUserInput } from '@/lib/types';
+import { readUsers, writeUsers } from '@/lib/users-db';
 
 // GET /api/users/[id] - Get user by ID
 export async function GET(
@@ -9,6 +10,17 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    
+    // Fallback to file-based system if POSTGRES_URL not set
+    if (!process.env.POSTGRES_URL) {
+      const users: any[] = readUsers();
+      const user = users.find((u: any) => String(u.id) === id);
+      if (!user) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+      return NextResponse.json(user);
+    }
+    
     const sql = getDb();
     const result = await sql`
       SELECT 
@@ -45,6 +57,19 @@ export async function PUT(
   try {
     const { id } = await params;
     const body: UpdateUserInput = await request.json();
+    
+    // Fallback to file-based system if POSTGRES_URL not set
+    if (!process.env.POSTGRES_URL) {
+      const users: any[] = readUsers();
+      const userIndex = users.findIndex((u: any) => String(u.id) === id);
+      if (userIndex === -1) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+      users[userIndex] = { ...users[userIndex], ...body };
+      writeUsers(users);
+      return NextResponse.json(users[userIndex]);
+    }
+    
     const sql = getDb();
     
     // Build update object
@@ -123,6 +148,19 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    
+    // Fallback to file-based system if POSTGRES_URL not set
+    if (!process.env.POSTGRES_URL) {
+      const users: any[] = readUsers();
+      const userIndex = users.findIndex((u: any) => String(u.id) === id);
+      if (userIndex === -1) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+      users.splice(userIndex, 1);
+      writeUsers(users);
+      return NextResponse.json({ message: 'User deleted successfully' });
+    }
+    
     const sql = getDb();
     const result = await sql`
       DELETE FROM users

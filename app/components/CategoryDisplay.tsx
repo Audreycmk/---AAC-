@@ -9,6 +9,7 @@ interface CategoryDisplayProps {
   customCategoryIcons: Record<string, string>;
   favorites: string[];
   toggleFavorite: (category: string) => void;
+  onCategoryClick?: (category: string) => void;
 }
 
 export default function CategoryDisplay({
@@ -18,10 +19,14 @@ export default function CategoryDisplay({
   customCategoryIcons,
   favorites,
   toggleFavorite,
+  onCategoryClick,
 }: CategoryDisplayProps) {
   return (
     <div className="mb-6 text-center">
-      <div className="inline-flex items-center gap-4 px-10 py-5 bg-[#1e3a5f] text-white rounded-2xl shadow-xl transition-all duration-500 hover:shadow-2xl hover:scale-110 transform border-4 border-[#f97316]">
+      <button
+        onClick={() => onCategoryClick?.(selectedCategory)}
+        className="inline-flex items-center gap-4 px-10 py-5 bg-[#1e3a5f] text-white rounded-2xl shadow-xl transition-all duration-500 hover:shadow-2xl hover:scale-110 transform border-4 border-[#f97316] cursor-pointer"
+      >
         <Icon
           emoji={customCategoryIcons[selectedCategory] || CATEGORY_ICONS[selectedCategory] || '📁'}
           size={64}
@@ -42,7 +47,7 @@ export default function CategoryDisplay({
             <Icon emoji={favorites.includes(selectedCategory) ? '❤️' : '🤍'} size={30} />
           </button>
         )}
-      </div>
+      </button>
     </div>
   );
 }
