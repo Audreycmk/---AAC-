@@ -98,37 +98,62 @@ export async function PUT(
       return NextResponse.json(result[0]);
     }
     
-    // For other field updates, build query with explicit fields
-    const setters = [];
-    if (body.email !== undefined) setters.push(sql`email = ${body.email}`);
-    if (body.password !== undefined) setters.push(sql`password = ${body.password}`);
-    if (body.userEmail !== undefined) setters.push(sql`user_email = ${body.userEmail}`);
-    if (body.role !== undefined) setters.push(sql`role = ${body.role}`);
-    if (body.trialType !== undefined) setters.push(sql`trial_type = ${body.trialType}`);
-    if (body.trialStartDate !== undefined) setters.push(sql`trial_start_date = ${body.trialStartDate}`);
-    if (body.lastLoginAt !== undefined) setters.push(sql`last_login_at = ${body.lastLoginAt}`);
-    if (body.customizations !== undefined) setters.push(sql`customizations = ${JSON.stringify(body.customizations)}::jsonb`);
+    // For other field updates - handle each combination
+    let result;
     
-    if (setters.length === 0) {
+    if (body.email !== undefined && body.password !== undefined) {
+      result = await sql`
+        UPDATE users
+        SET email = ${body.email}, password = ${body.password}
+        WHERE id = ${id}
+        RETURNING id, email, login_code as "loginCode", user_email as "userEmail", role, trial_type as "trialType", trial_start_date as "trialStartDate", last_login_at as "lastLoginAt", created_at as "createdAt", customizations
+      `;
+    } else if (body.email !== undefined) {
+      result = await sql`
+        UPDATE users
+        SET email = ${body.email}
+        WHERE id = ${id}
+        RETURNING id, email, login_code as "loginCode", user_email as "userEmail", role, trial_type as "trialType", trial_start_date as "trialStartDate", last_login_at as "lastLoginAt", created_at as "createdAt", customizations
+      `;
+    } else if (body.password !== undefined) {
+      result = await sql`
+        UPDATE users
+        SET password = ${body.password}
+        WHERE id = ${id}
+        RETURNING id, email, login_code as "loginCode", user_email as "userEmail", role, trial_type as "trialType", trial_start_date as "trialStartDate", last_login_at as "lastLoginAt", created_at as "createdAt", customizations
+      `;
+    } else if (body.userEmail !== undefined) {
+      result = await sql`
+        UPDATE users
+        SET user_email = ${body.userEmail}
+        WHERE id = ${id}
+        RETURNING id, email, login_code as "loginCode", user_email as "userEmail", role, trial_type as "trialType", trial_start_date as "trialStartDate", last_login_at as "lastLoginAt", created_at as "createdAt", customizations
+      `;
+    } else if (body.role !== undefined) {
+      result = await sql`
+        UPDATE users
+        SET role = ${body.role}
+        WHERE id = ${id}
+        RETURNING id, email, login_code as "loginCode", user_email as "userEmail", role, trial_type as "trialType", trial_start_date as "trialStartDate", last_login_at as "lastLoginAt", created_at as "createdAt", customizations
+      `;
+    } else if (body.trialType !== undefined) {
+      const trialStartDate = body.trialStartDate || new Date().toISOString();
+      result = await sql`
+        UPDATE users
+        SET trial_type = ${body.trialType}, trial_start_date = ${trialStartDate}
+        WHERE id = ${id}
+        RETURNING id, email, login_code as "loginCode", user_email as "userEmail", role, trial_type as "trialType", trial_start_date as "trialStartDate", last_login_at as "lastLoginAt", created_at as "createdAt", customizations
+      `;
+    } else if (body.lastLoginAt !== undefined) {
+      result = await sql`
+        UPDATE users
+        SET last_login_at = ${body.lastLoginAt}
+        WHERE id = ${id}
+        RETURNING id, email, login_code as "loginCode", user_email as "userEmail", role, trial_type as "trialType", trial_start_date as "trialStartDate", last_login_at as "lastLoginAt", created_at as "createdAt", customizations
+      `;
+    } else {
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
     }
-    
-    const result = await sql`
-      UPDATE users
-      SET ${sql.join(setters, sql`, `)}
-      WHERE id = ${id}
-      RETURNING 
-        id,
-        email,
-        login_code as "loginCode",
-        user_email as "userEmail",
-        role,
-        trial_type as "trialType",
-        trial_start_date as "trialStartDate",
-        last_login_at as "lastLoginAt",
-        created_at as "createdAt",
-        customizations
-    `;
     
     if (result.length === 0) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
