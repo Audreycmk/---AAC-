@@ -1,38 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllUsers, updateUser } from '@/lib/users-db';
+import { getDb } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, password, loginCode, role, userEmail } = body;
-
-    const users = getAllUsers();
+    const sql = getDb();
 
     if (role === 'admin') {
       // Admin login with email and password
-      const admin = users.find((u: any) => 
-        u.email === email && 
-        u.password === password && 
-        u.role === 'admin'
-      );
+      const result = await sql`
+        SELECT 
+          id,
+          email,
+          role,
+          trial_type as "trialType",
+          created_at as "createdAt",
+          customizations
+        FROM users
+        WHERE email = ${email} 
+          AND password = ${password} 
+          AND role = 'admin'
+      `;
 
-      if (!admin) {
+      if (result.length === 0) {
         return NextResponse.json(
           { error: 'Invalid email or password' },
           { status: 401 }
         );
       }
 
-      // Update last login time (may fail on serverless/read-only filesystem)
-      try {
-        updateUser(admin.id, {
-          lastLoginAt: new Date().toISOString()
-        });
-        console.log('Admin login data updated successfully');
-      } catch (error) {
-        console.log('Failed to update admin data (read-only filesystem):', error);
-        // Continue with login even if update fails
-      }
+      const admin = result[0];
+
+      // Update last login time
+      await sql`
+        UPDATE users
+        SET last_login_at = NOW()
+        WHERE id = ${admin.id}
+      `;
 
       return NextResponse.json({
         success: true,
@@ -48,32 +53,39 @@ export async function POST(request: NextRequest) {
     } else {
       // Normal user login with code
       console.log('Login attempt - Code:', loginCode, 'Email:', userEmail);
-      const user = users.find((u: any) => 
-        u.loginCode === loginCode && 
-        u.role === 'user'
-      );
+      
+      const result = await sql`
+        SELECT 
+          id,
+          login_code as \"loginCode\",
+          role,
+          trial_type as \"trialType\",
+          trial_start_date as \"trialStartDate\",
+          created_at as \"createdAt\",
+          customizations
+        FROM users
+        WHERE login_code = ${loginCode} 
+          AND role = 'user'
+      `;
 
-      if (!user) {
-        console.log('User not found. Available codes:', users.filter((u: any) => u.role === 'user').map((u: any) => u.loginCode));
+      if (result.length === 0) {
+        console.log('User not found with login code:', loginCode);
         return NextResponse.json(
           { error: 'Invalid login code' },
           { status: 401 }
         );
       }
       
+      const user = result[0];
       console.log('User found:', user.id, 'Updating email to:', userEmail);
 
-      // Try to update user email and last login time (may fail on serverless/read-only filesystem)
-      try {
-        updateUser(user.id, {
-          userEmail: userEmail || user.userEmail,
-          lastLoginAt: new Date().toISOString()
-        });
-        console.log('User data updated successfully');
-      } catch (error) {
-        console.log('Failed to update user data (read-only filesystem):', error);
-        // Continue with login even if update fails
-      }
+      // Update user email and last login time
+      await sql`
+        UPDATE users
+        SET user_email = ${userEmail || null},
+            last_login_at = NOW()
+        WHERE id = ${user.id}
+      `;
 
       return NextResponse.json({
         success: true,
@@ -83,12 +95,13 @@ export async function POST(request: NextRequest) {
         },
         userData: {
           ...user,
-          userEmail: userEmail || user.userEmail,
+          userEmail: userEmail,
           lastLoginAt: new Date().toISOString()
         }
       });
     }
   } catch (error) {
+    console.error('Authentication error:', error);
     return NextResponse.json(
       { error: 'Authentication failed' },
       { status: 500 }

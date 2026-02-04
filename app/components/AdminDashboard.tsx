@@ -1,19 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import Icon from './Icon';
-
-interface User {
-  id: string;
-  email?: string;
-  password?: string;
-  loginCode?: string;
-  userEmail?: string;
-  lastLoginAt?: string;
-  role: 'admin' | 'user';
-  createdAt: string;
-  trialType: 'unlimited' | '14days' | 'notrial';
-  trialStartDate?: string;
-}
+import type { User, UserCustomizations } from '@/lib/types';
 
 interface AdminDashboardProps {
   showDashboard: boolean;
@@ -39,9 +28,9 @@ interface AdminDashboardProps {
   editingUserRole: 'admin' | 'user';
   setEditingUserRole: (role: 'admin' | 'user') => void;
   updateUserRole: (id: string, role: 'admin' | 'user') => void;
-  editingUserTrial: 'unlimited' | '14days' | 'notrial';
-  setEditingUserTrial: (trial: 'unlimited' | '14days' | 'notrial') => void;
-  updateUserTrial: (id: string, trial: 'unlimited' | '14days' | 'notrial') => void;
+  editingUserTrial: 'unlimited' | '14days' | '30days' | 'notrial';
+  setEditingUserTrial: (trial: 'unlimited' | '14days' | '30days' | 'notrial') => void;
+  updateUserTrial: (id: string, trial: 'unlimited' | '14days' | '30days' | 'notrial') => void;
   getTrialStatus: (user: User) => { daysLeft: number; isExpired: boolean };
 }
 
@@ -74,6 +63,8 @@ export default function AdminDashboard({
   updateUserTrial,
   getTrialStatus,
 }: AdminDashboardProps) {
+  const [viewingUserCustomizations, setViewingUserCustomizations] = useState<User | null>(null);
+
   if (!showDashboard || user?.role !== 'admin') return null;
 
   return (
@@ -194,6 +185,7 @@ export default function AdminDashboard({
                 <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">角色 / Role</th>
                 <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">建立日期 / Created</th>
                 <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">試用期限 / Trial</th>
+                <th className="border-2 border-[#1e3a5f] px-4 py-3 text-center font-bold">自訂內容 / Custom</th>
                 <th className="border-2 border-[#1e3a5f] px-4 py-3 text-center font-bold">操作 / Actions</th>
               </tr>
             </thead>
@@ -274,14 +266,22 @@ export default function AdminDashboard({
                       )}
                     </td>
                     <td className="border-2 border-[#1e3a5f] px-4 py-3 text-center">
-                      {editingUserId?.startsWith(u.id) ? (
+                      <button
+                        onClick={() => setViewingUserCustomizations(u)}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 text-sm"
+                      >
+                        查看 / View
+                      </button>
+                    </td>
+                    <td className="border-2 border-[#1e3a5f] px-4 py-3 text-center">
+                      {editingUserId?.startsWith(String(u.id)) ? (
                         <div className="flex gap-2 justify-center">
                           <button
                             onClick={() => {
                               if (editingUserId.endsWith('_trial')) {
-                                updateUserTrial(u.id, editingUserTrial);
+                                updateUserTrial(String(u.id), editingUserTrial);
                               } else {
-                                updateUserRole(u.id, editingUserRole);
+                                updateUserRole(String(u.id), editingUserRole);
                               }
                             }}
                             className="px-3 py-2 bg-green-500 text-white rounded-lg font-bold hover:bg-green-600 text-sm"
@@ -299,7 +299,7 @@ export default function AdminDashboard({
                         <div className="flex gap-2 justify-center">
                           <button
                             onClick={() => {
-                              setEditingUserId(u.id);
+                              setEditingUserId(String(u.id));
                               setEditingUserRole(u.role);
                             }}
                             className="px-3 py-2 bg-[#1e3a5f] text-white rounded-lg font-bold hover:bg-[#0a1a2e] text-sm"
@@ -307,7 +307,7 @@ export default function AdminDashboard({
                             編輯
                           </button>
                           <button
-                            onClick={() => setDeleteUserConfirm(u.id)}
+                            onClick={() => setDeleteUserConfirm(String(u.id))}
                             className="px-3 py-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 text-sm"
                           >
                             刪除
@@ -343,6 +343,153 @@ export default function AdminDashboard({
                   className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600"
                 >
                   刪除 / Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* View User Customizations Modal */}
+        {viewingUserCustomizations && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto">
+            <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={() => setViewingUserCustomizations(null)} />
+            <div className="relative bg-white rounded-2xl shadow-2xl p-6 max-w-3xl w-full mx-4 border-4 border-purple-600 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h4 className="text-3xl font-bold text-[#1e3a5f] flex items-center gap-2">
+                  <Icon emoji="📝" size={32} />
+                  使用者自訂內容 / User Customizations
+                </h4>
+                <button
+                  onClick={() => setViewingUserCustomizations(null)}
+                  className="text-[#1e3a5f] hover:text-purple-600 text-2xl font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="mb-4 p-4 bg-purple-50 rounded-xl border-2 border-purple-200">
+                <p className="text-lg font-bold text-[#1e3a5f]">
+                  {viewingUserCustomizations.role === 'admin' 
+                    ? `📧 ${viewingUserCustomizations.email}` 
+                    : `🔐 ${viewingUserCustomizations.loginCode}`}
+                </p>
+                {viewingUserCustomizations.userEmail && (
+                  <p className="text-sm font-bold text-purple-600">
+                    Email: {viewingUserCustomizations.userEmail}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-6">
+                {/* Favorites */}
+                <div className="border-2 border-[#1e3a5f] rounded-xl p-4">
+                  <h5 className="text-xl font-bold text-[#1e3a5f] mb-3 flex items-center gap-2">
+                    <Icon emoji="⭐" size={24} />
+                    我的最愛 / Favorites ({viewingUserCustomizations.customizations?.favorites?.length || 0})
+                  </h5>
+                  <div className="flex flex-wrap gap-2">
+                    {viewingUserCustomizations.customizations?.favorites && viewingUserCustomizations.customizations.favorites.length > 0 ? (
+                      viewingUserCustomizations.customizations.favorites.map((fav, idx) => (
+                        <span
+                          key={idx}
+                          className="px-3 py-2 bg-[#1e3a5f] text-white rounded-lg font-bold text-sm"
+                        >
+                          {fav}
+                        </span>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 italic">No favorites added</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Custom Phrases */}
+                <div className="border-2 border-[#1e3a5f] rounded-xl p-4">
+                  <h5 className="text-xl font-bold text-[#1e3a5f] mb-3 flex items-center gap-2">
+                    <Icon emoji="💬" size={24} />
+                    自訂詞彙 / Custom Phrases ({viewingUserCustomizations.customizations?.customPhrases?.length || 0})
+                  </h5>
+                  <div className="space-y-2">
+                    {viewingUserCustomizations.customizations?.customPhrases && viewingUserCustomizations.customizations.customPhrases.length > 0 ? (
+                      viewingUserCustomizations.customizations.customPhrases.map((phrase, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200"
+                        >
+                          <span className="px-3 py-1 bg-blue-600 text-white rounded-lg font-bold text-sm">
+                            {phrase.category}
+                          </span>
+                          <span className="font-bold text-[#1e3a5f]">{phrase.text}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 italic">No custom phrases added</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Custom Category Icons */}
+                <div className="border-2 border-[#1e3a5f] rounded-xl p-4">
+                  <h5 className="text-xl font-bold text-[#1e3a5f] mb-3 flex items-center gap-2">
+                    <Icon emoji="🎨" size={24} />
+                    自訂分類圖標 / Custom Category Icons ({Object.keys(viewingUserCustomizations.customizations?.customCategoryIcons || {}).length})
+                  </h5>
+                  <div className="grid grid-cols-2 gap-3">
+                    {viewingUserCustomizations.customizations?.customCategoryIcons && Object.keys(viewingUserCustomizations.customizations.customCategoryIcons).length > 0 ? (
+                      Object.entries(viewingUserCustomizations.customizations.customCategoryIcons).map(([category, icon]) => (
+                        <div
+                          key={category}
+                          className="flex items-center gap-2 p-3 bg-orange-50 rounded-lg border border-orange-200"
+                        >
+                          <span className="text-2xl">{icon}</span>
+                          <span className="font-bold text-[#1e3a5f]">{category}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 italic col-span-2">No custom icons set</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Custom Category Names */}
+                <div className="border-2 border-[#1e3a5f] rounded-xl p-4">
+                  <h5 className="text-xl font-bold text-[#1e3a5f] mb-3 flex items-center gap-2">
+                    <Icon emoji="✏️" size={24} />
+                    自訂分類名稱 / Custom Category Names ({Object.keys(viewingUserCustomizations.customizations?.customCategoryNames || {}).length})
+                  </h5>
+                  <div className="grid grid-cols-2 gap-3">
+                    {viewingUserCustomizations.customizations?.customCategoryNames && Object.keys(viewingUserCustomizations.customizations.customCategoryNames).length > 0 ? (
+                      Object.entries(viewingUserCustomizations.customizations.customCategoryNames).map(([original, custom]) => (
+                        <div
+                          key={original}
+                          className="p-3 bg-green-50 rounded-lg border border-green-200"
+                        >
+                          <p className="text-xs text-gray-600 font-bold mb-1">Original:</p>
+                          <p className="font-bold text-[#1e3a5f] mb-2">{original}</p>
+                          <p className="text-xs text-gray-600 font-bold mb-1">Custom:</p>
+                          {typeof custom === 'string' ? (
+                            <p className="font-bold text-green-700">{custom}</p>
+                          ) : (
+                            <div>
+                              <p className="font-bold text-green-700">中文: {custom.zh}</p>
+                              <p className="font-bold text-blue-700">EN: {custom.en}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 italic col-span-2">No custom names set</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <button
+                  onClick={() => setViewingUserCustomizations(null)}
+                  className="w-full px-6 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700"
+                >
+                  關閉 / Close
                 </button>
               </div>
             </div>
