@@ -67,7 +67,7 @@ const PHRASES = [
   { id: 39, text: '鎖匙', en: 'Key', category: '個人物品', icon: '🔑' },
   { id: 40, text: '袋', en: 'Bag', category: '個人物品', icon: '👜' },
   { id: 41, text: '外套', en: 'Jacket', category: '個人物品', icon: '🧥' },
-  { id: 42, text: '橡筋', en: 'Hair tie', category: '個人物品', icon: '💁' },
+  { id: 42, text: '橡筋', en: 'Hair tie', category: '個人物品', icon: '👱‍♀️' },
 
   // 家居用品
   { id: 43, text: '電視', en: 'Television', category: '家居用品', icon: '📺' },
@@ -327,7 +327,18 @@ type CustomPhrase = (typeof PHRASES)[0];
 export default function AACApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
-  const [user, setUser] = useState<{ email?: string; loginCode?: string; role: 'admin' | 'user' } | null>(null);
+  const [user, setUser] = useState<{ 
+    id?: string;
+    email?: string; 
+    loginCode?: string; 
+    role: 'admin' | 'user';
+    customizations?: {
+      favorites: string[];
+      customPhrases: any[];
+      customCategoryIcons: Record<string, string>;
+      customCategoryNames: Record<string, { zh: string; en: string }>;
+    };
+  } | null>(null);
   const [showLoginCodeModal, setShowLoginCodeModal] = useState(false);
   const [loginCode, setLoginCode] = useState('');
   const [loginUserEmail, setLoginUserEmail] = useState(''); // Email for regular user login
@@ -637,6 +648,23 @@ export default function AACApp() {
       }
 
       setUser(result.user);
+      
+      // Load user customizations if available
+      if (result.userData?.customizations) {
+        const customizations = result.userData.customizations;
+        setFavorites(customizations.favorites || ['個人物品', '家居用品', '水果', '地方']);
+        setCustomPhrases(customizations.customPhrases || []);
+        setCustomCategoryIcons(customizations.customCategoryIcons || {});
+        setCustomCategoryNames(customizations.customCategoryNames || {});
+      }
+      
+      // Store user with id for future database updates
+      const userWithId = {
+        ...result.user,
+        id: result.userData?.id
+      };
+      setUser(userWithId);
+      
       setShowLoginCodeModal(false);
       setShowLoginModal(false);
       setLoginCode('');
@@ -667,9 +695,36 @@ export default function AACApp() {
 
   const handleLogout = () => {
     setUser(null);
+    setFavorites(['個人物品', '家居用品', '水果', '地方']);
+    setCustomPhrases([]);
+    setCustomCategoryIcons({});
+    setCustomCategoryNames({});
   };
 
-  const toggleFavorite = (category: string) => {
+  // Sync customizations to database
+  const syncCustomizationsToDatabase = async () => {
+    if (!user?.id) return;
+    
+    try {
+      await fetch(`/api/users/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customizations: {
+            favorites,
+            customPhrases,
+            customCategoryIcons,
+            customCategoryNames,
+          }
+        }),
+      });
+      console.log('Customizations synced to database');
+    } catch (error) {
+      console.error('Failed to sync customizations:', error);
+    }
+  };
+
+  const toggleFavorite = async (category: string) => {
     setFavorites((prev) =>
       prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
     );
@@ -841,24 +896,10 @@ export default function AACApp() {
 
     loadUsersFromAPI();
 
-    const savedUserSession = localStorage.getItem('aac-current-user');
-    if (savedUserSession) {
-      setUser(JSON.parse(savedUserSession));
-    }
-
+    // Load device-specific settings only (not user-specific data)
     const savedHistory = localStorage.getItem('aac-history');
     if (savedHistory) {
       setHistory(JSON.parse(savedHistory));
-    }
-
-    const savedCategoryIcons = localStorage.getItem('custom-category-icons');
-    if (savedCategoryIcons) {
-      setCustomCategoryIcons(JSON.parse(savedCategoryIcons));
-    }
-
-    const savedCustomPhrases = localStorage.getItem('custom-vocab');
-    if (savedCustomPhrases) {
-      setCustomPhrases(JSON.parse(savedCustomPhrases));
     }
 
     const savedSpeechRate = localStorage.getItem('aac-speech-rate');
@@ -886,13 +927,8 @@ export default function AACApp() {
     localStorage.setItem('aac-users', JSON.stringify(allUsers));
   }, [allUsers]);
 
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('aac-current-user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('aac-current-user');
-    }
-  }, [user]);
+  // Removed: No longer saving user session to localStorage
+  // User customizations now loaded from database on login
 
   useEffect(() => {
     localStorage.setItem('aac-speech-rate', speechRate.toString());
@@ -938,6 +974,17 @@ export default function AACApp() {
     const defaultCategory = favorites.length > 0 ? favorites[0] : '個人物品';
     setSelectedCategory(defaultCategory);
   }, [favorites]);
+
+  // Sync customizations to database when they change (debounced)
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    const timeoutId = setTimeout(() => {
+      syncCustomizationsToDatabase();
+    }, 1000); // Debounce for 1 second
+
+    return () => clearTimeout(timeoutId);
+  }, [favorites, customPhrases, customCategoryIcons, customCategoryNames]);
 
   // Translate for display - keep numbers as digits
   const translateNumberForDisplay = (text: string): string => {
