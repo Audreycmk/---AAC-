@@ -18,6 +18,42 @@ interface PhrasesGridProps {
   CATEGORY_LABELS: Record<string, string>;
 }
 
+// Image mapping for btc2026 user
+const BTC2026_IMAGE_MAP: Record<number, string> = {
+  35: '/wallet.jpg',           // 銀包 Wallet
+  36: '/mobilephone.jpg',      // 手機 Mobile phone
+  37: '/glasses.jpg',          // 眼鏡 Glasses
+  38: '/mask.jpg',             // 口罩 Mask
+  39: '/keys.jpg',             // 鎖匙 Keys
+  40: '/bag.jpg',              // 袋 Bag
+  41: '/jacket.jpg',           // 外套 Jacket
+  42: '/hairtie.jpg',          // 橡筋 Hair tie
+  43: '/tv.jpg',               // 電視 Television
+  44: '/door.jpg',             // 門 Door
+  45: '/aircon.jpg',           // 冷氣 Air conditioner
+  46: '/heater.jpg',           // 暖爐 Heater
+  47: '/window.jpg',           // 窗 Window
+  48: '/light.jpg',            // 燈 Light
+  49: '/spoon.jpg',            // 匙羹 Spoon
+  50: '/fork.jpg',             // 叉 Fork
+  51: '/grapes.jpg',           // 提子 Grapes
+  52: '/banana.jpg',           // 香蕉 Banana
+  53: '/apple.jpg',            // 蘋果 Apple
+  54: '/orange.jpg',           // 橙 Orange
+  55: '/dragonfruit.jpg',      // 火龍果 Dragonfruit
+  56: '/pineapple.jpg',        // 菠蘿 Pineapple
+  57: '/peach.jpg',            // 桃 Peach
+  58: '/durian.jpg',           // 榴槤 Durian
+  59: '/toilet.jpg',           // 廁所 Toilet
+  60: '/bank.jpg',             // 銀行 Bank
+  61: '/supermarket.jpg',      // 超市 Supermarket
+  62: '/LCU.jpg',              // 李鄭屋中心 Lei Cheng Uk Center
+  63: '/hospital.jpg',         // 醫院 Hospital
+  64: '/chineserestaurant.jpg',// 酒樓 Chinese restaurant
+  65: '/park.jpg',             // 公園 Park
+  66: '/chachaanteng.jpg',     // 茶餐廳 Cha Chaan Teng
+};
+
 const BilingualText = ({
   zh,
   en,
@@ -76,9 +112,9 @@ export default function PhrasesGrid({
           }}
         >
           <div className="flex items-center justify-center">
-            {/* Custom icon for specific users */}
-            {user?.loginCode === 'btc2026' && phrase.id === 35 ? (
-              <img src="/Wallet.png" alt={phrase.text} className="max-w-[90%] max-h-[120px] object-contain" />
+            {/* Custom images for btc2026 user */}
+            {user?.loginCode === 'btc2026' && BTC2026_IMAGE_MAP[phrase.id] ? (
+              <img src={BTC2026_IMAGE_MAP[phrase.id]} alt={phrase.text} className="max-w-[90%] max-h-[120px] object-contain" />
             ) : phrase.icon && typeof phrase.icon === 'string' && (phrase.icon.startsWith('data:image') || phrase.icon.startsWith('http')) ? (
               <img src={phrase.icon} alt={phrase.text} className="max-w-[90%] max-h-[120px] object-contain" style={{ display: 'inline-block' }} />
             ) : (
