@@ -41,17 +41,21 @@ export async function POST(request: NextRequest) {
       });
     } else {
       // Normal user login with code
+      console.log('Login attempt - Code:', loginCode, 'Email:', userEmail);
       const user = users.find((u: any) => 
         u.loginCode === loginCode && 
         u.role === 'user'
       );
 
       if (!user) {
+        console.log('User not found. Available codes:', users.filter((u: any) => u.role === 'user').map((u: any) => u.loginCode));
         return NextResponse.json(
           { error: 'Invalid login code' },
           { status: 401 }
         );
       }
+      
+      console.log('User found:', user.id, 'Updating email to:', userEmail);
 
       // Update user email and last login time
       updateUser(user.id, {
