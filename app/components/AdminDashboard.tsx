@@ -7,6 +7,8 @@ interface User {
   email?: string;
   password?: string;
   loginCode?: string;
+  userEmail?: string;
+  lastLoginAt?: string;
   role: 'admin' | 'user';
   createdAt: string;
   trialType: 'unlimited' | '14days' | 'notrial';
@@ -187,6 +189,8 @@ export default function AdminDashboard({
             <thead>
               <tr className="bg-[#1e3a5f] text-white">
                 <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">身份 / Info</th>
+                <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">用戶郵箱 / User Email</th>
+                <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">最後登入 / Last Login</th>
                 <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">角色 / Role</th>
                 <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">建立日期 / Created</th>
                 <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">試用期限 / Trial</th>
@@ -200,6 +204,18 @@ export default function AdminDashboard({
                   <tr key={u.id} className="border-b-2 border-[#1e3a5f]">
                     <td className="border-2 border-[#1e3a5f] px-4 py-3 font-bold text-[#1e3a5f]">
                       {u.role === 'admin' ? `📧 ${u.email}` : `🔐 ${u.loginCode}`}
+                    </td>
+                    <td className="border-2 border-[#1e3a5f] px-4 py-3 font-bold text-[#1e3a5f]">
+                      {u.userEmail || '-'}
+                    </td>
+                    <td className="border-2 border-[#1e3a5f] px-4 py-3 font-bold text-[#1e3a5f] text-sm">
+                      {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString('zh-HK', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) : '-'}
                     </td>
                     <td className="border-2 border-[#1e3a5f] px-4 py-3 font-bold">
                       {editingUserId === u.id && !editingUserId?.endsWith('_trial') ? (

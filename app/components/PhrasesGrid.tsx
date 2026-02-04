@@ -16,6 +16,9 @@ interface PhrasesGridProps {
   isLoading: boolean;
   user: { email?: string; loginCode?: string; role: 'admin' | 'user' } | null;
   CATEGORY_LABELS: Record<string, string>;
+  selectedCategory: string;
+  setShowLoginModal: (show: boolean) => void;
+  setShowLoginCodeModal: (show: boolean) => void;
 }
 
 // Image mapping for btc2026 user
@@ -77,13 +80,26 @@ export default function PhrasesGrid({
   isLoading,
   user,
   CATEGORY_LABELS,
+  selectedCategory,
+  setShowLoginModal,
+  setShowLoginCodeModal,
 }: PhrasesGridProps) {
+  // Categories that guests can preview (but not use)
+  const guestPreviewCategories = ['日常', '飲食', '醫療', '情緒', '求助'];
+  const isGuestPreview = !user && guestPreviewCategories.includes(selectedCategory);
+  
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
       {filteredPhrases.map((phrase, index) => (
         <button
           key={phrase.id}
-          onClick={() => speak(phrase.text)}
+          onClick={() => {
+            if (isGuestPreview) {
+              setShowLoginCodeModal(true);
+            } else {
+              speak(phrase.text);
+            }
+          }}
           disabled={isLoading}
           className={`
             p-10
@@ -98,11 +114,10 @@ export default function PhrasesGrid({
             ${
               isLoading
                 ? 'bg-gray-400 cursor-not-allowed scale-95'
-                : 'bg-white hover:bg-[#f97316] hover:text-white hover:scale-110 hover:shadow-[0_20px_50px_rgba(249,115,22,0.5)] hover:-translate-y-3 active:scale-95'
+                : isGuestPreview
+                ? 'bg-gray-200 text-gray-500 border-4 border-gray-400 cursor-pointer hover:scale-105'
+                : 'bg-white hover:bg-[#f97316] hover:text-white hover:scale-110 hover:shadow-[0_20px_50px_rgba(249,115,22,0.5)] hover:-translate-y-3 active:scale-95 text-[#1e3a5f] border-4 border-[#1e3a5f] hover:border-[#f97316]'
             }
-            text-[#1e3a5f]
-            border-4 border-[#1e3a5f]
-            hover:border-[#f97316]
             animate-fadeIn
             group
           `}

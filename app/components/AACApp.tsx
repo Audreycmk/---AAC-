@@ -148,7 +148,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   '量詞': 'Numbers',
 };
 
-const DISPLAY_CATEGORIES = ['日常', '飲食', '醫療', '情緒', '求助', '個人物品', '家居用品', '水果', '地方', '量詞'] as const;
+const DISPLAY_CATEGORIES = ['量詞','日常', '飲食', '醫療', '情緒', '求助', '個人物品', '家居用品', '水果', '地方'] as const;
 
 // 量詞 (Numbers)
 const MEASURE_WORD_CLASSIFIERS = [
@@ -330,6 +330,7 @@ export default function AACApp() {
   const [user, setUser] = useState<{ email?: string; loginCode?: string; role: 'admin' | 'user' } | null>(null);
   const [showLoginCodeModal, setShowLoginCodeModal] = useState(false);
   const [loginCode, setLoginCode] = useState('');
+  const [loginUserEmail, setLoginUserEmail] = useState(''); // Email for regular user login
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -341,6 +342,8 @@ export default function AACApp() {
     email?: string;
     password?: string;
     loginCode?: string;
+    userEmail?: string; // Email provided by user during login
+    lastLoginAt?: string; // Last login timestamp
     role: 'admin' | 'user';
     createdAt: string;
     trialType: 'unlimited' | '14days' | 'notrial';
@@ -380,7 +383,7 @@ export default function AACApp() {
   const [showCustomPanel, setShowCustomPanel] = useState(false);
   const [showVocabSelector, setShowVocabSelector] = useState(false);
   const [vocabSelectorCategory, setVocabSelectorCategory] = useState<string>('全部');
-  const [favorites, setFavorites] = useState<string[]>([...DISPLAY_CATEGORIES]);
+  const [favorites, setFavorites] = useState<string[]>(['個人物品', '家居用品', '水果', '地方']);
 
   // Add Vocabulary Feature States
   const [showAddVocab, setShowAddVocab] = useState(false);
@@ -598,19 +601,31 @@ export default function AACApp() {
     if (loginCode.toLowerCase() === 'admin') {
       setShowLoginCodeModal(false);
       setLoginCode('');
+      setLoginUserEmail('');
       setShowLoginModal(true);
       return;
     }
-    verifyUserLogin('user', loginCode);
+    // For non-admin codes, email is required
+    if (!loginUserEmail) {
+      alert('請輸入電子郵件 / Please enter email');
+      return;
+    }
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(loginUserEmail)) {
+      alert('請輸入有效的電子郵件格式 / Please enter a valid email format');
+      return;
+    }
+    verifyUserLogin('user', loginCode, undefined, loginUserEmail);
   };
 
-  const verifyUserLogin = async (role: 'admin' | 'user', loginData: string, password?: string) => {
+  const verifyUserLogin = async (role: 'admin' | 'user', loginData: string, password?: string, userEmail?: string) => {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(
-          role === 'admin' ? { email: loginData, password, role } : { loginCode: loginData, role }
+          role === 'admin' ? { email: loginData, password, role } : { loginCode: loginData, role, userEmail }
         ),
       });
 
@@ -625,8 +640,12 @@ export default function AACApp() {
       setShowLoginCodeModal(false);
       setShowLoginModal(false);
       setLoginCode('');
+      setLoginUserEmail('');
       setLoginEmail('');
       setLoginPassword('');
+      
+      // Refresh user list to show updated login time
+      loadUsersFromAPI();
       
       // Open admin dashboard if admin user logs in
       if (result.user.role === 'admin') {
@@ -767,6 +786,23 @@ export default function AACApp() {
   };
 
   // ========== USEEFFECT HOOKS ==========
+  
+  const loadUsersFromAPI = async () => {
+    try {
+      const response = await fetch('/api/users');
+      if (response.ok) {
+        const users = await response.json();
+        setAllUsers(users);
+        localStorage.setItem('aac-users', JSON.stringify(users));
+      }
+    } catch (error) {
+      const savedUsers = localStorage.getItem('aac-users');
+      if (savedUsers) {
+        setAllUsers(JSON.parse(savedUsers));
+      }
+    }
+  };
+  
   useEffect(() => {
     if (typeof window !== 'undefined' && !('speechSynthesis' in window)) {
       setSpeechSupported(false);
@@ -802,22 +838,6 @@ export default function AACApp() {
         }
       }
     }
-
-    const loadUsersFromAPI = async () => {
-      try {
-        const response = await fetch('/api/users');
-        if (response.ok) {
-          const users = await response.json();
-          setAllUsers(users);
-          localStorage.setItem('aac-users', JSON.stringify(users));
-        }
-      } catch (error) {
-        const savedUsers = localStorage.getItem('aac-users');
-        if (savedUsers) {
-          setAllUsers(JSON.parse(savedUsers));
-        }
-      }
-    };
 
     loadUsersFromAPI();
 
@@ -1249,6 +1269,8 @@ export default function AACApp() {
         setShowLoginCodeModal={setShowLoginCodeModal}
         loginCode={loginCode}
         setLoginCode={setLoginCode}
+        loginUserEmail={loginUserEmail}
+        setLoginUserEmail={setLoginUserEmail}
         handleLoginCode={handleLoginCode}
         showLoginModal={showLoginModal}
         setShowLoginModal={setShowLoginModal}
@@ -1502,7 +1524,7 @@ export default function AACApp() {
                           key={phrase.id}
                           onClick={() => {
                             if (isGuest) {
-                              setShowLoginModal(true);
+                              setShowLoginCodeModal(true);
                               return;
                             }
                             const textToSpeak = speechLanguage === 'en-US' ? phrase.en : phrase.text;
@@ -1528,7 +1550,7 @@ export default function AACApp() {
                           key={phrase.id}
                           onClick={() => {
                             if (isGuest) {
-                              setShowLoginModal(true);
+                              setShowLoginCodeModal(true);
                               return;
                             }
                             const textToSpeak = speechLanguage === 'en-US' ? phrase.en : phrase.text;
@@ -1559,7 +1581,7 @@ export default function AACApp() {
                         key={unit.text}
                         onClick={() => {
                           if (isGuest) {
-                            setShowLoginModal(true);
+                            setShowLoginCodeModal(true);
                             return;
                           }
                           const textToSpeak = speechLanguage === 'en-US' ? unit.en : unit.text;
@@ -1612,6 +1634,9 @@ export default function AACApp() {
               isLoading={isLoading}
               user={user}
               CATEGORY_LABELS={CATEGORY_LABELS}
+              selectedCategory={selectedCategory}
+              setShowLoginModal={setShowLoginModal}
+              setShowLoginCodeModal={setShowLoginCodeModal}
             />
           )}
 

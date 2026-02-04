@@ -80,6 +80,10 @@ export default function SideMenu({
   setShowDashboard,
   handleLogout,
 }: SideMenuProps) {
+  // Categories that guests can preview (but not use)
+  const guestPreviewCategories = ['日常', '飲食', '醫療', '情緒', '求助'];
+  const isGuestPreview = (category: string) => !user && guestPreviewCategories.includes(category);
+  
   return (
     <>
       {/* Side Menu */}
@@ -134,7 +138,11 @@ export default function SideMenu({
                 <div
                   className={`w-full text-left px-6 py-5 rounded-2xl text-2xl font-bold transition-all duration-300 flex items-center gap-4 transform hover:translate-x-2 hover:shadow-xl min-h-[70px] ${
                     selectedCategory === category
-                      ? 'bg-[#1e3a5f] text-white shadow-lg scale-105'
+                      ? isGuestPreview(category)
+                        ? 'bg-gray-400 text-gray-600 shadow-lg scale-105'
+                        : 'bg-[#1e3a5f] text-white shadow-lg scale-105'
+                      : isGuestPreview(category)
+                      ? 'bg-gray-200 text-gray-500 border-2 border-gray-400 hover:bg-gray-300 hover:scale-105 translate-x-0 opacity-100'
                       : 'bg-[#f5f5dc] text-[#1e3a5f] border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-105 translate-x-0 opacity-100'
                   }`}
                 >
@@ -171,61 +179,64 @@ export default function SideMenu({
             ))}
           </nav>
 
-          {/* Categories Section - Only for logged in users */}
-          {hasFullAccess() && (
-            <>
+          {/* Categories Section - Show all categories for all users */}
+          <div
+            className={`flex items-center gap-3 mb-6 transition-all duration-700 ${
+              menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
+            }`}>
+            <h2 className="text-3xl font-bold text-[#1e3a5f]">
+              <BilingualText zh="分類" en="Categories" enClassName="text-lg sm:text-xl" />
+            </h2>
+          </div>
+          <nav className="space-y-3 mb-8">
+            {getUniqueCategories().map((category, index) => (
               <div
-                className={`flex items-center gap-3 mb-6 transition-all duration-700 ${
-                  menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
+                key={category}
+                className={`transition-all duration-300 relative ${
+                  menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'
                 }`}
-              >
-                <h2 className="text-3xl font-bold text-[#1e3a5f]">
-                  <BilingualText zh="分類選單" en="Categories" enClassName="text-lg sm:text-xl" />
-                </h2>
-              </div>
-              <nav className="space-y-3 mb-8">
-                {getUniqueCategories().map((category, index) => (
-                  <div
-                    key={category}
-                    className={`transition-all duration-300 relative ${
-                      menuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'
-                    }`}
-                    style={{ transitionDelay: menuOpen ? `${150 + index * 50}ms` : '0ms' }}
-                  >
-                    <div
-                      className={`w-full text-left px-6 py-5 rounded-2xl text-2xl font-bold transition-all duration-300 flex items-center gap-4 transform hover:translate-x-2 hover:shadow-xl min-h-[70px] ${
-                        selectedCategory === category
-                          ? 'bg-[#1e3a5f] text-white shadow-lg scale-105'
-                          : 'bg-[#f5f5dc] text-[#1e3a5f] border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-105 translate-x-0 opacity-100'
-                      }`}
-                    >
-                      <Icon
-                        emoji={customCategoryIcons[category] || CATEGORY_ICONS[category] || '📁'}
-                        size={48}
-                        className="flex-shrink-0"
-                      />
-                      <span className="flex-1">
-                        <BilingualText
-                          zh={customCategoryNames[category]?.zh ?? category}
-                          en={customCategoryNames[category]?.en ?? CATEGORY_LABELS[category]}
-                          className="items-start"
-                          enClassName="text-base sm:text-lg"
-                        />
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setSelectedCategory(category);
-                        setMenuOpen(false);
-                      }}
-                      className="absolute inset-0 w-full h-full rounded-2xl"
-                      aria-label={`Select ${category}`}
+                style={{ transitionDelay: menuOpen ? `${150 + index * 50}ms` : '0ms' }}>
+                <div
+                  className={`w-full text-left px-6 py-5 rounded-2xl text-2xl font-bold transition-all duration-300 flex items-center gap-4 transform hover:translate-x-2 hover:shadow-xl min-h-[70px] ${
+                    selectedCategory === category
+                      ? isGuestPreview(category)
+                        ? 'bg-gray-400 text-gray-600 shadow-lg scale-105'
+                        : 'bg-[#1e3a5f] text-white shadow-lg scale-105'
+                      : isGuestPreview(category)
+                      ? 'bg-gray-200 text-gray-500 border-2 border-gray-400 hover:bg-gray-300 hover:scale-105 translate-x-0 opacity-100'
+                      : 'bg-[#f5f5dc] text-[#1e3a5f] border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-105 translate-x-0 opacity-100'
+                  }`}>
+                  <Icon
+                    emoji={customCategoryIcons[category] || CATEGORY_ICONS[category] || '📁'}
+                    size={48}
+                    className="flex-shrink-0"
+                  />
+                  <span className="flex-1">
+                    <BilingualText
+                      zh={customCategoryNames[category]?.zh ?? category}
+                      en={customCategoryNames[category]?.en ?? CATEGORY_LABELS[category]}
+                      className="items-start"
+                      enClassName="text-base sm:text-lg"
                     />
-                  </div>
-                ))}
-              </nav>
-            </>
-          )}
+                  </span>
+                  <button
+                    onClick={() => toggleFavorite(category)}
+                    className="transition-all duration-300 hover:scale-125 flex-shrink-0"
+                    aria-label={favorites.includes(category) ? '移除最愛' : '加入最愛'}>
+                    <Icon emoji={favorites.includes(category) ? '❤️' : '🤍'} size={24} />
+                  </button>
+                </div>
+                <button
+                  onClick={() => {
+                    setSelectedCategory(category);
+                    setMenuOpen(false);
+                  }}
+                  className="absolute inset-0 w-full h-full rounded-2xl"
+                  aria-label={`Select ${category}`}
+                />
+              </div>
+            ))}
+          </nav>
 
           {/* User Menu Section */}
           <div className="mt-8 pt-8 border-t-2 border-gray-300 space-y-3">

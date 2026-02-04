@@ -7,6 +7,8 @@ interface LoginModalsProps {
   setShowLoginCodeModal: (show: boolean) => void;
   loginCode: string;
   setLoginCode: (code: string) => void;
+  loginUserEmail: string;
+  setLoginUserEmail: (email: string) => void;
   handleLoginCode: () => void;
   showLoginModal: boolean;
   setShowLoginModal: (show: boolean) => void;
@@ -22,6 +24,8 @@ export default function LoginModals({
   setShowLoginCodeModal,
   loginCode,
   setLoginCode,
+  loginUserEmail,
+  setLoginUserEmail,
   handleLoginCode,
   showLoginModal,
   setShowLoginModal,
@@ -50,6 +54,18 @@ export default function LoginModals({
                 onChange={(e) => setLoginCode(e.target.value)}
                 className="w-full px-4 py-3 border-2 border-[#1e3a5f] rounded-xl font-bold text-lg bg-white text-[#1e3a5f] outline-none focus:border-[#f97316] focus:bg-yellow-50"
               />
+              
+              {/* Email input - not required if login code is "admin" */}
+              {loginCode.toLowerCase() !== 'admin' && (
+                <input
+                  type="email"
+                  placeholder="電子郵件 (Email) *"
+                  value={loginUserEmail}
+                  onChange={(e) => setLoginUserEmail(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-[#1e3a5f] rounded-xl font-bold text-lg bg-white text-[#1e3a5f] outline-none focus:border-[#f97316] focus:bg-yellow-50"
+                  required
+                />
+              )}
 
               {/* Get Login Code Button */}
               <div className="border-t-2 border-gray-200 pt-4">

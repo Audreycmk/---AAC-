@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllUsers } from '@/lib/users-db';
+import { getAllUsers, updateUser } from '@/lib/users-db';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, loginCode, role } = body;
+    const { email, password, loginCode, role, userEmail } = body;
 
     const users = getAllUsers();
 
@@ -23,13 +23,21 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Update last login time
+      updateUser(admin.id, {
+        lastLoginAt: new Date().toISOString()
+      });
+
       return NextResponse.json({
         success: true,
         user: {
           email: admin.email,
           role: admin.role,
         },
-        userData: admin
+        userData: {
+          ...admin,
+          lastLoginAt: new Date().toISOString()
+        }
       });
     } else {
       // Normal user login with code
@@ -45,13 +53,23 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Update user email and last login time
+      updateUser(user.id, {
+        userEmail: userEmail || user.userEmail,
+        lastLoginAt: new Date().toISOString()
+      });
+
       return NextResponse.json({
         success: true,
         user: {
           loginCode: user.loginCode,
           role: user.role,
         },
-        userData: user
+        userData: {
+          ...user,
+          userEmail: userEmail || user.userEmail,
+          lastLoginAt: new Date().toISOString()
+        }
       });
     }
   } catch (error) {
