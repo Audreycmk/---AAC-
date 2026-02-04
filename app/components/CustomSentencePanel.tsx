@@ -19,6 +19,7 @@ interface CustomSentencePanelProps {
   handleStarterClick: (text: string) => void;
   handleSuggestionClick: (word: { text: string; en: string; icon: string }) => void;
   handleCustomSpeak: (englishOverride?: string) => void;
+  speak: (text: string, rate?: number) => void;
   isLoading: boolean;
   showVocabSelector: boolean;
   setShowVocabSelector: (show: boolean) => void;
@@ -68,6 +69,7 @@ export default function CustomSentencePanel({
   handleStarterClick,
   handleSuggestionClick,
   handleCustomSpeak,
+  speak,
   isLoading,
   showVocabSelector,
   setShowVocabSelector,
@@ -129,6 +131,7 @@ export default function CustomSentencePanel({
                   if (isDisabled) {
                     alert('請登入以使用此功能\nPlease log in to use this function');
                   } else {
+                    speak(starter.text, 1.0);
                     handleStarterClick(starter.text);
                   }
                 }}
@@ -176,7 +179,12 @@ export default function CustomSentencePanel({
             {SUGGESTED_WORDS[currentStarter].map((word, index) => (
               <button
                 key={index}
-                onClick={() => handleSuggestionClick(word)}
+                onClick={() => {
+                  if (word.text !== '更多') {
+                    speak(word.text, 1.0);
+                  }
+                  handleSuggestionClick(word);
+                }}
                 className="px-4 py-4 bg-white text-[#1e3a5f] rounded-xl font-bold text-lg border-2 border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:scale-110 transition-all duration-300 shadow-md flex flex-col items-center gap-2"
               >
                 <Icon emoji={word.icon} size={32} />
@@ -263,6 +271,7 @@ export default function CustomSentencePanel({
                         alert('請登入以使用此功能\nPlease log in to use this function');
                         return;
                       }
+                      speak(phrase.text, 1.0);
                       handleVocabSelection(phrase);
                     }}
                     className={`px-3 py-3 rounded-xl font-bold text-base border-2 transition-all duration-300 shadow-md flex flex-col items-center gap-1 ${

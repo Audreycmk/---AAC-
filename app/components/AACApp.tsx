@@ -216,7 +216,7 @@ const SUGGESTED_WORDS: Record<string, Array<{ text: string; en: string; icon: st
   '我要': [
     { text: '更多', en: 'More', icon: '➕' },
     { text: '食藥', en: 'to take medicine', icon: '💊' },
-    { text: '換衫', en: 'tochange clothes', icon: '👕' },
+    { text: '換衫', en: 'to change clothes', icon: '👕' },
     { text: '沖涼', en: 'to take a shower', icon: '🚿' },
     // { text: '睇醫生', en: 'to see a doctor', icon: '👨‍⚕️' },
   ],
@@ -1157,6 +1157,7 @@ export default function AACApp() {
             handleStarterClick={handleStarterClick}
             handleSuggestionClick={handleSuggestionClick}
             handleCustomSpeak={handleCustomSpeak}
+            speak={speak}
             isLoading={isLoading}
             showVocabSelector={showVocabSelector}
             setShowVocabSelector={setShowVocabSelector}
