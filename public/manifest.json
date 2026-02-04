@@ -1,0 +1,27 @@
+{
+  "name": "AAC 輔助通訊 - Audrey Chung",
+  "short_name": "AAC 輔助通訊",
+  "description": "專為香港康復者設計的輔助和替代性溝通應用程式，支援廣東話語音輸出",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f5dc",
+  "theme_color": "#1e3a5f",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/ACC icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/ACC icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "medical", "accessibility"],
+  "lang": "zh-HK",
+  "dir": "ltr"
+}
