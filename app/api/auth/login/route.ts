@@ -108,12 +108,17 @@ export async function POST(request: NextRequest) {
       const user = result[0];
       console.log('User found:', user.id, 'Updating email to:', userEmail);
 
-      // Update user email and last login time
+      // Update last login time
       await sql`
         UPDATE users
-        SET user_email = ${userEmail || null},
-            last_login_at = NOW()
+        SET last_login_at = NOW()
         WHERE id = ${user.id}
+      `;
+      
+      // Insert into login history to track each email used
+      await sql`
+        INSERT INTO login_history (user_id, login_code, user_email, logged_in_at)
+        VALUES (${user.id}, ${loginCode}, ${userEmail || null}, NOW())
       `;
 
       return NextResponse.json({

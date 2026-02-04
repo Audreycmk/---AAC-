@@ -366,6 +366,16 @@ export default function AACApp() {
       customCategoryNames: Record<string, { zh: string; en: string }>;
     };
   }>>([]);
+  
+  // Login history for admin dashboard
+  const [loginHistory, setLoginHistory] = useState<Array<{
+    id: string;
+    loginCode: string;
+    userEmail?: string;
+    loggedInAt: string;
+    trialType: string;
+    createdAt: string;
+  }>>([]);
 
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [newUserType, setNewUserType] = useState<'admin' | 'user'>('user');
@@ -695,10 +705,7 @@ export default function AACApp() {
 
   const handleLogout = () => {
     setUser(null);
-    setFavorites(['個人物品', '家居用品', '水果', '地方']);
-    setCustomPhrases([]);
-    setCustomCategoryIcons({});
-    setCustomCategoryNames({});
+    // Don't reset customizations - they're saved in database and will reload on next login
   };
 
   // Sync customizations to database
@@ -768,6 +775,11 @@ export default function AACApp() {
 
     if (addVocabInput.newCategory && !addVocabInput.category) {
       setCustomCategoryIcons((prev) => ({ ...prev, [category]: newCategoryEmoji }));
+      // Add custom category name so it shows in side menu
+      setCustomCategoryNames((prev) => ({
+        ...prev,
+        [category]: { zh: category, en: category }
+      }));
     }
 
     setCustomPhrases((prev) => [...prev, newPhrase]);
@@ -920,6 +932,13 @@ export default function AACApp() {
         const users = await response.json();
         setAllUsers(users);
         localStorage.setItem('aac-users', JSON.stringify(users));
+      }
+      
+      // Also load login history
+      const historyResponse = await fetch('/api/login-history');
+      if (historyResponse.ok) {
+        const history = await historyResponse.json();
+        setLoginHistory(history);
       }
     } catch (error) {
       const savedUsers = localStorage.getItem('aac-users');
@@ -1428,6 +1447,7 @@ export default function AACApp() {
         setEditingUserTrial={setEditingUserTrial}
         updateUserTrial={updateUserTrial}
         getTrialStatus={getTrialStatus}
+        loginHistory={loginHistory}
       />
 
       {/* Settings Panel Component */}

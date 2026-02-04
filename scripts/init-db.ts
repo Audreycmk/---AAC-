@@ -52,6 +52,20 @@ async function initializeDatabase() {
     await sql`CREATE INDEX IF NOT EXISTS idx_users_login_code ON users(login_code)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`;
     
+    // Create login history table
+    await sql`
+      CREATE TABLE IF NOT EXISTS login_history (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        login_code VARCHAR(50) NOT NULL,
+        user_email VARCHAR(255),
+        logged_in_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `;
+    
+    await sql`CREATE INDEX IF NOT EXISTS idx_login_history_login_code ON login_history(login_code)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_login_history_user_id ON login_history(user_id)`;
+    
     console.log('✅ Schema created successfully!\n');
     
     // Insert default data

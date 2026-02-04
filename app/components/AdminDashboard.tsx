@@ -32,6 +32,14 @@ interface AdminDashboardProps {
   setEditingUserTrial: (trial: 'unlimited' | '14days' | '30days' | 'notrial') => void;
   updateUserTrial: (id: string, trial: 'unlimited' | '14days' | '30days' | 'notrial') => void;
   getTrialStatus: (user: User) => { daysLeft: number; isExpired: boolean };
+  loginHistory: Array<{
+    id: string;
+    loginCode: string;
+    userEmail?: string;
+    loggedInAt: string;
+    trialType: string;
+    createdAt: string;
+  }>;
 }
 
 export default function AdminDashboard({
@@ -62,8 +70,10 @@ export default function AdminDashboard({
   setEditingUserTrial,
   updateUserTrial,
   getTrialStatus,
+  loginHistory,
 }: AdminDashboardProps) {
   const [viewingUserCustomizations, setViewingUserCustomizations] = useState<User | null>(null);
+  const [showLoginHistory, setShowLoginHistory] = useState(false);
 
   if (!showDashboard || user?.role !== 'admin') return null;
 
@@ -174,7 +184,32 @@ export default function AdminDashboard({
           </div>
         )}
 
+        {/* Toggle between Users and Login History */}
+        <div className="mb-4 flex gap-3">
+          <button
+            onClick={() => setShowLoginHistory(false)}
+            className={`px-6 py-3 rounded-xl font-bold text-lg transition-all ${
+              !showLoginHistory
+                ? 'bg-[#f97316] text-white shadow-lg'
+                : 'bg-gray-200 text-[#1e3a5f] hover:bg-gray-300'
+            }`}
+          >
+            用戶列表 / Users
+          </button>
+          <button
+            onClick={() => setShowLoginHistory(true)}
+            className={`px-6 py-3 rounded-xl font-bold text-lg transition-all ${
+              showLoginHistory
+                ? 'bg-[#f97316] text-white shadow-lg'
+                : 'bg-gray-200 text-[#1e3a5f] hover:bg-gray-300'
+            }`}
+          >
+            登入記錄 / Login History
+          </button>
+        </div>
+
         {/* Users Table */}
+        {!showLoginHistory && (
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
@@ -321,6 +356,63 @@ export default function AdminDashboard({
             </tbody>
           </table>
         </div>
+        )}
+
+        {/* Login History Table */}
+        {showLoginHistory && (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-[#1e3a5f] text-white">
+                <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">登入碼 / Login Code</th>
+                <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">用戶郵箱 / User Email</th>
+                <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">登入時間 / Login Time</th>
+                <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">試用類型 / Trial Type</th>
+                <th className="border-2 border-[#1e3a5f] px-4 py-3 text-left font-bold">創建日期 / Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loginHistory.map((record) => (
+                <tr key={record.id} className="border-b-2 border-[#1e3a5f]">
+                  <td className="border-2 border-[#1e3a5f] px-4 py-3 font-bold text-[#1e3a5f]">
+                    🔐 {record.loginCode}
+                  </td>
+                  <td className="border-2 border-[#1e3a5f] px-4 py-3 font-bold text-[#1e3a5f]">
+                    {record.userEmail || '-'}
+                  </td>
+                  <td className="border-2 border-[#1e3a5f] px-4 py-3 font-bold text-[#1e3a5f] text-sm">
+                    {new Date(record.loggedInAt).toLocaleString('zh-HK', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit'
+                    })}
+                  </td>
+                  <td className="border-2 border-[#1e3a5f] px-4 py-3 font-bold text-[#1e3a5f]">
+                    <span className={`px-3 py-1 rounded-full text-white ${
+                      record.trialType === 'unlimited' ? 'bg-green-500' :
+                      record.trialType === '30days' ? 'bg-blue-500' :
+                      record.trialType === '14days' ? 'bg-yellow-500' :
+                      'bg-red-500'
+                    }`}>
+                      {record.trialType}
+                    </span>
+                  </td>
+                  <td className="border-2 border-[#1e3a5f] px-4 py-3 font-bold text-[#1e3a5f] text-sm">
+                    {new Date(record.createdAt).toLocaleString('zh-HK', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit'
+                    })}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        )}
 
         {/* Delete Confirmation */}
         {deleteUserConfirm && (

@@ -29,9 +29,20 @@ export const SCHEMA = `
     }'::jsonb
   );
 
+  -- Login history to track each email used with a login code
+  CREATE TABLE IF NOT EXISTS login_history (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    login_code VARCHAR(50) NOT NULL,
+    user_email VARCHAR(255),
+    logged_in_at TIMESTAMP NOT NULL DEFAULT NOW()
+  );
+
   -- Create index for faster lookups
   CREATE INDEX IF NOT EXISTS idx_users_login_code ON users(login_code);
   CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+  CREATE INDEX IF NOT EXISTS idx_login_history_login_code ON login_history(login_code);
+  CREATE INDEX IF NOT EXISTS idx_login_history_user_id ON login_history(user_id);
 `;
 
 export const MIGRATION_DATA = `
