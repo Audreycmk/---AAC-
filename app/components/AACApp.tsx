@@ -824,11 +824,16 @@ export default function AACApp() {
       }
     }
 
+    // Auto-dismiss success message after 3 seconds
     setTimeout(() => {
       setVocabSuccess(false);
+    }, 3000);
+
+    // Close the panel after 3.5 seconds (after success message disappears)
+    setTimeout(() => {
       resetAddVocabForm();
       setShowAddVocab(false);
-    }, 3000);
+    }, 3500);
   };
 
   const addUser = async () => {
