@@ -148,7 +148,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   '量詞': 'Numbers',
 };
 
-const DISPLAY_CATEGORIES = ['個人物品', '家居用品', '水果', '地方', '量詞'] as const;
+const DISPLAY_CATEGORIES = ['日常', '飲食', '醫療', '情緒', '求助', '個人物品', '家居用品', '水果', '地方', '量詞'] as const;
 
 // 量詞 (Numbers)
 const MEASURE_WORD_CLASSIFIERS = [
@@ -504,7 +504,16 @@ export default function AACApp() {
   };
 
   const handleCustomSpeak = (englishOverride?: string) => {
-    const textToSpeak = speechLanguage === 'en-US' && englishOverride ? englishOverride : customText;
+    let textToSpeak = customText;
+    if (speechLanguage === 'en-US') {
+      if (englishOverride) {
+        textToSpeak = englishOverride;
+      } else {
+        // For number category, translate to English
+        const translated = translateNumberToEnglish(customText);
+        textToSpeak = translated || customText;
+      }
+    }
     if (textToSpeak.trim()) {
       speak(textToSpeak);
     }
@@ -585,6 +594,13 @@ export default function AACApp() {
       alert('請輸入登入碼 / Please enter login code');
       return;
     }
+    // Check if login code is "admin" - open admin login modal
+    if (loginCode.toLowerCase() === 'admin') {
+      setShowLoginCodeModal(false);
+      setLoginCode('');
+      setShowLoginModal(true);
+      return;
+    }
     verifyUserLogin('user', loginCode);
   };
 
@@ -611,6 +627,11 @@ export default function AACApp() {
       setLoginCode('');
       setLoginEmail('');
       setLoginPassword('');
+      
+      // Open admin dashboard if admin user logs in
+      if (result.user.role === 'admin') {
+        setShowDashboard(true);
+      }
     } catch (error) {
       console.error('Login error:', error);
       alert('登入失敗 / Login failed');
@@ -897,6 +918,151 @@ export default function AACApp() {
     const defaultCategory = favorites.length > 0 ? favorites[0] : '個人物品';
     setSelectedCategory(defaultCategory);
   }, [favorites]);
+
+  // Translate for display - keep numbers as digits
+  const translateNumberForDisplay = (text: string): string => {
+    if (!text) return '';
+    
+    // Unit translations
+    const unitTranslations: Record<string, string> = {
+      '蚊': 'dollars',
+      '斤': 'catty',
+      '両': 'tael',
+      '寸': 'inches',
+      '磅': 'pounds',
+      '厘米': 'centimeters',
+      '日': 'days',
+      '月': 'months',
+      '年': 'years',
+      '歲': 'years old',
+      '分鐘': 'minutes',
+      '小時': 'hours',
+      '禮拜': 'weeks'
+    };
+    
+    let result = text;
+    for (const [unit, translation] of Object.entries(unitTranslations)) {
+      result = result.replace(unit, ' ' + translation);
+    }
+    
+    return result.trim();
+  };
+
+  // Translate numbers and units to English (for speech)
+  const translateNumberToEnglish = (text: string): string => {
+    if (!text) return '';
+    
+    // Convert number to words
+    const numberToWords = (num: number): string => {
+      if (num === 0) return 'zero';
+      
+      const ones = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+      const teens = ['ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+      const tens = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+      
+      if (num < 10) return ones[num];
+      if (num < 20) return teens[num - 10];
+      if (num < 100) {
+        const ten = Math.floor(num / 10);
+        const one = num % 10;
+        return tens[ten] + (one ? ' ' + ones[one] : '');
+      }
+      if (num < 1000) {
+        const hundred = Math.floor(num / 100);
+        const remainder = num % 100;
+        return ones[hundred] + ' hundred' + (remainder ? ' ' + numberToWords(remainder) : '');
+      }
+      if (num < 1000000) {
+        const thousand = Math.floor(num / 1000);
+        const remainder = num % 1000;
+        return numberToWords(thousand) + ' thousand' + (remainder ? ' ' + numberToWords(remainder) : '');
+      }
+      return num.toString();
+    };
+    
+    // Unit translations
+    const unitTranslations: Record<string, string> = {
+      '蚊': 'dollars',
+      '斤': 'catty',
+      '両': 'tael',
+      '寸': 'inches',
+      '磅': 'pounds',
+      '厘米': 'centimeters',
+      '日': 'days',
+      '月': 'months',
+      '年': 'years',
+      '歲': 'years old',
+      '分鐘': 'minutes',
+      '小時': 'hours',
+      '禮拜': 'weeks'
+    };
+    
+    // Extract numbers and units
+    let result = '';
+    let currentNumber = '';
+    let i = 0;
+    
+    while (i < text.length) {
+      const char = text[i];
+      
+      // Check if it's a digit or decimal point
+      if (/[0-9.]/.test(char)) {
+        currentNumber += char;
+        i++;
+      } else {
+        // Process accumulated number
+        if (currentNumber) {
+          if (currentNumber.includes('.')) {
+            // Handle decimal numbers
+            const parts = currentNumber.split('.');
+            const wholePart = parseInt(parts[0]);
+            result += numberToWords(wholePart) + ' point';
+            for (const digit of parts[1]) {
+              const digitWords = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+              result += ' ' + digitWords[parseInt(digit)];
+            }
+          } else {
+            const num = parseInt(currentNumber);
+            result += numberToWords(num);
+          }
+          currentNumber = '';
+        }
+        
+        // Check for multi-character units
+        let matched = false;
+        for (const [unit, translation] of Object.entries(unitTranslations)) {
+          if (text.substring(i).startsWith(unit)) {
+            result += ' ' + translation;
+            i += unit.length;
+            matched = true;
+            break;
+          }
+        }
+        
+        if (!matched) {
+          i++;
+        }
+      }
+    }
+    
+    // Process any remaining number
+    if (currentNumber) {
+      if (currentNumber.includes('.')) {
+        const parts = currentNumber.split('.');
+        const wholePart = parseInt(parts[0]);
+        result += numberToWords(wholePart) + ' point';
+        for (const digit of parts[1]) {
+          const digitWords = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+          result += ' ' + digitWords[parseInt(digit)];
+        }
+      } else {
+        const num = parseInt(currentNumber);
+        result += numberToWords(num);
+      }
+    }
+    
+    return result.trim();
+  };
 
   const resolveEnglishText = (text: string) => {
     const availableStarters = [...SENTENCE_STARTERS, ...ADDITIONAL_STARTERS];
@@ -1252,8 +1418,15 @@ export default function AACApp() {
                       <span>放</span>
                     </span>
                   </div>
-                  <div className="text-4xl sm:text-5xl font-bold text-white min-h-[60px] flex items-center justify-end">
-                    {customText || '0'}
+                  <div className="flex flex-col items-end">
+                    <div className="text-4xl sm:text-5xl font-bold text-white min-h-[60px] flex items-center justify-end">
+                      {customText || '0'}
+                    </div>
+                    {customText && (
+                      <div className="text-sm text-white/70 mt-1">
+                        {translateNumberForDisplay(customText)}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1332,7 +1505,8 @@ export default function AACApp() {
                               setShowLoginModal(true);
                               return;
                             }
-                            speakAtRate(phrase.text, 1.0);
+                            const textToSpeak = speechLanguage === 'en-US' ? phrase.en : phrase.text;
+                            speakAtRate(textToSpeak, 1.0);
                             setCustomText(prev => prev + phrase.text);
                           }}
                           aria-disabled={isGuest}
@@ -1357,7 +1531,8 @@ export default function AACApp() {
                               setShowLoginModal(true);
                               return;
                             }
-                            speakAtRate(phrase.text, 1.0);
+                            const textToSpeak = speechLanguage === 'en-US' ? phrase.en : phrase.text;
+                            speakAtRate(textToSpeak, 1.0);
                             setCustomText(prev => prev + phrase.text);
                           }}
                           aria-disabled={isGuest}
@@ -1387,7 +1562,8 @@ export default function AACApp() {
                             setShowLoginModal(true);
                             return;
                           }
-                          speakAtRate(unit.text, 1.0);
+                          const textToSpeak = speechLanguage === 'en-US' ? unit.en : unit.text;
+                          speakAtRate(textToSpeak, 1.0);
                           setCustomText(prev => prev + unit.text);
                         }}
                         aria-disabled={isGuest}
