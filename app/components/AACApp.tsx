@@ -108,7 +108,7 @@ const PHRASES = [
   { id: 72, text: '分鐘', en: 'minutes', category: '量詞', icon: '⏱️' },
   { id: 73, text: '小時', en: 'hours', category: '量詞', icon: '⏰' },
   { id: 74, text: '日', en: 'days', category: '量詞', icon: '📅' },
-  { id: 75, text: '禮拜', en: 'week', category: '量詞', icon: '📆' },
+  { id: 75, text: ' 星期', en: 'week', category: '量詞', icon: '📆' },
   { id: 76, text: '月', en: 'month', category: '量詞', icon: '🗓️' },
   { id: 77, text: '年', en: 'year', category: '量詞', icon: '📈' },
   { id: 78, text: '歲', en: 'years old', category: '量詞', icon: '🎂' },
@@ -148,7 +148,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   '量詞': 'Numbers',
 };
 
-const DISPLAY_CATEGORIES = ['量詞','日常', '飲食', '醫療', '情緒', '求助', '個人物品', '家居用品', '水果', '地方'] as const;
+const DISPLAY_CATEGORIES = ['個人物品', '家居用品', '量詞', '水果', '地方'] as const;
 
 // 量詞 (Numbers)
 const MEASURE_WORD_CLASSIFIERS = [
@@ -802,42 +802,113 @@ export default function AACApp() {
       }
     }
 
-    const newUser: typeof allUsers[0] = {
-      id: Date.now().toString(),
+    const newUser = {
       ...(newUserType === 'admin' ? { email: newUserEmail, password: newUserPassword } : { loginCode: newUserLoginCode }),
       role: newUserType,
-      createdAt: new Date().toISOString(),
       trialType: newUserType === 'admin' ? 'unlimited' : '14days',
       trialStartDate: newUserType === 'user' ? new Date().toISOString() : undefined,
     };
 
-    setAllUsers((prev) => [...prev, newUser] as typeof allUsers);
-    setShowAddUserModal(false);
-    setNewUserEmail('');
-    setNewUserPassword('');
-    setNewUserLoginCode('');
-    setNewUserType('user');
+    try {
+      // Save to database via API
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUser),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.error || '新增用戶失敗 / Failed to add user');
+        return;
+      }
+
+      const createdUser = await response.json();
+      
+      // Update local state with the created user
+      setAllUsers((prev) => [...prev, createdUser]);
+      setShowAddUserModal(false);
+      setNewUserEmail('');
+      setNewUserPassword('');
+      setNewUserLoginCode('');
+      setNewUserType('user');
+      
+      alert('用戶已成功新增 / User added successfully');
+    } catch (error) {
+      console.error('Error adding user:', error);
+      alert('新增用戶失敗 / Failed to add user');
+    }
   };
 
-  const deleteUser = (id: string) => {
-    setAllUsers((prev) => prev.filter((u) => u.id !== id));
-    setDeleteUserConfirm(null);
+  const deleteUser = async (id: string) => {
+    try {
+      const response = await fetch(`/api/users/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        alert('刪除用戶失敗 / Failed to delete user');
+        return;
+      }
+
+      setAllUsers((prev) => prev.filter((u) => u.id !== id));
+      setDeleteUserConfirm(null);
+      alert('用戶已刪除 / User deleted');
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('刪除用戶失敗 / Failed to delete user');
+    }
   };
 
-  const updateUserRole = (id: string, role: 'admin' | 'user') => {
-    setAllUsers((prev) => prev.map((u) => (u.id === id ? { ...u, role } : u)));
-    setEditingUserId(null);
+  const updateUserRole = async (id: string, role: 'admin' | 'user') => {
+    try {
+      const response = await fetch(`/api/users/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role }),
+      });
+
+      if (!response.ok) {
+        alert('更新用戶角色失敗 / Failed to update user role');
+        return;
+      }
+
+      setAllUsers((prev) => prev.map((u) => (u.id === id ? { ...u, role } : u)));
+      setEditingUserId(null);
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      alert('更新用戶角色失敗 / Failed to update user role');
+    }
   };
 
-  const updateUserTrial = (id: string, trial: 'unlimited' | '14days' | '30days' | 'notrial') => {
-    setAllUsers((prev) =>
-      prev.map((u) =>
-        u.id === id
-          ? { ...u, trialType: trial, trialStartDate: new Date().toISOString() }
-          : u
-      )
-    );
-    setEditingUserId(null);
+  const updateUserTrial = async (id: string, trial: 'unlimited' | '14days' | '30days' | 'notrial') => {
+    try {
+      const response = await fetch(`/api/users/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          trialType: trial, 
+          trialStartDate: new Date().toISOString() 
+        }),
+      });
+
+      if (!response.ok) {
+        alert('更新試用期失敗 / Failed to update trial period');
+        return;
+      }
+
+      setAllUsers((prev) =>
+        prev.map((u) =>
+          u.id === id
+            ? { ...u, trialType: trial, trialStartDate: new Date().toISOString() }
+            : u
+        )
+      );
+      setEditingUserId(null);
+    } catch (error) {
+      console.error('Error updating trial:', error);
+      alert('更新試用期失敗 / Failed to update trial period');
+    }
   };
 
   // ========== USEEFFECT HOOKS ==========
