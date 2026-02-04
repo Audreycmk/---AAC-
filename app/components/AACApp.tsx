@@ -346,7 +346,7 @@ export default function AACApp() {
     lastLoginAt?: string; // Last login timestamp
     role: 'admin' | 'user';
     createdAt: string;
-    trialType: 'unlimited' | '14days' | 'notrial';
+    trialType: 'unlimited' | '14days' | '30days' | 'notrial';
     trialStartDate?: string;
     customizations?: {
       favorites: string[];
@@ -364,7 +364,7 @@ export default function AACApp() {
   const [deleteUserConfirm, setDeleteUserConfirm] = useState<string | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editingUserRole, setEditingUserRole] = useState<'admin' | 'user'>('user');
-  const [editingUserTrial, setEditingUserTrial] = useState<'unlimited' | '14days' | 'notrial'>('14days');
+  const [editingUserTrial, setEditingUserTrial] = useState<'unlimited' | '14days' | '30days' | 'notrial'>('14days');
 
   const [selectedCategory, setSelectedCategory] = useState<string>(DISPLAY_CATEGORIES[0]);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -774,7 +774,7 @@ export default function AACApp() {
     setEditingUserId(null);
   };
 
-  const updateUserTrial = (id: string, trial: 'unlimited' | '14days' | 'notrial') => {
+  const updateUserTrial = (id: string, trial: 'unlimited' | '14days' | '30days' | 'notrial') => {
     setAllUsers((prev) =>
       prev.map((u) =>
         u.id === id
