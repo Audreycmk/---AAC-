@@ -5,6 +5,8 @@ import Icon from './Icon';
 interface CustomSentencePanelProps {
   showCustomPanel: boolean;
   setShowCustomPanel: (show: boolean) => void;
+  setShowHistory: (show: boolean) => void;
+  setShowSettings: (show: boolean) => void;
   customText: string;
   setCustomText: (text: string) => void;
   customEnglish: string;
@@ -55,6 +57,8 @@ const BilingualText = ({
 export default function CustomSentencePanel({
   showCustomPanel,
   setShowCustomPanel,
+  setShowHistory,
+  setShowSettings,
   customText,
   setCustomText,
   customEnglish,
@@ -87,7 +91,11 @@ export default function CustomSentencePanel({
   if (!showCustomPanel) {
     return (
       <button
-        onClick={() => setShowCustomPanel(true)}
+        onClick={() => {
+          setShowCustomPanel(true);
+          setShowHistory(false);
+          setShowSettings(false);
+        }}
         className="w-full mt-6 mb-6 px-6 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-3"
         aria-label="自訂句子 Custom Sentence"
       >
@@ -196,19 +204,6 @@ export default function CustomSentencePanel({
                 />
               </button>
             ))}
-            {/* Measure Word Button */}
-            <button
-              onClick={() => setShowMeasureWord(true)}
-              className="px-4 py-4 bg-purple-200 text-purple-700 rounded-xl font-bold text-lg border-2 border-purple-500 hover:bg-purple-500 hover:text-white hover:scale-110 transition-all duration-300 shadow-md flex flex-col items-center gap-2"
-            >
-              <span className="text-3xl">🔢</span>
-              <BilingualText
-                zh="量詞"
-                en="Measure"
-                className="items-center text-center"
-                enClassName="text-base"
-              />
-            </button>
           </div>
         </div>
       )}

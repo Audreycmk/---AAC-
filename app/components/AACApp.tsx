@@ -899,6 +899,7 @@ export default function AACApp() {
   }, [favorites]);
 
   const resolveEnglishText = (text: string) => {
+    const availableStarters = [...SENTENCE_STARTERS, ...ADDITIONAL_STARTERS];
     const customMatch = customPhrases.find((phrase) => phrase.text === text);
     if (customMatch?.en) {
       return customMatch.en;
@@ -906,7 +907,7 @@ export default function AACApp() {
     if (PHRASE_TRANSLATIONS[text]) {
       return PHRASE_TRANSLATIONS[text];
     }
-    const starterMatch = SENTENCE_STARTERS.find((starter) => text.startsWith(starter.text));
+    const starterMatch = availableStarters.find((starter) => text.startsWith(starter.text));
     if (!starterMatch) {
       return '';
     }
@@ -957,7 +958,15 @@ export default function AACApp() {
       {/* 頂部工具列 */}
       <div className="fixed top-0 left-0 right-0 bg-[#1e3a5f] text-white shadow-lg z-50 px-4 py-3 flex items-center justify-between">
         <button
-          onClick={() => setMenuOpen(!menuOpen)}
+          onClick={() => {
+            const nextMenuOpen = !menuOpen;
+            setMenuOpen(nextMenuOpen);
+            if (nextMenuOpen) {
+              setShowCustomPanel(false);
+              setShowSettings(false);
+              setShowHistory(false);
+            }
+          }}
           className="p-3 bg-[#f97316] rounded-xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 transform min-h-[60px] min-w-[60px] flex items-center justify-center"
           aria-label="選單 Menu"
         >
@@ -976,7 +985,14 @@ export default function AACApp() {
 
         <div className="flex gap-2">
           <button
-            onClick={() => setShowHistory(!showHistory)}
+            onClick={() => {
+              const nextShowHistory = !showHistory;
+              setShowHistory(nextShowHistory);
+              if (nextShowHistory) {
+                setShowSettings(false);
+                setShowCustomPanel(false);
+              }
+            }}
             className="p-3 bg-[#f97316] rounded-xl shadow-lg hover:bg-[#ea580c] hover:scale-110 active:scale-95 transition-all duration-300 min-h-[60px] min-w-[60px] flex items-center justify-center"
             aria-label="歷史記錄 History"
           >
@@ -984,7 +1000,14 @@ export default function AACApp() {
           </button>
 
           <button
-            onClick={() => setShowSettings(!showSettings)}
+            onClick={() => {
+              const nextShowSettings = !showSettings;
+              setShowSettings(nextShowSettings);
+              if (nextShowSettings) {
+                setShowHistory(false);
+                setShowCustomPanel(false);
+              }
+            }}
             className="p-3 bg-[#f97316] rounded-xl shadow-lg hover:bg-[#ea580c] hover:scale-110 active:scale-95 transition-all duration-300 min-h-[60px] min-w-[60px] flex items-center justify-center"
             aria-label="設定 Settings"
           >
@@ -1143,6 +1166,8 @@ export default function AACApp() {
           <CustomSentencePanel
             showCustomPanel={showCustomPanel}
             setShowCustomPanel={setShowCustomPanel}
+            setShowHistory={setShowHistory}
+            setShowSettings={setShowSettings}
             customText={customText}
             setCustomText={setCustomText}
             customEnglish={customEnglish}
