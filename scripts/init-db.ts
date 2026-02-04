@@ -1,4 +1,4 @@
-import { getDb, SCHEMA, MIGRATION_DATA } from './lib/db';
+import { getDb, SCHEMA, MIGRATION_DATA } from '../lib/db';
 
 async function initializeDatabase() {
   try {
