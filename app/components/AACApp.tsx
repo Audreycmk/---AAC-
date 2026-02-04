@@ -432,8 +432,10 @@ export default function AACApp() {
   // ========== UTILITY FUNCTIONS ==========
   const getUniqueCategories = () => {
     if (hasFullAccess()) {
-      // Show all categories when logged in
-      return Object.keys(CATEGORY_ICONS).filter(cat => cat !== '全部');
+      // Show all categories when logged in, including custom categories
+      const standardCategories = Object.keys(CATEGORY_ICONS).filter(cat => cat !== '全部');
+      const customCategories = Object.keys(customCategoryNames);
+      return [...new Set([...standardCategories, ...customCategories])];
     }
     // Show limited categories when not logged in
     return [...DISPLAY_CATEGORIES];
@@ -674,6 +676,8 @@ export default function AACApp() {
         id: result.userData?.id
       };
       setUser(userWithId);
+      // Save to localStorage for session persistence
+      localStorage.setItem('aac-user-session', JSON.stringify(userWithId));
       
       setShowLoginCodeModal(false);
       setShowLoginModal(false);
@@ -704,8 +708,12 @@ export default function AACApp() {
   };
 
   const handleLogout = () => {
-    setUser(null);
-    // Don't reset customizations - they're saved in database and will reload on next login
+    if (window.confirm('確定要登出嗎？\nAre you sure you want to log out?')) {
+      setUser(null);
+      // Clear user session from localStorage
+      localStorage.removeItem('aac-user-session');
+      // Don't reset customizations - they're saved in database and will reload on next login
+    }
   };
 
   // Sync customizations to database
@@ -773,19 +781,47 @@ export default function AACApp() {
       icon: addVocabInput.icon,
     };
 
+    const updatedCustomCategoryIcons = addVocabInput.newCategory && !addVocabInput.category
+      ? { ...customCategoryIcons, [category]: newCategoryEmoji }
+      : customCategoryIcons;
+    
+    const updatedCustomCategoryNames = addVocabInput.newCategory && !addVocabInput.category
+      ? { ...customCategoryNames, [category]: { zh: category, en: category } }
+      : customCategoryNames;
+
     if (addVocabInput.newCategory && !addVocabInput.category) {
-      setCustomCategoryIcons((prev) => ({ ...prev, [category]: newCategoryEmoji }));
-      // Add custom category name so it shows in side menu
-      setCustomCategoryNames((prev) => ({
-        ...prev,
-        [category]: { zh: category, en: category }
-      }));
+      setCustomCategoryIcons(updatedCustomCategoryIcons);
+      setCustomCategoryNames(updatedCustomCategoryNames);
     }
 
-    setCustomPhrases((prev) => [...prev, newPhrase]);
+    const updatedCustomPhrases = [...customPhrases, newPhrase];
+    setCustomPhrases(updatedCustomPhrases);
     setLastAddedWord(addVocabInput.text);
     setVocabSuccess(true);
     setVocabError('');
+
+    // Save to localStorage immediately as backup
+    const customizationsBackup = {
+      favorites,
+      customPhrases: updatedCustomPhrases,
+      customCategoryIcons: updatedCustomCategoryIcons,
+      customCategoryNames: updatedCustomCategoryNames,
+    };
+    localStorage.setItem('aac-customizations-backup', JSON.stringify(customizationsBackup));
+
+    // Immediately sync to database with updated values to ensure data persists on refresh
+    if (user?.id) {
+      try {
+        await fetch(`/api/users/${user.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customizations: customizationsBackup }),
+        });
+        console.log('Customizations synced immediately after adding vocab');
+      } catch (error) {
+        console.error('Failed to sync customizations:', error);
+      }
+    }
 
     setTimeout(() => {
       resetAddVocabForm();
@@ -985,6 +1021,67 @@ export default function AACApp() {
     }
 
     loadUsersFromAPI();
+
+    // Restore user session from localStorage
+    const savedUserSession = localStorage.getItem('aac-user-session');
+    if (savedUserSession) {
+      try {
+        const userData = JSON.parse(savedUserSession);
+        // Load user customizations from database before setting user to prevent flash
+        if (userData.id) {
+          fetch(`/api/users/${userData.id}`)
+            .then(res => res.json())
+            .then(result => {
+              if (result.customizations) {
+                setFavorites(result.customizations.favorites || ['個人物品', '家居用品', '水果', '地方']);
+                setCustomPhrases(result.customizations.customPhrases || []);
+                setCustomCategoryIcons(result.customizations.customCategoryIcons || {});
+                setCustomCategoryNames(result.customizations.customCategoryNames || {});
+              } else if (!result.customizations) {
+                // If database doesn't have customizations, try localStorage backup
+                const backupCustomizations = localStorage.getItem('aac-customizations-backup');
+                if (backupCustomizations) {
+                  try {
+                    const backup = JSON.parse(backupCustomizations);
+                    setFavorites(backup.favorites || ['個人物品', '家居用品', '水果', '地方']);
+                    setCustomPhrases(backup.customPhrases || []);
+                    setCustomCategoryIcons(backup.customCategoryIcons || {});
+                    setCustomCategoryNames(backup.customCategoryNames || {});
+                  } catch (e) {
+                    console.error('Error parsing backup customizations:', e);
+                  }
+                }
+              }
+              // Set user AFTER customizations are loaded
+              setUser(userData);
+            })
+            .catch(err => {
+              console.error('Error loading user customizations:', err);
+              // Try localStorage backup on error
+              const backupCustomizations = localStorage.getItem('aac-customizations-backup');
+              if (backupCustomizations) {
+                try {
+                  const backup = JSON.parse(backupCustomizations);
+                  setFavorites(backup.favorites || ['個人物品', '家居用品', '水果', '地方']);
+                  setCustomPhrases(backup.customPhrases || []);
+                  setCustomCategoryIcons(backup.customCategoryIcons || {});
+                  setCustomCategoryNames(backup.customCategoryNames || {});
+                } catch (e) {
+                  console.error('Error parsing backup customizations:', e);
+                }
+              }
+              // Still set user even if customizations fail to load
+              setUser(userData);
+            });
+        } else {
+          // No user id, just set user
+          setUser(userData);
+        }
+      } catch (error) {
+        console.error('Error restoring user session:', error);
+        localStorage.removeItem('aac-user-session');
+      }
+    }
 
     // Load device-specific settings only (not user-specific data)
     const savedHistory = localStorage.getItem('aac-history');
@@ -1258,7 +1355,7 @@ export default function AACApp() {
     return '';
   };
 
-  const allPhrases = [...PHRASES, ...customPhrases].filter((p) => DISPLAY_CATEGORIES.includes(p.category as typeof DISPLAY_CATEGORIES[number]));
+  const allPhrases = [...PHRASES, ...customPhrases];
 
   const displayPhrases = allPhrases;
 
@@ -1486,6 +1583,8 @@ export default function AACApp() {
             getUniqueCategories={getUniqueCategories}
             CATEGORY_LABELS={CATEGORY_LABELS}
             COMMON_EMOJIS={COMMON_EMOJIS}
+            newCategoryEmoji={newCategoryEmoji}
+            setNewCategoryEmoji={setNewCategoryEmoji}
           />
 
           {/* Custom Sentence Panel Component */}

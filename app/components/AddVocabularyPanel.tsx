@@ -24,6 +24,8 @@ interface AddVocabularyPanelProps {
   getUniqueCategories: () => string[];
   CATEGORY_LABELS: Record<string, string>;
   COMMON_EMOJIS: string[];
+  newCategoryEmoji: string;
+  setNewCategoryEmoji: (emoji: string) => void;
 }
 
 const BilingualText = ({
@@ -58,10 +60,11 @@ export default function AddVocabularyPanel({
   getUniqueCategories,
   CATEGORY_LABELS,
   COMMON_EMOJIS,
+  newCategoryEmoji,
+  setNewCategoryEmoji,
 }: AddVocabularyPanelProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showCreateCategory, setShowCreateCategory] = useState(false);
-  const [newCategoryEmoji, setNewCategoryEmoji] = useState('📁');
   const [showCategoryEmojiPicker, setShowCategoryEmojiPicker] = useState(false);
 
   if (!showAddVocab) return null;
@@ -98,12 +101,15 @@ export default function AddVocabularyPanel({
         <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 border-4 border-[#f97316] relative">
           {/* Success Message Overlay */}
           {vocabSuccess && (
-            <div className="absolute inset-0 z-50 bg-green-500 rounded-2xl flex items-center justify-center p-8 animate-fadeIn">
-              <div className="text-center max-w-[60%] max-h-[60%] overflow-auto">
-                <div className="text-4xl sm:text-5xl mb-3">✅</div>
-                <div className="text-2xl sm:text-3xl font-bold text-white mb-2 break-words">{lastAddedWord}</div>
-                <div className="text-lg sm:text-xl font-bold text-white mb-1">詞語已加入！</div>
-                <div className="text-base sm:text-lg font-semibold text-green-100">Word added successfully!</div>
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
+              <div className="relative bg-green-500 rounded-2xl shadow-2xl p-8 max-w-md mx-4 border-4 border-green-600 animate-fadeIn">
+                <div className="text-center">
+                  <div className="text-4xl sm:text-5xl mb-3">✅</div>
+                  <div className="text-3xl font-bold text-white mb-2 break-words">{lastAddedWord}</div>
+                  <div className="text-xl font-bold text-white mb-1">詞語已加入！</div>
+                  <div className="text-lg font-semibold text-green-100">Word added successfully!</div>
+                </div>
               </div>
             </div>
           )}
