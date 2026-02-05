@@ -118,6 +118,40 @@ const PHRASES = [
   { id: 81, text: '寸', en: 'inch', category: '量詞', icon: '📏' },
   { id: 82, text: '磅', en: 'pound', category: '量詞', icon: '⚖️' },
   { id: 83, text: '厘米', en: 'cm', category: '量詞', icon: '📐' },
+
+  // 國家
+  { id: 84, text: '香港', en: 'Hong Kong', category: '國家', icon: '/hk.jpg' },
+  { id: 85, text: '中國', en: 'China', category: '國家', icon: '/china.jpg' },
+  { id: 86, text: '台灣', en: 'Taiwan', category: '國家', icon: '/tw.jpg' },
+  { id: 87, text: '韓國', en: 'Korea', category: '國家', icon: '/korea.jpg' },
+  { id: 88, text: '日本', en: 'Japan', category: '國家', icon: '/japan.jpg' },
+  { id: 89, text: '歐美', en: 'Western', category: '國家', icon: '/foreign.jpg' },
+
+  // 茶餐廳
+  { id: 90, text: '蛋撻', en: 'Egg tart', category: '茶餐廳', icon: '/eggtart.jpg' },
+  { id: 91, text: '菠蘿油', en: 'Pineapple bun with butter', category: '茶餐廳', icon: '/pineapplebutter.jpg' },
+  { id: 92, text: '奶茶', en: 'Milk tea', category: '茶餐廳', icon: '/milktea.jpg' },
+  { id: 93, text: '檸茶', en: 'Lemon tea', category: '茶餐廳', icon: '/lemontea.jpg' },
+  { id: 94, text: '西多士', en: 'French toast', category: '茶餐廳', icon: '/frenchtoast.jpg' },
+  { id: 95, text: '雞髀', en: 'Chicken thigh', category: '茶餐廳', icon: '/chicken.jpg' },
+  { id: 96, text: '紅豆冰', en: 'Red bean ice', category: '茶餐廳', icon: '/redbeanice.jpg' },
+  { id: 97, text: '雪菜肉絲米粉', en: 'Shredded Pork & Pickled Vegetable Rice Noodle Soup', category: '茶餐廳', icon: '/noodles.jpg' },
+
+  // 電視節目
+  { id: 98, text: '東張西望', en: 'Scoop', category: '電視節目', icon: '/eastwest.jpg' },
+  { id: 99, text: 'viuTV', en: '', category: '電視節目', icon: '/viutv.jpg' },
+  { id: 100, text: 'TVB', en: '', category: '電視節目', icon: '/tvb.jpg' },
+  { id: 101, text: '82台', en: 'Channel 82', category: '電視節目', icon: '/82.jpg' },
+  { id: 102, text: '99台', en: 'Channel 99', category: '電視節目', icon: '/99.jpg' },
+  { id: 103, text: '喜劇', en: 'Comedy', category: '電視節目', icon: '/comedy.jpg ' },
+  { id: 104, text: '綜藝', en: 'Variety show', category: '電視節目', icon: '/varietyshow.jpg' },
+  { id: 105, text: '偶像劇', en: 'Drama', category: '電視節目', icon: '/drama.jpg' },
+  { id: 106, text: '電影', en: 'Movie', category: '電視節目', icon: '/movie.jpg' },
+  { id: 107, text: '新聞', en: 'News', category: '電視節目', icon: '/news.jpg' },
+  { id: 108, text: '記錄片', en: 'Documentary', category: '電視節目', icon: '/documentary.jpg' },
+  { id: 109, text: '飲食節目', en: 'Food show', category: '電視節目', icon: '/foodie.jpg' },
+  { id: 110, text: '音樂節目', en: 'Music show', category: '電視節目', icon: '/music.jpg' },
+  { id: 111, text: '動畫', en: 'Cartoon', category: '電視節目', icon: '/cartoon.jpg' },
 ];
 // 分類圖示映射（新配色主題）
 const CATEGORY_ICONS: Record<string, string> = {
@@ -132,6 +166,9 @@ const CATEGORY_ICONS: Record<string, string> = {
   '水果': '🍎',
   '地方': '📍',
   '量詞': '🔢',
+  '國家': '🌍',
+  '茶餐廳': '☕',
+  '電視節目': '📺',
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -146,6 +183,9 @@ const CATEGORY_LABELS: Record<string, string> = {
   '水果': 'Fruits',
   '地方': 'Places',
   '量詞': 'Numbers',
+  '國家': 'Countries',
+  '茶餐廳': 'Cha Chaan Teng',
+  '電視節目': 'TV Programs',
 };
 
 const DISPLAY_CATEGORIES = ['個人物品', '家居用品', '量詞', '水果', '地方'] as const;

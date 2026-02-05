@@ -1,0 +1,32 @@
+{
+  "香港": {
+    "name": "Hong Kong",
+    "en": "Hong Kong",
+    "image": "/countries/hk.jpg"
+  },
+  "中國": {
+    "name": "China",
+    "en": "China",
+    "image": "/countries/china.jpg"
+  },
+  "台灣": {
+    "name": "Taiwan",
+    "en": "Taiwan",
+    "image": "/countries/taiwan.jpg"
+  },
+  "韓國": {
+    "name": "South Korea",
+    "en": "South Korea",
+    "image": "/countries/korea.jpg"
+  },
+  "日本": {
+    "name": "Japan",
+    "en": "Japan",
+    "image": "/countries/japan.jpg"
+  },
+  "歐美": {
+    "name": "Western (Europe & Americas)",
+    "en": "Western Countries",
+    "image": "/countries/western.jpg"
+  }
+}

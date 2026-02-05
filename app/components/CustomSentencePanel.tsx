@@ -20,7 +20,7 @@ interface CustomSentencePanelProps {
   isBasicStarter: (text: string) => boolean;
   handleStarterClick: (text: string) => void;
   handleSuggestionClick: (word: { text: string; en: string; icon: string }) => void;
-  handleCustomSpeak: (englishOverride?: string) => void;
+  handleCustomSpeak: (englishOverride?: string, forceCustomText?: boolean) => void;
   speak: (text: string, rate?: number) => void;
   isLoading: boolean;
   showVocabSelector: boolean;

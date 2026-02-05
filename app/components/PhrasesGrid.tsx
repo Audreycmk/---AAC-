@@ -130,7 +130,7 @@ export default function PhrasesGrid({
             {/* Custom images for btc2026 user */}
             {user?.loginCode === 'btc2026' && BTC2026_IMAGE_MAP[phrase.id] ? (
               <img src={BTC2026_IMAGE_MAP[phrase.id]} alt={phrase.text} className="max-w-[90%] max-h-[120px] object-contain" />
-            ) : phrase.icon && typeof phrase.icon === 'string' && (phrase.icon.startsWith('data:image') || phrase.icon.startsWith('http')) ? (
+            ) : phrase.icon && typeof phrase.icon === 'string' && (phrase.icon.startsWith('data:image') || phrase.icon.startsWith('http') || phrase.icon.startsWith('/')) ? (
               <img src={phrase.icon} alt={phrase.text} className="max-w-[90%] max-h-[120px] object-contain" style={{ display: 'inline-block' }} />
             ) : (
               <Icon emoji={phrase.icon || '📝'} size={96} />
