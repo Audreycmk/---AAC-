@@ -9,6 +9,11 @@ interface LoginModalsProps {
   setLoginCode: (code: string) => void;
   loginUserEmail: string;
   setLoginUserEmail: (email: string) => void;
+  verificationCode: string;
+  setVerificationCode: (code: string) => void;
+  isCodeSent: boolean;
+  isSendingCode: boolean;
+  handleSendVerificationCode: () => void;
   handleLoginCode: () => void;
   showLoginModal: boolean;
   setShowLoginModal: (show: boolean) => void;
@@ -26,6 +31,11 @@ export default function LoginModals({
   setLoginCode,
   loginUserEmail,
   setLoginUserEmail,
+  verificationCode,
+  setVerificationCode,
+  isCodeSent,
+  isSendingCode,
+  handleSendVerificationCode,
   handleLoginCode,
   showLoginModal,
   setShowLoginModal,
@@ -57,14 +67,37 @@ export default function LoginModals({
               
               {/* Email input - not required if login code is "admin" */}
               {loginCode.toLowerCase() !== 'admin' && (
-                <input
-                  type="email"
-                  placeholder="電子郵件 (Email) *"
-                  value={loginUserEmail}
-                  onChange={(e) => setLoginUserEmail(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-[#1e3a5f] rounded-xl font-bold text-lg bg-white text-[#1e3a5f] outline-none focus:border-[#f97316] focus:bg-yellow-50"
-                  required
-                />
+                <>
+                  <input
+                    type="email"
+                    placeholder="電子郵件 (Email) *"
+                    value={loginUserEmail}
+                    onChange={(e) => setLoginUserEmail(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-[#1e3a5f] rounded-xl font-bold text-lg bg-white text-[#1e3a5f] outline-none focus:border-[#f97316] focus:bg-yellow-50"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSendVerificationCode}
+                    disabled={!loginCode || !loginUserEmail || isSendingCode}
+                    className="w-full px-4 py-3 bg-[#2563eb] text-white rounded-xl font-bold hover:bg-[#1d4ed8] transition-all duration-300 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    <Icon emoji="📨" size={22} />
+                    <span>{isSendingCode ? '寄送中... / Sending...' : '寄出驗證碼 / Send Code'}</span>
+                  </button>
+                  <input
+                    type="text"
+                    placeholder="驗證碼 (Verification Code)"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-[#1e3a5f] rounded-xl font-bold text-lg bg-white text-[#1e3a5f] outline-none focus:border-[#f97316] focus:bg-yellow-50"
+                  />
+                  {isCodeSent && (
+                    <p className="text-xs text-green-700 font-semibold text-center">
+                      驗證碼已寄出 / Code sent
+                    </p>
+                  )}
+                </>
               )}
 
               {/* Get Login Code Button */}

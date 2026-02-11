@@ -1,7 +1,1 @@
-{
-  "/_not-found/page": "app/_not-found/page.js",
-  "/api/users/route": "app/api/users/route.js",
-  "/api/users/[id]/route": "app/api/users/[id]/route.js",
-  "/api/login-history/route": "app/api/login-history/route.js",
-  "/page": "app/page.js"
-}
+{}

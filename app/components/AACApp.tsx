@@ -382,6 +382,9 @@ export default function AACApp() {
   const [showLoginCodeModal, setShowLoginCodeModal] = useState(false);
   const [loginCode, setLoginCode] = useState('');
   const [loginUserEmail, setLoginUserEmail] = useState(''); // Email for regular user login
+  const [verificationCode, setVerificationCode] = useState('');
+  const [isCodeSent, setIsCodeSent] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -666,30 +669,53 @@ export default function AACApp() {
       setShowLoginCodeModal(false);
       setLoginCode('');
       setLoginUserEmail('');
+      setVerificationCode('');
+      setIsCodeSent(false);
+      setIsSendingCode(false);
       setShowLoginModal(true);
       return;
     }
-    // For non-admin codes, email is required
+    // Email and verification code are always required for user login
     if (!loginUserEmail) {
       alert('請輸入電子郵件 / Please enter email');
       return;
     }
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(loginUserEmail)) {
       alert('請輸入有效的電子郵件格式 / Please enter a valid email format');
       return;
     }
-    verifyUserLogin('user', loginCode, undefined, loginUserEmail);
+    if (!verificationCode) {
+      alert('請輸入驗證碼 / Please enter verification code');
+      return;
+    }
+    if (!isCodeSent) {
+      alert('請先取得驗證碼 / Please request a verification code first');
+      return;
+    }
+    verifyUserLogin('user', loginCode, undefined, loginUserEmail, verificationCode);
   };
 
-  const verifyUserLogin = async (role: 'admin' | 'user', loginData: string, password?: string, userEmail?: string) => {
+  const verifyUserLogin = async (
+    role: 'admin' | 'user',
+    loginData: string,
+    password?: string,
+    userEmail?: string,
+    emailVerificationCode?: string
+  ) => {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(
-          role === 'admin' ? { email: loginData, password, role } : { loginCode: loginData, role, userEmail }
+          role === 'admin'
+            ? { email: loginData, password, role }
+            : {
+                loginCode: loginData,
+                role,
+                userEmail,
+                verificationCode: emailVerificationCode,
+              }
         ),
       });
 
@@ -724,6 +750,9 @@ export default function AACApp() {
       setShowLoginModal(false);
       setLoginCode('');
       setLoginUserEmail('');
+      setVerificationCode('');
+      setIsCodeSent(false);
+      setIsSendingCode(false);
       setLoginEmail('');
       setLoginPassword('');
       
@@ -747,6 +776,69 @@ export default function AACApp() {
     }
     verifyUserLogin('admin', loginEmail, loginPassword);
   };
+
+  const handleLoginCodeChange = (code: string) => {
+    setLoginCode(code);
+    setVerificationCode('');
+    setIsCodeSent(false);
+  };
+
+  const handleLoginUserEmailChange = (email: string) => {
+    setLoginUserEmail(email);
+    setVerificationCode('');
+    setIsCodeSent(false);
+  };
+
+  const handleSendVerificationCode = async () => {
+    if (!loginCode) {
+      alert('請輸入登入碼 / Please enter login code');
+      return;
+    }
+    if (loginCode.toLowerCase() === 'admin') {
+      alert('管理員登入不需要驗證碼 / Admin login does not require a verification code');
+      return;
+    }
+    if (!loginUserEmail) {
+      alert('請輸入電子郵件 / Please enter email');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(loginUserEmail)) {
+      alert('請輸入有效的電子郵件格式 / Please enter a valid email format');
+      return;
+    }
+
+    try {
+      setIsSendingCode(true);
+      const response = await fetch('/api/auth/send-verification-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginUserEmail, loginCode }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        alert(result.error || 'Failed to send verification code');
+        return;
+      }
+
+      setIsCodeSent(true);
+      alert('驗證碼已寄出 / Verification code sent');
+    } catch (error) {
+      console.error('Send verification code error:', error);
+      alert('無法寄出驗證碼 / Failed to send verification code');
+    } finally {
+      setIsSendingCode(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!showLoginCodeModal) {
+      setVerificationCode('');
+      setIsCodeSent(false);
+      setIsSendingCode(false);
+    }
+  }, [showLoginCodeModal]);
 
   const handleLogout = () => {
     if (window.confirm('確定要登出嗎？\nAre you sure you want to log out?')) {
@@ -1559,9 +1651,14 @@ export default function AACApp() {
         showLoginCodeModal={showLoginCodeModal}
         setShowLoginCodeModal={setShowLoginCodeModal}
         loginCode={loginCode}
-        setLoginCode={setLoginCode}
+        setLoginCode={handleLoginCodeChange}
         loginUserEmail={loginUserEmail}
-        setLoginUserEmail={setLoginUserEmail}
+        setLoginUserEmail={handleLoginUserEmailChange}
+        verificationCode={verificationCode}
+        setVerificationCode={setVerificationCode}
+        isCodeSent={isCodeSent}
+        isSendingCode={isSendingCode}
+        handleSendVerificationCode={handleSendVerificationCode}
         handleLoginCode={handleLoginCode}
         showLoginModal={showLoginModal}
         setShowLoginModal={setShowLoginModal}
