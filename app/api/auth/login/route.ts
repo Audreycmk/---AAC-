@@ -34,12 +34,18 @@ export async function POST(request: NextRequest) {
 
         const validRecord = getValidEmailVerificationCode(userEmail, loginCode);
         if (!validRecord || validRecord.code !== verificationCode) {
-          return NextResponse.json({ error: 'Invalid or expired verification code' }, { status: 401 });
+          return NextResponse.json(
+            // { error: 'Invalid or expired verification code' }, 
+             { error: 'Invalid verification code' }, 
+            { status: 401 });
         }
 
         const consumed = consumeEmailVerificationCode(userEmail, loginCode, verificationCode);
         if (!consumed) {
-          return NextResponse.json({ error: 'Invalid or expired verification code' }, { status: 401 });
+          return NextResponse.json(
+            // { error: 'Invalid or expired verification code' }, 
+            { error: 'Cannot consume email verification code' }, 
+            { status: 401 });
         }
 
         return NextResponse.json({
@@ -139,16 +145,18 @@ export async function POST(request: NextRequest) {
 
       if (verificationResult.length === 0) {
         return NextResponse.json(
-          { error: 'Invalid or expired verification code' },
+          // { error: 'Invalid or expired verification code' },
+          { error: 'Verificiation Result Length == 0' },
           { status: 401 }
         );
       }
 
       const latestCode = verificationResult[0];
-      const isExpired = new Date(latestCode.expiresAt).getTime() <= Date.now();
+      const isExpired = new Date(latestCode.expiresAt + "Z").getTime() <= Date.now();
       if (latestCode.code !== verificationCode || isExpired) {
+        console.log('Invalid or expired code. Provided:', verificationCode, 'Expected:', latestCode.code, 'Expired:', isExpired, 'ExpiresAt:', new Date(latestCode.expiresAt).getTime(), 'CurrentTime:', Date.now());
         return NextResponse.json(
-          { error: 'Invalid or expired verification code' },
+          { error: 'Expired verification code' },
           { status: 401 }
         );
       }
