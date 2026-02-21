@@ -469,9 +469,17 @@ export default function AACApp() {
   const [customCategoryNames, setCustomCategoryNames] = useState<Record<string, { zh: string; en: string }>>({});
   const [editCategoriesMode, setEditCategoriesMode] = useState(false);
   const [editingCategoryName, setEditingCategoryName] = useState<Record<string, { zh: string; en: string }>>({});
+  const [categoryOrder, setCategoryOrder] = useState<string[]>([]); // Track category order
+  const [deletedCategories, setDeletedCategories] = useState<string[]>([]); // Track deleted categories
+  const [deleteConfirmCategory, setDeleteConfirmCategory] = useState<string | null>(null);
+  const [editingCategoryIcon, setEditingCategoryIcon] = useState<Record<string, boolean>>({}); // Track which category is editing icon
+  const [editingCategoryText, setEditingCategoryText] = useState<Record<string, boolean>>({}); // Track which category is editing text
 
   // Measure Word States
   const [showMeasureWord, setShowMeasureWord] = useState(false);
+
+  // Vocab Container Size State
+  const [vocabContainerSize, setVocabContainerSize] = useState(1.0); // Scale factor for vocab containers
 
   // Edit Mode States
   const [editVocabMode, setEditVocabMode] = useState(false);
@@ -485,10 +493,35 @@ export default function AACApp() {
       // Show all categories when logged in, including custom categories
       const standardCategories = Object.keys(CATEGORY_ICONS).filter(cat => cat !== '全部');
       const customCategories = Object.keys(customCategoryNames);
-      return [...new Set([...standardCategories, ...customCategories])];
+      let allCategories = [...new Set([...standardCategories, ...customCategories])];
+      
+      // Filter out deleted categories
+      allCategories = allCategories.filter(cat => !deletedCategories.includes(cat));
+      
+      // Apply custom ordering if available
+      if (categoryOrder.length > 0) {
+        const ordered: string[] = [];
+        const unordered: string[] = [];
+        
+        categoryOrder.forEach(cat => {
+          if (allCategories.includes(cat)) {
+            ordered.push(cat);
+          }
+        });
+        
+        allCategories.forEach(cat => {
+          if (!categoryOrder.includes(cat)) {
+            unordered.push(cat);
+          }
+        });
+        
+        return [...ordered, ...unordered];
+      }
+      
+      return allCategories;
     }
     // Show limited categories when not logged in
-    return [...DISPLAY_CATEGORIES];
+    return [...DISPLAY_CATEGORIES].filter(cat => !deletedCategories.includes(cat));
   };
 
   const getTrialStatus = (u: any) => {
@@ -743,6 +776,8 @@ export default function AACApp() {
         setCustomCategoryNames(customizations.customCategoryNames || {});
         setPhraseOrder(customizations.phraseOrder || {});
         setDeletedPhraseIds(customizations.deletedPhraseIds || []);
+        setCategoryOrder(customizations.categoryOrder || []);
+        setDeletedCategories(customizations.deletedCategories || []);
       }
       
       // Store user with id for future database updates
@@ -949,6 +984,8 @@ export default function AACApp() {
       customCategoryNames: updatedCustomCategoryNames,
       phraseOrder,
       deletedPhraseIds,
+      categoryOrder,
+      deletedCategories,
     };
     try {
       localStorage.setItem('aac-customizations-backup', JSON.stringify(customizationsBackup));
@@ -1030,6 +1067,8 @@ export default function AACApp() {
       customCategoryNames,
       phraseOrder,
       deletedPhraseIds: updatedDeletedIds,
+      categoryOrder,
+      deletedCategories,
     };
     try {
       localStorage.setItem('aac-customizations-backup', JSON.stringify(customizationsBackup));
@@ -1052,6 +1091,157 @@ export default function AACApp() {
     }
 
     setDeleteConfirmPhrase(null);
+  };
+
+  // Handle reordering categories
+  const handleReorderCategories = (newOrder: string[]) => {
+    setCategoryOrder(newOrder);
+  };
+
+  // Handle deleting a category
+  const handleDeleteCategory = async (category: string) => {
+    // Don't allow deleting certain essential categories
+    if (category === '全部' || category === '量詞') {
+      alert('無法刪除此分類 / Cannot delete this category');
+      return;
+    }
+
+    const updatedDeletedCategories = [...deletedCategories, category];
+    setDeletedCategories(updatedDeletedCategories);
+
+    // Remove from favorites if it's there
+    const updatedFavorites = favorites.filter(fav => fav !== category);
+    setFavorites(updatedFavorites);
+
+    // Remove from category order
+    const updatedCategoryOrder = categoryOrder.filter(cat => cat !== category);
+    setCategoryOrder(updatedCategoryOrder);
+
+    // If it's a custom category, remove custom icon and name
+    const updatedCustomCategoryIcons = { ...customCategoryIcons };
+    const updatedCustomCategoryNames = { ...customCategoryNames };
+    delete updatedCustomCategoryIcons[category];
+    delete updatedCustomCategoryNames[category];
+    setCustomCategoryIcons(updatedCustomCategoryIcons);
+    setCustomCategoryNames(updatedCustomCategoryNames);
+
+    // Save to localStorage
+    const customizationsBackup = {
+      favorites: updatedFavorites,
+      customPhrases,
+      customCategoryIcons: updatedCustomCategoryIcons,
+      customCategoryNames: updatedCustomCategoryNames,
+      phraseOrder,
+      deletedPhraseIds,
+      categoryOrder: updatedCategoryOrder,
+      deletedCategories: updatedDeletedCategories,
+    };
+    try {
+      localStorage.setItem('aac-customizations-backup', JSON.stringify(customizationsBackup));
+    } catch (error) {
+      console.warn('Failed to save to localStorage (quota exceeded):', error);
+    }
+
+    // Sync to database
+    if (user?.id) {
+      try {
+        await fetch(`/api/users/${user.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customizations: customizationsBackup }),
+        });
+      } catch (error) {
+        console.error('Failed to sync customizations:', error);
+      }
+    }
+
+    setDeleteConfirmCategory(null);
+    
+    // If deleted category was selected, switch to first available category
+    if (selectedCategory === category) {
+      const availableCategories = getUniqueCategories();
+      if (availableCategories.length > 0) {
+        setSelectedCategory(availableCategories[0]);
+      }
+    }
+  };
+
+  // Handle updating category icon
+  const handleUpdateCategoryIcon = async (category: string, icon: string) => {
+    const updatedCustomCategoryIcons = {
+      ...customCategoryIcons,
+      [category]: icon,
+    };
+    setCustomCategoryIcons(updatedCustomCategoryIcons);
+    setEditingCategoryIcon(prev => ({ ...prev, [category]: false }));
+
+    // Save to localStorage
+    const customizationsBackup = {
+      favorites,
+      customPhrases,
+      customCategoryIcons: updatedCustomCategoryIcons,
+      customCategoryNames,
+      phraseOrder,
+      deletedPhraseIds,
+      deletedCategories,
+    };
+    try {
+      localStorage.setItem('aac-customizations-backup', JSON.stringify(customizationsBackup));
+    } catch (error) {
+      console.warn('Failed to save to localStorage (quota exceeded):', error);
+    }
+
+    // Sync to database
+    if (user?.id) {
+      try {
+        await fetch(`/api/users/${user.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customizations: customizationsBackup }),
+        });
+      } catch (error) {
+        console.error('Failed to sync customizations:', error);
+      }
+    }
+  };
+
+  // Handle updating category name
+  const handleUpdateCategoryName = async (category: string, zh: string, en: string) => {
+    const updatedCustomCategoryNames = {
+      ...customCategoryNames,
+      [category]: { zh, en },
+    };
+    setCustomCategoryNames(updatedCustomCategoryNames);
+    setEditingCategoryText(prev => ({ ...prev, [category]: false }));
+
+    // Save to localStorage
+    const customizationsBackup = {
+      favorites,
+      customPhrases,
+      customCategoryIcons,
+      customCategoryNames: updatedCustomCategoryNames,
+      phraseOrder,
+      deletedPhraseIds,
+      deletedCategories,
+    };
+    try {
+      localStorage.setItem('aac-customizations-backup', JSON.stringify(customizationsBackup));
+    } catch (error) {
+      console.warn('Failed to save to localStorage (quota exceeded):', error);
+    }
+
+    // Sync to database
+    if (user?.id) {
+      try {
+        await fetch(`/api/users/${user.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customizations: customizationsBackup }),
+        });
+      } catch (error) {
+        console.error('Failed to sync customizations:', error);
+      }
+    }
   };
 
   const addUser = async () => {
@@ -1274,6 +1464,8 @@ export default function AACApp() {
                     setCustomCategoryNames(backup.customCategoryNames || {});
                     setPhraseOrder(backup.phraseOrder || {});
                     setDeletedPhraseIds(backup.deletedPhraseIds || []);
+                    setCategoryOrder(backup.categoryOrder || []);
+                    setDeletedCategories(backup.deletedCategories || []);
                   } catch (e) {
                     console.error('Error parsing backup customizations:', e);
                   }
@@ -1749,7 +1941,39 @@ export default function AACApp() {
         hasFullAccess={hasFullAccess}
         getUniqueCategories={getUniqueCategories}
         editCategoriesMode={editCategoriesMode}
-        setEditCategoriesMode={setEditCategoriesMode}
+        setEditCategoriesMode={async (mode) => {
+          if (!mode && editCategoriesMode) {
+            // Save category order when exiting edit mode
+            try {
+              const customizationsBackup = {
+                favorites,
+                customPhrases,
+                customCategoryIcons,
+                customCategoryNames,
+                phraseOrder,
+                deletedPhraseIds,
+                categoryOrder,
+                deletedCategories,
+              };
+              try {
+                localStorage.setItem('aac-customizations-backup', JSON.stringify(customizationsBackup));
+              } catch (storageError) {
+                console.warn('Failed to save to localStorage (quota exceeded):', storageError);
+              }
+              
+              if (user?.id) {
+                await fetch(`/api/users/${user.id}`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ customizations: customizationsBackup }),
+                });
+              }
+            } catch (error) {
+              console.error('Failed to save category order:', error);
+            }
+          }
+          setEditCategoriesMode(mode);
+        }}
         editingCategoryName={editingCategoryName}
         setEditingCategoryName={setEditingCategoryName}
         setCustomCategoryNames={setCustomCategoryNames}
@@ -1762,6 +1986,17 @@ export default function AACApp() {
         setShowLoginCodeModal={setShowLoginCodeModal}
         setShowDashboard={setShowDashboard}
         handleLogout={handleLogout}
+        onReorderCategories={handleReorderCategories}
+        onDeleteCategory={(category) => setDeleteConfirmCategory(category)}
+        onUpdateCategoryIcon={handleUpdateCategoryIcon}
+        onUpdateCategoryName={handleUpdateCategoryName}
+        COMMON_EMOJIS={COMMON_EMOJIS}
+        editingCategoryIcon={editingCategoryIcon}
+        setEditingCategoryIcon={setEditingCategoryIcon}
+        editingCategoryText={editingCategoryText}
+        setEditingCategoryText={setEditingCategoryText}
+        deleteConfirmCategory={deleteConfirmCategory}
+        setDeleteConfirmCategory={setDeleteConfirmCategory}
       />
 
       {/* Login Modals Component */}
@@ -1834,6 +2069,8 @@ export default function AACApp() {
         setSpeechRate={setSpeechRate}
         speechVolume={speechVolume}
         setSpeechVolume={setSpeechVolume}
+        vocabContainerSize={vocabContainerSize}
+        setVocabContainerSize={setVocabContainerSize}
       />
 
       {/* Main Content */}
@@ -2149,6 +2386,7 @@ export default function AACApp() {
               onReorder={(newOrder) => handleReorderPhrases(selectedCategory, newOrder)}
               onDeleteClick={(phrase) => setDeleteConfirmPhrase(phrase)}
               customPhrases={customPhrases}
+              vocabContainerSize={vocabContainerSize}
             />
           )}
 
@@ -2167,6 +2405,8 @@ export default function AACApp() {
                         customCategoryNames,
                         phraseOrder,
                         deletedPhraseIds,
+                        categoryOrder,
+                        deletedCategories,
                       };
                       try {
                         localStorage.setItem('aac-customizations-backup', JSON.stringify(customizationsBackup));
@@ -2262,6 +2502,50 @@ export default function AACApp() {
               </button>
               <button
                 onClick={() => handleDeletePhrase(deleteConfirmPhrase.id)}
+                className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-all duration-300"
+              >
+                刪除 / Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Category Delete Confirmation Modal */}
+      {deleteConfirmCategory && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full border-4 border-[#1e3a5f]">
+            <h3 className="text-2xl font-bold text-[#1e3a5f] mb-4 text-center">
+              確認刪除分類 / Confirm Delete Category
+            </h3>
+            <div className="mb-6 text-center">
+              <p className="text-lg text-[#1e3a5f] mb-2">
+                確定要刪除這個分類嗎？
+              </p>
+              <p className="text-sm text-gray-600 mb-2">
+                Are you sure you want to delete this category?
+              </p>
+              <div className="mt-4 p-4 bg-[#f5f5dc] rounded-xl border-2 border-[#1e3a5f]">
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <Icon emoji={customCategoryIcons[deleteConfirmCategory] || CATEGORY_ICONS[deleteConfirmCategory] || '📁'} size={48} />
+                </div>
+                <p className="text-xl font-bold text-[#1e3a5f]">
+                  {customCategoryNames[deleteConfirmCategory]?.zh ?? deleteConfirmCategory}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {customCategoryNames[deleteConfirmCategory]?.en ?? CATEGORY_LABELS[deleteConfirmCategory]}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setDeleteConfirmCategory(null)}
+                className="flex-1 px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold rounded-xl transition-all duration-300"
+              >
+                取消 / Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteCategory(deleteConfirmCategory)}
                 className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-all duration-300"
               >
                 刪除 / Delete

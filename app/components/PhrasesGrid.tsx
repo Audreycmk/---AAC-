@@ -24,6 +24,7 @@ interface PhrasesGridProps {
   onReorder?: (newOrder: number[]) => void;
   onDeleteClick?: (phrase: Phrase) => void;
   customPhrases?: Phrase[];
+  vocabContainerSize?: number;
 }
 
 // Image mapping for btc2026 user
@@ -92,6 +93,7 @@ export default function PhrasesGrid({
   onReorder,
   onDeleteClick,
   customPhrases = [],
+  vocabContainerSize = 1.0,
 }: PhrasesGridProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -137,7 +139,13 @@ export default function PhrasesGrid({
   };
   
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+    <div 
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full"
+      style={{ 
+        transform: `scale(${vocabContainerSize})`, 
+        transformOrigin: 'top center',
+      }}
+    >
       {filteredPhrases.map((phrase, index) => {
         const isDragging = draggedIndex === index;
         const isDragOver = dragOverIndex === index;

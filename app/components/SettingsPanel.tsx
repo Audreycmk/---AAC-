@@ -16,6 +16,8 @@ interface SettingsPanelProps {
   setSpeechRate: (rate: number) => void;
   speechVolume: number;
   setSpeechVolume: (volume: number) => void;
+  vocabContainerSize: number;
+  setVocabContainerSize: (size: number) => void;
 }
 
 const BilingualText = ({
@@ -49,6 +51,8 @@ export default function SettingsPanel({
   setSpeechRate,
   speechVolume,
   setSpeechVolume,
+  vocabContainerSize,
+  setVocabContainerSize,
 }: SettingsPanelProps) {
   if (!showSettings) return null;
 
@@ -71,29 +75,51 @@ export default function SettingsPanel({
         </button>
       </div>
       <div className="space-y-4">
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => setSpeechLanguage('zh-HK')}
-            className={`px-6 py-4 rounded-2xl font-bold text-xl border-3 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2 ${
-              speechLanguage === 'zh-HK'
-                ? 'bg-[#1e3a5f] text-white border-[#1e3a5f] shadow-lg'
-                : 'bg-[#f5f5dc] text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white'
-            }`}
-            aria-label="廣東話 Cantonese"
-          >
-            🇭🇰 廣東話
-          </button>
-          <button
-            onClick={() => setSpeechLanguage('en-US')}
-            className={`px-6 py-4 rounded-2xl font-bold text-xl border-3 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2 ${
-              speechLanguage === 'en-US'
-                ? 'bg-[#1e3a5f] text-white border-[#1e3a5f] shadow-lg'
-                : 'bg-[#f5f5dc] text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white'
-            }`}
-            aria-label="English"
-          >
-            🇺🇸 English
-          </button>
+        <div className="flex flex-wrap items-center gap-3 justify-between">
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => setSpeechLanguage('zh-HK')}
+              className={`px-6 py-4 rounded-2xl font-bold text-xl border-3 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2 ${
+                speechLanguage === 'zh-HK'
+                  ? 'bg-[#1e3a5f] text-white border-[#1e3a5f] shadow-lg'
+                  : 'bg-[#f5f5dc] text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white'
+              }`}
+              aria-label="廣東話 Cantonese"
+            >
+              🇭🇰 廣東話
+            </button>
+            <button
+              onClick={() => setSpeechLanguage('en-US')}
+              className={`px-6 py-4 rounded-2xl font-bold text-xl border-3 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2 ${
+                speechLanguage === 'en-US'
+                  ? 'bg-[#1e3a5f] text-white border-[#1e3a5f] shadow-lg'
+                  : 'bg-[#f5f5dc] text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white'
+              }`}
+              aria-label="English"
+            >
+              🇺🇸 English
+            </button>
+          </div>
+          {/* Display Size Control */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setVocabContainerSize(Math.max(0.5, vocabContainerSize - 0.1))}
+              className="px-3 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white rounded-xl font-bold text-base transition-all duration-300 shadow-lg hover:scale-110 flex items-center justify-center"
+              aria-label="減小 Decrease"
+            >
+              -100%
+            </button>
+            <span className="text-base font-bold text-[#1e3a5f] min-w-[50px] text-center">
+              {Math.round(vocabContainerSize * 100)}%
+            </span>
+            <button
+              onClick={() => setVocabContainerSize(Math.min(2.0, vocabContainerSize + 0.1))}
+              className="px-3 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white rounded-xl font-bold text-base transition-all duration-300 shadow-lg hover:scale-110 flex items-center justify-center"
+              aria-label="增大 Increase"
+            >
+              +100%
+            </button>
+          </div>
         </div>
 
         {/* Voice Selection - Show for all users, grey out for guests */}
@@ -205,6 +231,7 @@ export default function SettingsPanel({
             className="w-full h-4 bg-[#f5f5dc] rounded-lg appearance-none cursor-pointer accent-[#f97316]"
           />
         </div>
+
       </div>
     </div>
   );
