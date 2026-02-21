@@ -2487,7 +2487,7 @@ export default function AACApp() {
               </p>
               <div className="mt-4 p-4 bg-[#f5f5dc] rounded-xl border-2 border-[#1e3a5f]">
                 <div className="flex items-center justify-center gap-3 mb-2">
-                  <Icon emoji={deleteConfirmPhrase.icon || '📝'} size={48} />
+                <Icon emoji={(deleteConfirmPhrase as any).icon || '📝'} size={48} />
                 </div>
                 <p className="text-xl font-bold text-[#1e3a5f]">{deleteConfirmPhrase.text}</p>
                 <p className="text-sm text-gray-600">{deleteConfirmPhrase.en}</p>
