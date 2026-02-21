@@ -176,8 +176,8 @@ const CATEGORY_LABELS: Record<string, string> = {
   '日常': 'Daily',
   '飲食': 'Food & Drink',
   '醫療': 'Medical',
-  '情緒': 'Emotions',
-  '求助': 'Help',
+  '情緒': 'Feelings',
+  '求助': 'Time and weather',
   '個人物品': 'Personal Items',
   '家居用品': 'Household Items',
   '水果': 'Fruits',
@@ -473,6 +473,12 @@ export default function AACApp() {
   // Measure Word States
   const [showMeasureWord, setShowMeasureWord] = useState(false);
 
+  // Edit Mode States
+  const [editVocabMode, setEditVocabMode] = useState(false);
+  const [phraseOrder, setPhraseOrder] = useState<Record<string, number[]>>({}); // category -> ordered phrase ids
+  const [deletedPhraseIds, setDeletedPhraseIds] = useState<number[]>([]); // Track deleted phrase IDs (both built-in and custom)
+  const [deleteConfirmPhrase, setDeleteConfirmPhrase] = useState<{ id: number; text: string; en: string } | null>(null);
+
   // ========== UTILITY FUNCTIONS ==========
   const getUniqueCategories = () => {
     if (hasFullAccess()) {
@@ -735,6 +741,8 @@ export default function AACApp() {
         setCustomPhrases(customizations.customPhrases || []);
         setCustomCategoryIcons(customizations.customCategoryIcons || {});
         setCustomCategoryNames(customizations.customCategoryNames || {});
+        setPhraseOrder(customizations.phraseOrder || {});
+        setDeletedPhraseIds(customizations.deletedPhraseIds || []);
       }
       
       // Store user with id for future database updates
@@ -939,8 +947,15 @@ export default function AACApp() {
       customPhrases: updatedCustomPhrases,
       customCategoryIcons: updatedCustomCategoryIcons,
       customCategoryNames: updatedCustomCategoryNames,
+      phraseOrder,
+      deletedPhraseIds,
     };
-    localStorage.setItem('aac-customizations-backup', JSON.stringify(customizationsBackup));
+    try {
+      localStorage.setItem('aac-customizations-backup', JSON.stringify(customizationsBackup));
+    } catch (error) {
+      console.warn('Failed to save to localStorage (quota exceeded):', error);
+      // Continue without localStorage backup
+    }
 
     // Immediately sync to database with updated values to ensure data persists on refresh
     if (user?.id) {
@@ -966,6 +981,77 @@ export default function AACApp() {
       resetAddVocabForm();
       setShowAddVocab(false);
     }, 3500);
+  };
+
+  // Handle reordering phrases in edit mode (only update state, save when exiting edit mode)
+  const handleReorderPhrases = (category: string, newOrder: number[]) => {
+    const updatedOrder = {
+      ...phraseOrder,
+      [category]: newOrder,
+    };
+    setPhraseOrder(updatedOrder);
+    // Don't save to localStorage here - will save when exiting edit mode to avoid quota errors
+  };
+
+  // Handle deleting a phrase (both built-in and custom)
+  const handleDeletePhrase = async (phraseId: number) => {
+    // Find the phrase to delete (could be from PHRASES or customPhrases)
+    const allPhrasesList = [...PHRASES, ...customPhrases];
+    const phraseToDelete = allPhrasesList.find((p) => p.id === phraseId);
+    if (!phraseToDelete) {
+      return;
+    }
+
+    // Add to deleted list
+    const updatedDeletedIds = [...deletedPhraseIds, phraseId];
+    setDeletedPhraseIds(updatedDeletedIds);
+
+    // If it's a custom phrase, also remove from customPhrases
+    const updatedCustomPhrases = customPhrases.filter((p) => p.id !== phraseId);
+    if (updatedCustomPhrases.length !== customPhrases.length) {
+      setCustomPhrases(updatedCustomPhrases);
+    }
+
+    // Update phrase order for the category
+    const category = phraseToDelete.category;
+    if (phraseOrder[category]) {
+      const updatedOrder = phraseOrder[category].filter((id) => id !== phraseId);
+      setPhraseOrder((prev) => ({
+        ...prev,
+        [category]: updatedOrder,
+      }));
+    }
+
+    // Save to localStorage
+    const customizationsBackup = {
+      favorites,
+      customPhrases: updatedCustomPhrases,
+      customCategoryIcons,
+      customCategoryNames,
+      phraseOrder,
+      deletedPhraseIds: updatedDeletedIds,
+    };
+    try {
+      localStorage.setItem('aac-customizations-backup', JSON.stringify(customizationsBackup));
+    } catch (error) {
+      console.warn('Failed to save to localStorage (quota exceeded):', error);
+      // Continue without localStorage backup
+    }
+
+    // Sync to database
+    if (user?.id) {
+      try {
+        await fetch(`/api/users/${user.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customizations: customizationsBackup }),
+        });
+      } catch (error) {
+        console.error('Failed to sync customizations:', error);
+      }
+    }
+
+    setDeleteConfirmPhrase(null);
   };
 
   const addUser = async () => {
@@ -1186,6 +1272,8 @@ export default function AACApp() {
                     setCustomPhrases(backup.customPhrases || []);
                     setCustomCategoryIcons(backup.customCategoryIcons || {});
                     setCustomCategoryNames(backup.customCategoryNames || {});
+                    setPhraseOrder(backup.phraseOrder || {});
+                    setDeletedPhraseIds(backup.deletedPhraseIds || []);
                   } catch (e) {
                     console.error('Error parsing backup customizations:', e);
                   }
@@ -1505,10 +1593,40 @@ export default function AACApp() {
   };
 
   const allPhrases = [...PHRASES, ...customPhrases];
+  
+  // Filter out deleted phrases
+  const displayPhrases = allPhrases.filter((p) => !deletedPhraseIds.includes(p.id));
 
-  const displayPhrases = allPhrases;
+  // Apply custom ordering if available
+  const getOrderedPhrases = (phrases: typeof allPhrases, category: string) => {
+    const categoryOrder = phraseOrder[category];
+    if (!categoryOrder || categoryOrder.length === 0) {
+      return phrases;
+    }
 
-  const filteredPhrases = displayPhrases.filter((p) => p.category === selectedCategory);
+    // Create a map for quick lookup
+    const phraseMap = new Map(phrases.map((p) => [p.id, p]));
+    
+    // Get ordered phrases first, then append any not in the order
+    const ordered: typeof phrases = [];
+    const unordered: typeof phrases = [];
+
+    categoryOrder.forEach((id) => {
+      const phrase = phraseMap.get(id);
+      if (phrase) ordered.push(phrase);
+    });
+
+    phrases.forEach((phrase) => {
+      if (!categoryOrder.includes(phrase.id)) {
+        unordered.push(phrase);
+      }
+    });
+
+    return [...ordered, ...unordered];
+  };
+
+  const categoryPhrases = displayPhrases.filter((p) => p.category === selectedCategory);
+  const filteredPhrases = getOrderedPhrases(categoryPhrases, selectedCategory);
   const isGuest = !user;
 
   const allAvailableStarters = [...SENTENCE_STARTERS, ...ADDITIONAL_STARTERS];
@@ -2027,7 +2145,58 @@ export default function AACApp() {
               selectedCategory={selectedCategory}
               setShowLoginModal={setShowLoginModal}
               setShowLoginCodeModal={setShowLoginCodeModal}
+              editMode={editVocabMode}
+              onReorder={(newOrder) => handleReorderPhrases(selectedCategory, newOrder)}
+              onDeleteClick={(phrase) => setDeleteConfirmPhrase(phrase)}
+              customPhrases={customPhrases}
             />
+          )}
+
+          {/* Edit Button - only show when category is selected and user has access */}
+          {selectedCategory !== '全部' && selectedCategory !== '量詞' && hasFullAccess() && (
+            <div className="mt-8 flex justify-center">
+              <button
+                onClick={async () => {
+                  if (editVocabMode) {
+                    // Save phrase order when exiting edit mode
+                    try {
+                      const customizationsBackup = {
+                        favorites,
+                        customPhrases,
+                        customCategoryIcons,
+                        customCategoryNames,
+                        phraseOrder,
+                        deletedPhraseIds,
+                      };
+                      try {
+                        localStorage.setItem('aac-customizations-backup', JSON.stringify(customizationsBackup));
+                      } catch (storageError) {
+                        console.warn('Failed to save to localStorage (quota exceeded):', storageError);
+                        // Continue without localStorage backup
+                      }
+                      
+                      if (user?.id) {
+                        await fetch(`/api/users/${user.id}`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ customizations: customizationsBackup }),
+                        });
+                      }
+                    } catch (error) {
+                      console.error('Failed to save phrase order:', error);
+                    }
+                  }
+                  setEditVocabMode(!editVocabMode);
+                }}
+                className={`px-6 py-3 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg ${
+                  editVocabMode
+                    ? 'bg-[#f97316] text-white hover:bg-[#ea580c]'
+                    : 'bg-white text-[#1e3a5f] border-2 border-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white'
+                }`}
+              >
+                {editVocabMode ? '完成編輯 / Done Editing' : '編輯 / Edit'}
+              </button>
+            </div>
           )}
 
           {/* 使用說明 */}
@@ -2061,6 +2230,46 @@ export default function AACApp() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmPhrase && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full border-4 border-[#1e3a5f]">
+            <h3 className="text-2xl font-bold text-[#1e3a5f] mb-4 text-center">
+              確認刪除 / Confirm Delete
+            </h3>
+            <div className="mb-6 text-center">
+              <p className="text-lg text-[#1e3a5f] mb-2">
+                確定要刪除這個詞語嗎？
+              </p>
+              <p className="text-sm text-gray-600 mb-2">
+                Are you sure you want to delete this phrase?
+              </p>
+              <div className="mt-4 p-4 bg-[#f5f5dc] rounded-xl border-2 border-[#1e3a5f]">
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <Icon emoji={deleteConfirmPhrase.icon || '📝'} size={48} />
+                </div>
+                <p className="text-xl font-bold text-[#1e3a5f]">{deleteConfirmPhrase.text}</p>
+                <p className="text-sm text-gray-600">{deleteConfirmPhrase.en}</p>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setDeleteConfirmPhrase(null)}
+                className="flex-1 px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold rounded-xl transition-all duration-300"
+              >
+                取消 / Cancel
+              </button>
+              <button
+                onClick={() => handleDeletePhrase(deleteConfirmPhrase.id)}
+                className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-all duration-300"
+              >
+                刪除 / Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="fixed bottom-0 left-0 right-0 bg-[#1e3a5f] text-white border-t-4 border-[#f97316] shadow-2xl z-40">

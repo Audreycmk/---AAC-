@@ -16,6 +16,11 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/users/route.js"
     ],
+    "/api/login-history/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/login-history/route.js"
+    ],
     "/api/auth/send-verification-code/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -30,6 +35,11 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/users/[id]/route.js"
+    ],
+    "/_not-found/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/_not-found/page.js"
     ]
   }
 }
