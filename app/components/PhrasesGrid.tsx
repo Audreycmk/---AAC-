@@ -29,38 +29,14 @@ interface PhrasesGridProps {
 
 // Image mapping for btc2026 user
 const BTC2026_IMAGE_MAP: Record<number, string> = {
-  35: '/wallet.jpg',           // 銀包 Wallet
-  36: '/mobilephone.jpg',      // 手機 Mobile phone
-  37: '/glasses.jpg',          // 眼鏡 Glasses
-  38: '/mask.jpg',             // 口罩 Mask
-  39: '/keys.jpg',             // 鎖匙 Keys
-  40: '/bag.jpg',              // 袋 Bag
-  41: '/jacket.jpg',           // 外套 Jacket
-  42: '/hairtie.jpg',          // 橡筋 Hair tie
-  43: '/tv.jpg',               // 電視 Television
-  44: '/door.jpg',             // 門 Door
-  45: '/aircon.jpg',           // 冷氣 Air conditioner
-  46: '/heater.jpg',           // 暖爐 Heater
-  47: '/window.jpg',           // 窗 Window
-  48: '/light.jpg',            // 燈 Light
-  49: '/spoon.jpg',            // 匙羹 Spoon
-  50: '/fork.jpg',             // 叉 Fork
-  51: '/grapes.jpg',           // 提子 Grapes
-  52: '/banana.jpg',           // 香蕉 Banana
-  53: '/apple.jpg',            // 蘋果 Apple
-  54: '/orange.jpg',           // 橙 Orange
-  55: '/dragonfruit.jpg',      // 火龍果 Dragonfruit
-  56: '/pineapple.jpg',        // 菠蘿 Pineapple
-  57: '/peach.jpg',            // 桃 Peach
-  58: '/durian.jpg',           // 榴槤 Durian
-  59: '/toilet.jpg',           // 廁所 Toilet
-  60: '/bank.jpg',             // 銀行 Bank
-  61: '/supermarket.jpg',      // 超市 Supermarket
-  62: '/LCU.jpg',              // 李鄭屋中心 Lei Cheng Uk Center
-  63: '/hospital.jpg',         // 醫院 Hospital
-  64: '/chineserestaurant.jpg',// 酒樓 Chinese restaurant
-  65: '/park.jpg',             // 公園 Park
-  66: '/chachaanteng.jpg',     // 茶餐廳 Cha Chaan Teng
+  35: '/wallet.jpg', 36: '/mobilephone.jpg', 37: '/glasses.jpg', 38: '/mask.jpg',
+  39: '/keys.jpg', 40: '/bag.jpg', 41: '/jacket.jpg', 42: '/hairtie.jpg',
+  43: '/tv.jpg', 44: '/door.jpg', 45: '/aircon.jpg', 46: '/heater.jpg',
+  47: '/window.jpg', 48: '/light.jpg', 49: '/spoon.jpg', 50: '/fork.jpg',
+  51: '/grapes.jpg', 52: '/banana.jpg', 53: '/apple.jpg', 54: '/orange.jpg',
+  55: '/dragonfruit.jpg', 56: '/pineapple.jpg', 57: '/peach.jpg', 58: '/durian.jpg',
+  59: '/toilet.jpg', 60: '/bank.jpg', 61: '/supermarket.jpg', 62: '/LCU.jpg',
+  63: '/hospital.jpg', 64: '/chineserestaurant.jpg', 65: '/park.jpg', 66: '/chachaanteng.jpg',
 };
 
 const BilingualText = ({
@@ -68,15 +44,17 @@ const BilingualText = ({
   en,
   className = '',
   enClassName = '',
+  style = {},
 }: {
   zh: string;
   en: string;
   className?: string;
   enClassName?: string;
+  style?: React.CSSProperties;
 }) => (
-  <span className={`flex flex-col leading-tight ${className}`}>
-    <span>{zh}</span>
-    <span className={`text-sm sm:text-base opacity-80 ${enClassName}`}>{en}</span>
+  <span className={`flex flex-col leading-tight ${className}`} style={style}>
+    <span className="w-full truncate text-center">{zh}</span>
+    <span className={`opacity-80 w-full truncate text-center ${enClassName}`}>{en}</span>
   </span>
 );
 
@@ -98,7 +76,6 @@ export default function PhrasesGrid({
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  // Categories that guests can preview (but not use)
   const guestPreviewCategories = ['日常', '飲食', '醫療', '情緒', '求助'];
   const isGuestPreview = !user && guestPreviewCategories.includes(selectedCategory);
 
@@ -119,31 +96,29 @@ export default function PhrasesGrid({
       setDragOverIndex(null);
       return;
     }
-
     const newOrder = [...filteredPhrases];
     const [draggedItem] = newOrder.splice(draggedIndex, 1);
     newOrder.splice(dragOverIndex, 0, draggedItem);
-
-    const newOrderIds = newOrder.map((p) => p.id);
-    onReorder(newOrderIds);
-
+    onReorder(newOrder.map((p) => p.id));
     setDraggedIndex(null);
     setDragOverIndex(null);
   };
 
   const handleDeleteClick = (e: React.MouseEvent, phrase: Phrase) => {
     e.stopPropagation();
-    if (onDeleteClick) {
-      onDeleteClick(phrase);
-    }
+    if (onDeleteClick) onDeleteClick(phrase);
   };
-  
+
   return (
     <div 
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full"
+      className="w-full"
       style={{ 
-        transform: `scale(${vocabContainerSize})`, 
-        transformOrigin: 'top center',
+        display: 'grid',
+        /* 核心修改：使用 auto-fill 配合 minmax，確保卡片根據闊度自動換行 */
+        gridTemplateColumns: `repeat(auto-fill, minmax(${Math.max(200, 280 * vocabContainerSize)}px, 1fr))`,
+        gap: `${1.5 * vocabContainerSize}rem`,
+        padding: '1rem',
+        width: '100%',
       }}
     >
       {filteredPhrases.map((phrase, index) => {
@@ -157,77 +132,79 @@ export default function PhrasesGrid({
             onDragStart={() => handleDragStart(index)}
             onDragOver={(e) => handleDragOver(e, index)}
             onDragEnd={handleDragEnd}
-            className={`relative ${editMode ? 'cursor-move' : ''} ${isDragging ? 'opacity-50' : ''} ${isDragOver ? 'scale-105' : ''}`}
+            className={`relative h-full transition-all duration-300 ${editMode ? 'cursor-move' : ''} ${isDragging ? 'opacity-50' : ''} ${isDragOver ? 'scale-105' : ''}`}
           >
-            {/* Delete button (red circle minus) - show on all phrases in edit mode */}
             {editMode && (
               <button
                 onClick={(e) => handleDeleteClick(e, phrase)}
-                className="absolute -top-2 -right-2 z-10 w-8 h-8 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
-                aria-label="刪除 Delete"
+                className="absolute -top-3 -right-3 z-20 w-10 h-10 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110 active:scale-95"
               >
-                <span className="text-white text-xl font-bold">−</span>
+                <span className="text-white text-2xl font-bold">−</span>
               </button>
             )}
 
             <button
               onClick={() => {
                 if (editMode) return;
-                if (isGuestPreview) {
-                  setShowLoginCodeModal(true);
-                } else {
-                  speak(phrase.text);
-                }
+                if (isGuestPreview) setShowLoginCodeModal(true);
+                else speak(phrase.text);
               }}
               disabled={isLoading || editMode}
               className={`
-                w-full
-                p-10
-                text-3xl
+                w-full h-full
                 font-bold
                 rounded-3xl
                 shadow-2xl
                 transition-all duration-300
-                flex flex-col items-center justify-center gap-5
-                transform
-                min-h-[180px]
+                flex flex-col items-center justify-center
+                border-4
                 ${
                   editMode
-                    ? 'bg-white border-4 border-dashed border-[#1e3a5f] cursor-move hover:border-[#f97316]'
+                    ? 'bg-white border-dashed border-[#1e3a5f] hover:border-[#f97316]'
                     : isLoading
-                    ? 'bg-gray-400 cursor-not-allowed scale-95'
+                    ? 'bg-gray-400 cursor-not-allowed grayscale'
                     : isGuestPreview
-                    ? 'bg-gray-200 text-gray-500 border-4 border-gray-400 cursor-pointer hover:scale-105'
-                    : 'bg-white hover:bg-[#f97316] hover:text-white hover:scale-110 hover:shadow-[0_20px_50px_rgba(249,115,22,0.5)] hover:-translate-y-3 active:scale-95 text-[#1e3a5f] border-4 border-[#1e3a5f] hover:border-[#f97316]'
+                    ? 'bg-gray-200 text-gray-500 border-gray-400'
+                    : 'bg-white text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white hover:border-[#f97316] hover:-translate-y-2'
                 }
-                ${!editMode ? 'animate-fadeIn' : ''}
                 group
               `}
-              style={
-                !editMode
-                  ? {
-                      animationDelay: `${index * 50}ms`,
-                      animationFillMode: 'both',
-                    }
-                  : {}
-              }
+              style={{
+                /* 唔用 scale，改為動態調整 Padding 同 Min-Height */
+                padding: `${2 * vocabContainerSize}rem`,
+                minHeight: `${160 * vocabContainerSize}px`,
+                gap: `${1 * vocabContainerSize}rem`,
+                animationDelay: !editMode ? `${index * 50}ms` : '0',
+                animationFillMode: 'both',
+              }}
             >
-              <div className="flex items-center justify-center">
-                {/* Custom images for btc2026 user */}
+              <div className="flex items-center justify-center w-full">
                 {user?.loginCode === 'btc2026' && BTC2026_IMAGE_MAP[phrase.id] ? (
-                  <img src={BTC2026_IMAGE_MAP[phrase.id]} alt={phrase.text} className="max-w-[90%] max-h-[120px] object-contain" />
-                ) : phrase.icon && typeof phrase.icon === 'string' && (phrase.icon.startsWith('data:image') || phrase.icon.startsWith('http') || phrase.icon.startsWith('/')) ? (
-                  <img src={phrase.icon} alt={phrase.text} className="max-w-[90%] max-h-[120px] object-contain" style={{ display: 'inline-block' }} />
+                  <img 
+                    src={BTC2026_IMAGE_MAP[phrase.id]} 
+                    alt={phrase.text} 
+                    style={{ maxHeight: `${120 * vocabContainerSize}px` }} 
+                    className="max-w-[90%] object-contain" 
+                  />
+                ) : phrase.icon && (phrase.icon.startsWith('data:') || phrase.icon.startsWith('http') || phrase.icon.startsWith('/')) ? (
+                  <img 
+                    src={phrase.icon} 
+                    alt={phrase.text} 
+                    style={{ maxHeight: `${120 * vocabContainerSize}px` }} 
+                    className="max-w-[90%] object-contain" 
+                  />
                 ) : (
-                  <Icon emoji={phrase.icon || '📝'} size={96} />
+                  <Icon emoji={phrase.icon || '📝'} size={Math.round(80 * vocabContainerSize)} />
                 )}
               </div>
-              <div className="text-center transition-all duration-300 group-hover:scale-110">
+
+              <div className="w-full overflow-hidden">
                 <BilingualText
                   zh={phrase.text}
                   en={phrase.en}
                   className="items-center"
-                  enClassName="text-lg sm:text-xl"
+                  style={{ fontSize: `${Math.max(1, 1.8 * vocabContainerSize)}rem` }}
+                  enClassName="opacity-80"
                 />
               </div>
             </button>

@@ -104,20 +104,20 @@ export default function SettingsPanel({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setVocabContainerSize(Math.max(0.5, vocabContainerSize - 0.1))}
-              className="px-3 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white rounded-xl font-bold text-base transition-all duration-300 shadow-lg hover:scale-110 flex items-center justify-center"
+              className="px-4 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white rounded-xl font-bold text-base transition-all duration-300 shadow-lg hover:scale-110 flex items-center justify-center"
               aria-label="減小 Decrease"
             >
-              -100%
+              -
             </button>
             <span className="text-base font-bold text-[#1e3a5f] min-w-[50px] text-center">
               {Math.round(vocabContainerSize * 100)}%
             </span>
             <button
               onClick={() => setVocabContainerSize(Math.min(2.0, vocabContainerSize + 0.1))}
-              className="px-3 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white rounded-xl font-bold text-base transition-all duration-300 shadow-lg hover:scale-110 flex items-center justify-center"
+              className="px-4 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white rounded-xl font-bold text-base transition-all duration-300 shadow-lg hover:scale-110 flex items-center justify-center"
               aria-label="增大 Increase"
             >
-              +100%
+              +
             </button>
           </div>
         </div>
