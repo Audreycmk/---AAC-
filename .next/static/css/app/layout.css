@@ -680,6 +680,12 @@ video {
 .grid {
   display: grid;
 }
+.contents {
+  display: contents;
+}
+.hidden {
+  display: none;
+}
 .aspect-square {
   aspect-ratio: 1 / 1;
 }
@@ -1270,10 +1276,6 @@ video {
 .py-\[12px\] {
   padding-top: 12px;
   padding-bottom: 12px;
-}
-.px-5 {
-  padding-left: 1.25rem;
-  padding-right: 1.25rem;
 }
 .pb-20 {
   padding-bottom: 5rem;

@@ -90,6 +90,7 @@ const PHRASES = [
   { id: 58, text: '榴槤', en: 'Durian', category: '水果', icon: '🟡' },
 
   // 地方
+  { id: 11111, text: '去', en: 'Go to', category: '地方', icon: '/去 go to.png' },
   { id: 59, text: '廁所', en: 'Toilet', category: '地方', icon: '🚻' },
   { id: 60, text: '銀行', en: 'Bank', category: '地方', icon: '🏦' },
   { id: 61, text: '超市', en: 'Supermarket', category: '地方', icon: '🏬' },
@@ -152,6 +153,31 @@ const PHRASES = [
   { id: 109, text: '飲食節目', en: 'Food show', category: '電視節目', icon: '/foodie.jpg' },
   { id: 110, text: '音樂節目', en: 'Music show', category: '電視節目', icon: '/music.jpg' },
   { id: 111, text: '動畫', en: 'Cartoon', category: '電視節目', icon: '/cartoon.jpg' },
+
+  // twt2026 活動 Events
+  { id: 112, text: '探朋友', en: 'Visiting', category: '活動', icon: '/Events/Visiting.jpg' },
+  { id: 113, text: '買嘢', en: 'Buying', category: '活動', icon: '/Events/Buying.jpg' },
+  { id: 114, text: '食嘢', en: 'Eating', category: '活動', icon: '/Events/Eating.jpg' },
+  { id: 115, text: '返工', en: 'Working', category: '活動', icon: '/Events/Working.jpg' },
+
+  // twt2026 Time
+  { id: 116, text: '前日', en: 'Day before yesterday', category: '時間/Time', icon: '/twt2026_Time/前日Day before yesterday.png' },
+  { id: 117, text: '昨天', en: 'Yesterday', category: '時間/Time', icon: '/twt2026_Time/昨天Yesterday.png' },
+  { id: 118, text: '星期一', en: 'Monday', category: '時間/Time', icon: '/twt2026_Time/星期一 Monday.png' },
+  { id: 119, text: '星期二', en: 'Tuesday', category: '時間/Time', icon: '/twt2026_Time/星期二 Tuesday.png' },
+  { id: 120, text: '星期三', en: 'Wednesday', category: '時間/Time', icon: '/twt2026_Time/星期三 Wednesday.png' },
+  { id: 121, text: '星期四', en: 'Thursday', category: '時間/Time', icon: '/twt2026_Time/星期四 Thursday.png' },
+  { id: 122, text: '星期五', en: 'Friday', category: '時間/Time', icon: '/twt2026_Time/星期五 Friday.png' },
+  { id: 123, text: '星期六', en: 'Saturday', category: '時間/Time', icon: '/twt2026_Time/星期六 Saturday.png' },
+  { id: 124, text: '星期日', en: 'Sunday', category: '時間/Time', icon: '/twt2026_Time/星期日Sunday.png' },
+
+  // twt2026 MTR 將軍澳綫
+  { id: 125, text: '去', en: 'Go to', category: '將軍澳綫', icon: '/twt2026_MTR/去 go to.png' },
+  { id: 126, text: '將軍澳', en: 'Tseung Kwan O', category: '將軍澳綫', icon: '/twt2026_MTR/將軍澳Tseung Kwan O.jpeg' },
+  { id: 127, text: '坑口', en: 'Hang Hau', category: '將軍澳綫', icon: '/twt2026_MTR/坑口Hang Hau.jpeg' },
+  { id: 128, text: '寶琳', en: 'Po Lam', category: '將軍澳綫', icon: '/twt2026_MTR/寶琳 Po Lam.jpeg' },
+
+
 ];
 // 分類圖示映射（新配色主題）
 const CATEGORY_ICONS: Record<string, string> = {
@@ -169,6 +195,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   '國家': '🌍',
   '茶餐廳': '☕',
   '電視節目': '📺',
+  '活動': '🎮',
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -186,6 +213,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   '國家': 'Countries',
   '茶餐廳': 'Cha Chaan Teng',
   '電視節目': 'TV Programs',
+  '活動': 'Events',
 };
 
 const DISPLAY_CATEGORIES = ['個人物品', '家居用品', '量詞', '水果', '地方'] as const;
@@ -459,6 +487,7 @@ export default function AACApp() {
     icon: '📝',
     category: '',
     newCategory: '',
+    newCategoryEn: '',
   });
   const [newCategoryEmoji, setNewCategoryEmoji] = useState('📁');
   const [addVocabLang, setAddVocabLang] = useState<'zh' | 'en'>('zh');
@@ -483,45 +512,36 @@ export default function AACApp() {
 
   // Edit Mode States
   const [editVocabMode, setEditVocabMode] = useState(false);
+  const [twoColumnMode, setTwoColumnMode] = useState(false);
   const [phraseOrder, setPhraseOrder] = useState<Record<string, number[]>>({}); // category -> ordered phrase ids
   const [deletedPhraseIds, setDeletedPhraseIds] = useState<number[]>([]); // Track deleted phrase IDs (both built-in and custom)
   const [deleteConfirmPhrase, setDeleteConfirmPhrase] = useState<{ id: number; text: string; en: string } | null>(null);
 
   // ========== UTILITY FUNCTIONS ==========
+  // Always show all categories (including custom) for all users
   const getUniqueCategories = () => {
-    if (hasFullAccess()) {
-      // Show all categories when logged in, including custom categories
-      const standardCategories = Object.keys(CATEGORY_ICONS).filter(cat => cat !== '全部');
-      const customCategories = Object.keys(customCategoryNames);
-      let allCategories = [...new Set([...standardCategories, ...customCategories])];
-      
-      // Filter out deleted categories
-      allCategories = allCategories.filter(cat => !deletedCategories.includes(cat));
-      
-      // Apply custom ordering if available
-      if (categoryOrder.length > 0) {
-        const ordered: string[] = [];
-        const unordered: string[] = [];
-        
-        categoryOrder.forEach(cat => {
-          if (allCategories.includes(cat)) {
-            ordered.push(cat);
-          }
-        });
-        
-        allCategories.forEach(cat => {
-          if (!categoryOrder.includes(cat)) {
-            unordered.push(cat);
-          }
-        });
-        
-        return [...ordered, ...unordered];
-      }
-      
-      return allCategories;
+    const standardCategories = Object.keys(CATEGORY_ICONS).filter(cat => cat !== '全部');
+    const customCategories = Object.keys(customCategoryNames);
+    let allCategories = [...new Set([...standardCategories, ...customCategories])];
+    // Filter out deleted categories
+    allCategories = allCategories.filter(cat => !deletedCategories.includes(cat));
+    // Apply custom ordering if available
+    if (categoryOrder.length > 0) {
+      const ordered: string[] = [];
+      const unordered: string[] = [];
+      categoryOrder.forEach(cat => {
+        if (allCategories.includes(cat)) {
+          ordered.push(cat);
+        }
+      });
+      allCategories.forEach(cat => {
+        if (!categoryOrder.includes(cat)) {
+          unordered.push(cat);
+        }
+      });
+      return [...ordered, ...unordered];
     }
-    // Show limited categories when not logged in
-    return [...DISPLAY_CATEGORIES].filter(cat => !deletedCategories.includes(cat));
+    return allCategories;
   };
 
   const getTrialStatus = (u: any) => {
@@ -922,7 +942,7 @@ export default function AACApp() {
   };
 
   const resetAddVocabForm = () => {
-    setAddVocabInput({ text: '', en: '', icon: '📝', category: '', newCategory: '' });
+    setAddVocabInput({ text: '', en: '', icon: '📝', category: '', newCategory: '', newCategoryEn: '' });
     setAddVocabLang('zh');
     setVocabError('');
     setVocabSuccess(false);
@@ -930,11 +950,7 @@ export default function AACApp() {
   };
 
   const handleVocabInputChange = (field: string, value: string) => {
-    if (field === 'newCategory') {
-      setAddVocabInput((prev) => ({ ...prev, [field]: value }));
-    } else {
-      setAddVocabInput((prev) => ({ ...prev, [field]: value }));
-    }
+    setAddVocabInput((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleAddVocab = async () => {
@@ -962,7 +978,7 @@ export default function AACApp() {
       : customCategoryIcons;
     
     const updatedCustomCategoryNames = addVocabInput.newCategory && !addVocabInput.category
-      ? { ...customCategoryNames, [category]: { zh: category, en: category } }
+      ? { ...customCategoryNames, [category]: { zh: category, en: addVocabInput.newCategoryEn || category } }
       : customCategoryNames;
 
     if (addVocabInput.newCategory && !addVocabInput.category) {
@@ -1039,7 +1055,7 @@ export default function AACApp() {
       return;
     }
 
-    // Add to deleted list
+    // Add to deleted list (works for both built-in and custom)
     const updatedDeletedIds = [...deletedPhraseIds, phraseId];
     setDeletedPhraseIds(updatedDeletedIds);
 
@@ -1784,7 +1800,42 @@ export default function AACApp() {
     return '';
   };
 
-  const allPhrases = [...PHRASES, ...customPhrases];
+  // Inject hardcoded vocab for twt2026
+  let allPhrases = [...PHRASES, ...customPhrases];
+  if (user?.loginCode === 'twt2026') {
+    const twt2026Vocab = [
+      // 活動
+      { id: 112, text: '探朋友', en: 'Visiting', category: '活動', icon: '/Events/Visiting.jpg' },
+      { id: 113, text: '買嘢', en: 'Buying', category: '活動', icon: '/Events/Buying.jpg' },
+      { id: 114, text: '食嘢', en: 'Eating', category: '活動', icon: '/Events/Eating.jpg' },
+      { id: 115, text: '返工', en: 'Working', category: '活動', icon: '/Events/Working.jpg' },
+      // 時間/Time
+      { id: 116, text: '前日', en: 'Day before yesterday', category: '時間/Time', icon: '/twt2026_Time/前日Day before yesterday.png' },
+      { id: 117, text: '昨天', en: 'Yesterday', category: '時間/Time', icon: '/twt2026_Time/昨天Yesterday.png' },
+      { id: 118, text: '星期一', en: 'Monday', category: '時間/Time', icon: '/twt2026_Time/星期一 Monday.png' },
+      { id: 119, text: '星期二', en: 'Tuesday', category: '時間/Time', icon: '/twt2026_Time/星期二 Tuesday.png' },
+      { id: 120, text: '星期三', en: 'Wednesday', category: '時間/Time', icon: '/twt2026_Time/星期三 Wednesday.png' },
+      { id: 121, text: '星期四', en: 'Thursday', category: '時間/Time', icon: '/twt2026_Time/星期四 Thursday.png' },
+      { id: 122, text: '星期五', en: 'Friday', category: '時間/Time', icon: '/twt2026_Time/星期五 Friday.png' },
+      { id: 123, text: '星期六', en: 'Saturday', category: '時間/Time', icon: '/twt2026_Time/星期六 Saturday.png' },
+      { id: 124, text: '星期日', en: 'Sunday', category: '時間/Time', icon: '/twt2026_Time/星期日Sunday.png' },
+      // 將軍澳綫
+      { id: 125, text: '去', en: 'Go to', category: '將軍澳綫', icon: '/twt2026_MTR/去 go to.png' },
+      { id: 126, text: '將軍澳', en: 'Tseung Kwan O', category: '將軍澳綫', icon: '/twt2026_MTR/將軍澳 Tseung Kwan O.png' },
+      { id: 127, text: '坑口', en: 'Hang Hau', category: '將軍澳綫', icon: '/twt2026_MTR/坑口 Hang Hau.png' },
+      { id: 128, text: '寶琳', en: 'Po Lam', category: '將軍澳綫', icon: '/twt2026_MTR/寶琳 Po Lam.png' },
+    ];
+    // Only add if not already present (avoid duplicates)
+    const existingIds = new Set(allPhrases.map(p => p.id));
+    // Remove 'Friday', 'Saturday', 'Sunday' from other categories for all users
+    allPhrases = allPhrases.filter(p => {
+      if (['星期五', '星期六', '星期日'].includes(p.text)) {
+        return p.category === '時間/Time';
+      }
+      return true;
+    });
+    allPhrases = [...allPhrases, ...twt2026Vocab.filter(p => !existingIds.has(p.id))];
+  }
   
   // Filter out deleted phrases
   const displayPhrases = allPhrases.filter((p) => !deletedPhraseIds.includes(p.id));
@@ -2071,6 +2122,8 @@ export default function AACApp() {
         setSpeechVolume={setSpeechVolume}
         vocabContainerSize={vocabContainerSize}
         setVocabContainerSize={setVocabContainerSize}
+        twoColumnMode={twoColumnMode}
+        setTwoColumnMode={setTwoColumnMode}
       />
 
       {/* Main Content */}
@@ -2387,6 +2440,7 @@ export default function AACApp() {
               onDeleteClick={(phrase) => setDeleteConfirmPhrase(phrase)}
               customPhrases={customPhrases}
               vocabContainerSize={vocabContainerSize}
+              twoColumnMode={twoColumnMode}
             />
           )}
 

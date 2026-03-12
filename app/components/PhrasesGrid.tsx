@@ -25,6 +25,7 @@ interface PhrasesGridProps {
   onDeleteClick?: (phrase: Phrase) => void;
   customPhrases?: Phrase[];
   vocabContainerSize?: number;
+  twoColumnMode?: boolean;
 }
 
 // Image mapping for btc2026 user
@@ -72,6 +73,7 @@ export default function PhrasesGrid({
   onDeleteClick,
   customPhrases = [],
   vocabContainerSize = 1.0,
+  twoColumnMode = false,
 }: PhrasesGridProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -110,17 +112,37 @@ export default function PhrasesGrid({
   };
 
   return (
-    <div 
+    <div
       className="w-full"
-      style={{ 
+      style={{
         display: 'grid',
-        /* 核心修改：使用 auto-fill 配合 minmax，確保卡片根據闊度自動換行 */
-        gridTemplateColumns: `repeat(auto-fill, minmax(${Math.max(200, 280 * vocabContainerSize)}px, 1fr))`,
+        gridTemplateColumns: twoColumnMode
+          ? `repeat(2, minmax(0, 1fr))`
+          : `repeat(auto-fill, minmax(${Math.max(200, 280 * vocabContainerSize)}px, 1fr))`,
         gap: `${1.5 * vocabContainerSize}rem`,
         padding: '1rem',
         width: '100%',
+        maxWidth: '100vw',
+        overflowX: 'hidden',
       }}
     >
+      <style>{`
+        @media (max-width: 900px) {
+          .aac-phrases-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 600px) {
+          .aac-phrases-grid {
+            grid-template-columns: 1fr !important;
+            gap: 0.5rem !important;
+          }
+        }
+      `}</style>
+      {/* Add a class for media queries */}
+      <div className="aac-phrases-grid" style={{
+        display: 'contents',
+      }}>
       {filteredPhrases.map((phrase, index) => {
         const isDragging = draggedIndex === index;
         const isDragOver = dragOverIndex === index;
@@ -138,6 +160,7 @@ export default function PhrasesGrid({
               <button
                 onClick={(e) => handleDeleteClick(e, phrase)}
                 className="absolute -top-3 -right-3 z-20 w-10 h-10 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110 active:scale-95"
+                title="刪除 Delete"
               >
                 <span className="text-white text-2xl font-bold">−</span>
               </button>
@@ -211,6 +234,7 @@ export default function PhrasesGrid({
           </div>
         );
       })}
+      </div>
     </div>
   );
 }
