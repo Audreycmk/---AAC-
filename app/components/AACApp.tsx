@@ -1797,8 +1797,21 @@ export default function AACApp() {
     return '';
   };
 
-  // Remove hardcoded twt2026 vocab injection logic. Only use PHRASES and customPhrases.
+  // Inject hardcoded vocab for twt2026 (Friday, Saturday, Sunday)
   let allPhrases = [...PHRASES, ...customPhrases];
+  if (user?.loginCode === 'twt2026') {
+    const twt2026Vocab = [
+      { id: 22201, text: '星期五', en: 'Friday', category: '時間/Time', icon: '/twt2026_Time/星期五 Friday.png' },
+      { id: 22202, text: '星期六', en: 'Saturday', category: '時間/Time', icon: '/twt2026_Time/星期六 Saturday.png' },
+      { id: 22203, text: '星期日', en: 'Sunday', category: '時間/Time', icon: '/twt2026_Time/星期日Sunday.png' },
+    ];
+    // Remove any duplicates by text/category
+    const existing = new Set(allPhrases.map(p => p.text + '|' + p.category));
+    allPhrases = [
+      ...allPhrases.filter(p => !['星期五','星期六','星期日'].includes(p.text) || p.category !== '時間/Time'),
+      ...twt2026Vocab.filter(p => !existing.has(p.text + '|' + p.category)),
+    ];
+  }
   
   // Filter out deleted phrases
   const displayPhrases = allPhrases.filter((p) => !deletedPhraseIds.includes(p.id));
