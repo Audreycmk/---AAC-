@@ -167,9 +167,6 @@ const PHRASES = [
   { id: 119, text: '星期二', en: 'Tuesday', category: '時間/Time', icon: '/twt2026_Time/星期二 Tuesday.png' },
   { id: 120, text: '星期三', en: 'Wednesday', category: '時間/Time', icon: '/twt2026_Time/星期三 Wednesday.png' },
   { id: 121, text: '星期四', en: 'Thursday', category: '時間/Time', icon: '/twt2026_Time/星期四 Thursday.png' },
-  { id: 122, text: '星期五', en: 'Friday', category: '時間/Time', icon: '/twt2026_Time/星期五 Friday.png' },
-  { id: 123, text: '星期六', en: 'Saturday', category: '時間/Time', icon: '/twt2026_Time/星期六 Saturday.png' },
-  { id: 124, text: '星期日', en: 'Sunday', category: '時間/Time', icon: '/twt2026_Time/星期日Sunday.png' },
 
   // twt2026 MTR 將軍澳綫
   { id: 125, text: '去', en: 'Go to', category: '將軍澳綫', icon: '/twt2026_MTR/去 go to.png' },
@@ -1800,42 +1797,8 @@ export default function AACApp() {
     return '';
   };
 
-  // Inject hardcoded vocab for twt2026
+  // Remove hardcoded twt2026 vocab injection logic. Only use PHRASES and customPhrases.
   let allPhrases = [...PHRASES, ...customPhrases];
-  if (user?.loginCode === 'twt2026') {
-    const twt2026Vocab = [
-      // 活動
-      { id: 112, text: '探朋友', en: 'Visiting', category: '活動', icon: '/Events/Visiting.jpg' },
-      { id: 113, text: '買嘢', en: 'Buying', category: '活動', icon: '/Events/Buying.jpg' },
-      { id: 114, text: '食嘢', en: 'Eating', category: '活動', icon: '/Events/Eating.jpg' },
-      { id: 115, text: '返工', en: 'Working', category: '活動', icon: '/Events/Working.jpg' },
-      // 時間/Time
-      { id: 116, text: '前日', en: 'Day before yesterday', category: '時間/Time', icon: '/twt2026_Time/前日Day before yesterday.png' },
-      { id: 117, text: '昨天', en: 'Yesterday', category: '時間/Time', icon: '/twt2026_Time/昨天Yesterday.png' },
-      { id: 118, text: '星期一', en: 'Monday', category: '時間/Time', icon: '/twt2026_Time/星期一 Monday.png' },
-      { id: 119, text: '星期二', en: 'Tuesday', category: '時間/Time', icon: '/twt2026_Time/星期二 Tuesday.png' },
-      { id: 120, text: '星期三', en: 'Wednesday', category: '時間/Time', icon: '/twt2026_Time/星期三 Wednesday.png' },
-      { id: 121, text: '星期四', en: 'Thursday', category: '時間/Time', icon: '/twt2026_Time/星期四 Thursday.png' },
-      { id: 122, text: '星期五', en: 'Friday', category: '時間/Time', icon: '/twt2026_Time/星期五 Friday.png' },
-      { id: 123, text: '星期六', en: 'Saturday', category: '時間/Time', icon: '/twt2026_Time/星期六 Saturday.png' },
-      { id: 124, text: '星期日', en: 'Sunday', category: '時間/Time', icon: '/twt2026_Time/星期日Sunday.png' },
-      // 將軍澳綫
-      { id: 125, text: '去', en: 'Go to', category: '將軍澳綫', icon: '/twt2026_MTR/去 go to.png' },
-      { id: 126, text: '將軍澳', en: 'Tseung Kwan O', category: '將軍澳綫', icon: '/twt2026_MTR/將軍澳 Tseung Kwan O.png' },
-      { id: 127, text: '坑口', en: 'Hang Hau', category: '將軍澳綫', icon: '/twt2026_MTR/坑口 Hang Hau.png' },
-      { id: 128, text: '寶琳', en: 'Po Lam', category: '將軍澳綫', icon: '/twt2026_MTR/寶琳 Po Lam.png' },
-    ];
-    // Only add if not already present (avoid duplicates)
-    const existingIds = new Set(allPhrases.map(p => p.id));
-    // Remove 'Friday', 'Saturday', 'Sunday' from other categories for all users
-    allPhrases = allPhrases.filter(p => {
-      if (['星期五', '星期六', '星期日'].includes(p.text)) {
-        return p.category === '時間/Time';
-      }
-      return true;
-    });
-    allPhrases = [...allPhrases, ...twt2026Vocab.filter(p => !existingIds.has(p.id))];
-  }
   
   // Filter out deleted phrases
   const displayPhrases = allPhrases.filter((p) => !deletedPhraseIds.includes(p.id));
