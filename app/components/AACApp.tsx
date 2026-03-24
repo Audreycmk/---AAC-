@@ -394,6 +394,15 @@ const COMMON_EMOJIS = [
 type CustomPhrase = (typeof PHRASES)[0];
 
 export default function AACApp() {
+    // Helper to filter out duplicate ids (keep first occurrence)
+    function filterUniqueById(phrases: CustomPhrase[]) {
+      const seen = new Set();
+      return phrases.filter((p) => {
+        if (seen.has(p.id)) return false;
+        seen.add(p.id);
+        return true;
+      });
+    }
   const [isLoading, setIsLoading] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
   const [user, setUser] = useState<{ 
@@ -978,8 +987,14 @@ export default function AACApp() {
       return;
     }
 
+    // Generate a unique id not present in PHRASES or customPhrases
+    const usedIds = new Set([...PHRASES, ...customPhrases].map((p) => p.id));
+    let nextId = 1;
+    while (usedIds.has(nextId)) {
+      nextId++;
+    }
     const newPhrase = {
-      id: Math.max(...[...PHRASES, ...customPhrases].map((p) => p.id), 0) + 1,
+      id: nextId,
       text: addVocabInput.text,
       en: addVocabInput.en,
       category,
@@ -1816,8 +1831,8 @@ export default function AACApp() {
     return '';
   };
 
-  const allPhrases = [...PHRASES, ...customPhrases];
-  
+  const allPhrasesRaw = [...PHRASES, ...customPhrases];
+  const allPhrases = filterUniqueById(allPhrasesRaw);
   // Filter out deleted phrases
   const displayPhrases = allPhrases.filter((p) => !deletedPhraseIds.includes(p.id));
 
