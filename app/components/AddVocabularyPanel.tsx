@@ -12,7 +12,6 @@ interface AddVocabularyPanelProps {
     icon: string;
     category: string;
     newCategory: string;
-    newCategoryEn: string;
   };
   handleVocabInputChange: (field: string, value: string) => void;
   resetAddVocabForm: () => void;
@@ -339,21 +338,12 @@ export default function AddVocabularyPanel({
                       </div>
                     )}
 
-                    {/* Category Name Input (Chinese) */}
+                    {/* Category Name Input */}
                     <input
                       type="text"
-                      placeholder="新分類名稱（中文）/ New Category Name (Chinese)"
+                      placeholder="新分類名稱 / New Category Name"
                       value={addVocabInput.newCategory}
                       onChange={(e) => handleVocabInputChange('newCategory', e.target.value)}
-                      disabled={!!addVocabInput.category}
-                      className="w-full px-6 py-4 border border-[#1e3a5f] rounded-xl text-lg font-bold text-[#1e3a5f] focus:border-[#f97316] focus:outline-none transition-all duration-300 disabled:bg-gray-200 disabled:text-gray-500 mb-2"
-                    />
-                    {/* Category Name Input (English) */}
-                    <input
-                      type="text"
-                      placeholder="New Category Name (English)"
-                      value={addVocabInput.newCategoryEn}
-                      onChange={(e) => handleVocabInputChange('newCategoryEn', e.target.value)}
                       disabled={!!addVocabInput.category}
                       className="w-full px-6 py-4 border border-[#1e3a5f] rounded-xl text-lg font-bold text-[#1e3a5f] focus:border-[#f97316] focus:outline-none transition-all duration-300 disabled:bg-gray-200 disabled:text-gray-500"
                     />

@@ -18,8 +18,6 @@ interface SettingsPanelProps {
   setSpeechVolume: (volume: number) => void;
   vocabContainerSize: number;
   setVocabContainerSize: (size: number) => void;
-  twoColumnMode: boolean;
-  setTwoColumnMode: (val: boolean) => void;
 }
 
 const BilingualText = ({
@@ -55,8 +53,6 @@ export default function SettingsPanel({
   setSpeechVolume,
   vocabContainerSize,
   setVocabContainerSize,
-  twoColumnMode,
-  setTwoColumnMode,
 }: SettingsPanelProps) {
   if (!showSettings) return null;
 
@@ -79,22 +75,6 @@ export default function SettingsPanel({
         </button>
       </div>
       <div className="space-y-4">
-        {/* 2-Column Toggle */}
-        <div className="flex items-center gap-3">
-          <label className="text-xl font-bold text-[#1e3a5f]">詞語顯示：</label>
-          <button
-            onClick={() => setTwoColumnMode(false)}
-            className={`px-4 py-2 rounded-xl font-bold text-base border-2 transition-all duration-300 ${!twoColumnMode ? 'bg-[#1e3a5f] text-white border-[#1e3a5f]' : 'bg-[#f5f5dc] text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white'}`}
-          >
-            自動排版 Auto
-          </button>
-          <button
-            onClick={() => setTwoColumnMode(true)}
-            className={`px-4 py-2 rounded-xl font-bold text-base border-2 transition-all duration-300 ${twoColumnMode ? 'bg-[#1e3a5f] text-white border-[#1e3a5f]' : 'bg-[#f5f5dc] text-[#1e3a5f] border-[#1e3a5f] hover:bg-[#f97316] hover:text-white'}`}
-          >
-            2欄 2 Columns
-          </button>
-        </div>
         <div className="flex flex-wrap items-center gap-3 justify-between">
           <div className="flex flex-wrap gap-3">
             <button

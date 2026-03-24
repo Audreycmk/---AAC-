@@ -167,6 +167,10 @@ const PHRASES = [
   { id: 119, text: '星期二', en: 'Tuesday', category: '時間/Time', icon: '/twt2026_Time/星期二 Tuesday.png' },
   { id: 120, text: '星期三', en: 'Wednesday', category: '時間/Time', icon: '/twt2026_Time/星期三 Wednesday.png' },
   { id: 121, text: '星期四', en: 'Thursday', category: '時間/Time', icon: '/twt2026_Time/星期四 Thursday.png' },
+  { id: 122, text: '星期五', en: 'Friday', category: '時間/Time', icon: '/twt2026_Time/星期五 Friday.png' },
+  { id: 123, text: '星期六', en: 'Saturday', category: '時間/Time', icon: '/twt2026_Time/星期六 Saturday.png' },
+  { id: 124, text: '星期日', en: 'Sunday', category: '時間/Time', icon: '/twt2026_Time/星期日Sunday.png' },
+
 
   // twt2026 MTR 將軍澳綫
   { id: 125, text: '去', en: 'Go to', category: '將軍澳綫', icon: '/twt2026_MTR/去 go to.png' },
@@ -484,7 +488,6 @@ export default function AACApp() {
     icon: '📝',
     category: '',
     newCategory: '',
-    newCategoryEn: '',
   });
   const [newCategoryEmoji, setNewCategoryEmoji] = useState('📁');
   const [addVocabLang, setAddVocabLang] = useState<'zh' | 'en'>('zh');
@@ -509,36 +512,45 @@ export default function AACApp() {
 
   // Edit Mode States
   const [editVocabMode, setEditVocabMode] = useState(false);
-  const [twoColumnMode, setTwoColumnMode] = useState(false);
   const [phraseOrder, setPhraseOrder] = useState<Record<string, number[]>>({}); // category -> ordered phrase ids
   const [deletedPhraseIds, setDeletedPhraseIds] = useState<number[]>([]); // Track deleted phrase IDs (both built-in and custom)
   const [deleteConfirmPhrase, setDeleteConfirmPhrase] = useState<{ id: number; text: string; en: string } | null>(null);
 
   // ========== UTILITY FUNCTIONS ==========
-  // Always show all categories (including custom) for all users
   const getUniqueCategories = () => {
-    const standardCategories = Object.keys(CATEGORY_ICONS).filter(cat => cat !== '全部');
-    const customCategories = Object.keys(customCategoryNames);
-    let allCategories = [...new Set([...standardCategories, ...customCategories])];
-    // Filter out deleted categories
-    allCategories = allCategories.filter(cat => !deletedCategories.includes(cat));
-    // Apply custom ordering if available
-    if (categoryOrder.length > 0) {
-      const ordered: string[] = [];
-      const unordered: string[] = [];
-      categoryOrder.forEach(cat => {
-        if (allCategories.includes(cat)) {
-          ordered.push(cat);
-        }
-      });
-      allCategories.forEach(cat => {
-        if (!categoryOrder.includes(cat)) {
-          unordered.push(cat);
-        }
-      });
-      return [...ordered, ...unordered];
+    if (hasFullAccess()) {
+      // Show all categories when logged in, including custom categories
+      const standardCategories = Object.keys(CATEGORY_ICONS).filter(cat => cat !== '全部');
+      const customCategories = Object.keys(customCategoryNames);
+      let allCategories = [...new Set([...standardCategories, ...customCategories])];
+      
+      // Filter out deleted categories
+      allCategories = allCategories.filter(cat => !deletedCategories.includes(cat));
+      
+      // Apply custom ordering if available
+      if (categoryOrder.length > 0) {
+        const ordered: string[] = [];
+        const unordered: string[] = [];
+        
+        categoryOrder.forEach(cat => {
+          if (allCategories.includes(cat)) {
+            ordered.push(cat);
+          }
+        });
+        
+        allCategories.forEach(cat => {
+          if (!categoryOrder.includes(cat)) {
+            unordered.push(cat);
+          }
+        });
+        
+        return [...ordered, ...unordered];
+      }
+      
+      return allCategories;
     }
-    return allCategories;
+    // Show limited categories when not logged in
+    return [...DISPLAY_CATEGORIES].filter(cat => !deletedCategories.includes(cat));
   };
 
   const getTrialStatus = (u: any) => {
@@ -939,7 +951,7 @@ export default function AACApp() {
   };
 
   const resetAddVocabForm = () => {
-    setAddVocabInput({ text: '', en: '', icon: '📝', category: '', newCategory: '', newCategoryEn: '' });
+    setAddVocabInput({ text: '', en: '', icon: '📝', category: '', newCategory: '' });
     setAddVocabLang('zh');
     setVocabError('');
     setVocabSuccess(false);
@@ -947,7 +959,11 @@ export default function AACApp() {
   };
 
   const handleVocabInputChange = (field: string, value: string) => {
-    setAddVocabInput((prev) => ({ ...prev, [field]: value }));
+    if (field === 'newCategory') {
+      setAddVocabInput((prev) => ({ ...prev, [field]: value }));
+    } else {
+      setAddVocabInput((prev) => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleAddVocab = async () => {
@@ -975,7 +991,7 @@ export default function AACApp() {
       : customCategoryIcons;
     
     const updatedCustomCategoryNames = addVocabInput.newCategory && !addVocabInput.category
-      ? { ...customCategoryNames, [category]: { zh: category, en: addVocabInput.newCategoryEn || category } }
+      ? { ...customCategoryNames, [category]: { zh: category, en: category } }
       : customCategoryNames;
 
     if (addVocabInput.newCategory && !addVocabInput.category) {
@@ -988,6 +1004,9 @@ export default function AACApp() {
     setLastAddedWord(addVocabInput.text);
     setVocabSuccess(true);
     setVocabError('');
+
+    // Switch to the category of the newly added vocab so it is visible
+    setSelectedCategory(category);
 
     // Save to localStorage immediately as backup
     const customizationsBackup = {
@@ -1052,7 +1071,7 @@ export default function AACApp() {
       return;
     }
 
-    // Add to deleted list (works for both built-in and custom)
+    // Add to deleted list
     const updatedDeletedIds = [...deletedPhraseIds, phraseId];
     setDeletedPhraseIds(updatedDeletedIds);
 
@@ -1797,9 +1816,7 @@ export default function AACApp() {
     return '';
   };
 
-
-  let allPhrases = [...PHRASES, ...customPhrases];
-
+  const allPhrases = [...PHRASES, ...customPhrases];
   
   // Filter out deleted phrases
   const displayPhrases = allPhrases.filter((p) => !deletedPhraseIds.includes(p.id));
@@ -2086,8 +2103,6 @@ export default function AACApp() {
         setSpeechVolume={setSpeechVolume}
         vocabContainerSize={vocabContainerSize}
         setVocabContainerSize={setVocabContainerSize}
-        twoColumnMode={twoColumnMode}
-        setTwoColumnMode={setTwoColumnMode}
       />
 
       {/* Main Content */}
@@ -2404,7 +2419,6 @@ export default function AACApp() {
               onDeleteClick={(phrase) => setDeleteConfirmPhrase(phrase)}
               customPhrases={customPhrases}
               vocabContainerSize={vocabContainerSize}
-              twoColumnMode={twoColumnMode}
             />
           )}
 
