@@ -138,6 +138,8 @@ export default function PhrasesGrid({
               <button
                 onClick={(e) => handleDeleteClick(e, phrase)}
                 className="absolute -top-3 -right-3 z-20 w-10 h-10 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110 active:scale-95"
+                // Always enabled in edit mode for all phrases
+                type="button"
               >
                 <span className="text-white text-2xl font-bold">−</span>
               </button>

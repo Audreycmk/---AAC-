@@ -1026,7 +1026,7 @@ export default function AACApp() {
       // Continue without localStorage backup
     }
 
-    // Immediately sync to database with updated values to ensure data persists on refresh
+    // Always sync to database after adding vocab
     if (user?.id) {
       try {
         await fetch(`/api/users/${user.id}`, {
@@ -1109,7 +1109,7 @@ export default function AACApp() {
       // Continue without localStorage backup
     }
 
-    // Sync to database
+    // Always sync to database after deleting vocab
     if (user?.id) {
       try {
         await fetch(`/api/users/${user.id}`, {
