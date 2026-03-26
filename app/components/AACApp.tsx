@@ -173,10 +173,10 @@ const PHRASES = [
 
 
   // twt2026 MTR 將軍澳綫
-  { id: 125, text: '去', en: 'Go to', category: '將軍澳綫', icon: '/twt2026_MTR/去 go to.png' },
-  { id: 126, text: '將軍澳', en: 'Tseung Kwan O', category: '將軍澳綫', icon: '/twt2026_MTR/將軍澳Tseung Kwan O.jpeg' },
-  { id: 127, text: '坑口', en: 'Hang Hau', category: '將軍澳綫', icon: '/twt2026_MTR/坑口Hang Hau.jpeg' },
-  { id: 128, text: '寶琳', en: 'Po Lam', category: '將軍澳綫', icon: '/twt2026_MTR/寶琳 Po Lam.jpeg' },
+  // { id: 125, text: '去', en: 'Go to', category: '將軍澳綫', icon: '/twt2026_MTR/去 go to.png' },
+  // { id: 126, text: '將軍澳', en: 'Tseung Kwan O', category: '將軍澳綫', icon: '/twt2026_MTR/將軍澳Tseung Kwan O.jpeg' },
+  // { id: 127, text: '坑口', en: 'Hang Hau', category: '將軍澳綫', icon: '/twt2026_MTR/坑口Hang Hau.jpeg' },
+  // { id: 128, text: '寶琳', en: 'Po Lam', category: '將軍澳綫', icon: '/twt2026_MTR/寶琳 Po Lam.jpeg' },
 
 
 ];
