@@ -1,7 +1,6 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
   "/api/users/route": "app/api/users/route.js",
-  "/api/auth/send-verification-code/route": "app/api/auth/send-verification-code/route.js",
-  "/api/auth/login/route": "app/api/auth/login/route.js",
   "/api/users/[id]/route": "app/api/users/[id]/route.js",
   "/page": "app/page.js"
 }

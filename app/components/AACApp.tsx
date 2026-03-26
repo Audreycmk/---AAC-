@@ -383,12 +383,12 @@ const BilingualText = ({
 
 // Common emoji presets for quick selection
 const COMMON_EMOJIS = [
-  '😊', '❤️', '👋', '🙏', '🍔', '💧', '🏥', '😴', '🆘', '🛏️',
+   '😊', '❤️', '👋', '🙏', '👩🏻', '👨🏻', '🏥', '😄', '🆘', '🛏️',
   '👜', '🏠', '🍎', '📍', '🚻', '🍽️', '👨‍⚕️', '💊', '📺', '🚪',
-  '❄️', '🔥', '💡', '🥄', '🍴', '🍇', '🍊', '🍍', '🏢', '🌳',
+  '❄️', '🔥', '💡', '🐶', '🍴', '🍇', '🍊', '🍍', '🏢', '🌳',
   '☕', '🎓', '🎨', '⚽', '🎮', '🎵', '📚', '🏃', '🚗', '✈️',
-  '🎁', '🎪', '🎭', '🎬', '🎸', '🎹', '🎤', '🏋️', '⛹️', '🤸',
-  '🧘', '💃', '🕺', '👯', '🚴', '🏊', '🧗', '🤺', '🏇', '🎿',
+  '🎁', '🎪', '🎭', '🎬', '🎸', '🎹', '🎤', '🏋️', '⛹️', '🚍',
+  '🧘', '🚇', '✈️', '🌏', '🚍', '🏊', '🚆', '🤺', '🏇', '🎿',
 ];
 
 type CustomPhrase = (typeof PHRASES)[0];
@@ -497,6 +497,7 @@ export default function AACApp() {
     icon: '📝',
     category: '',
     newCategory: '',
+    newCategoryEN: '',
   });
   const [newCategoryEmoji, setNewCategoryEmoji] = useState('📁');
   const [addVocabLang, setAddVocabLang] = useState<'zh' | 'en'>('zh');
@@ -960,7 +961,7 @@ export default function AACApp() {
   };
 
   const resetAddVocabForm = () => {
-    setAddVocabInput({ text: '', en: '', icon: '📝', category: '', newCategory: '' });
+    setAddVocabInput({ text: '', en: '', icon: '📝', category: '', newCategory: '', newCategoryEN: '' });
     setAddVocabLang('zh');
     setVocabError('');
     setVocabSuccess(false);
@@ -987,6 +988,12 @@ export default function AACApp() {
       return;
     }
 
+    // If creating a new category, ensure both zh and en names are provided
+    if (addVocabInput.newCategory && !addVocabInput.category && !addVocabInput.newCategoryEN) {
+      setVocabError('請填寫分類的中英文名稱 / Please fill in both Chinese and English category names');
+      return;
+    }
+
     // Generate a unique id not present in PHRASES or customPhrases
     const usedIds = new Set([...PHRASES, ...customPhrases].map((p) => p.id));
     let nextId = 1;
@@ -1006,7 +1013,7 @@ export default function AACApp() {
       : customCategoryIcons;
     
     const updatedCustomCategoryNames = addVocabInput.newCategory && !addVocabInput.category
-      ? { ...customCategoryNames, [category]: { zh: category, en: category } }
+      ? { ...customCategoryNames, [category]: { zh: addVocabInput.newCategory, en: addVocabInput.newCategoryEN } }
       : customCategoryNames;
 
     if (addVocabInput.newCategory && !addVocabInput.category) {
@@ -2195,6 +2202,7 @@ export default function AACApp() {
             CATEGORY_ICONS={CATEGORY_ICONS}
             CATEGORY_LABELS={CATEGORY_LABELS}
             customCategoryIcons={customCategoryIcons}
+            customCategoryNames={customCategoryNames}
             favorites={favorites}
             toggleFavorite={toggleFavorite}
             onCategoryClick={(category) => speak(category)}

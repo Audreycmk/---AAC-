@@ -7,6 +7,7 @@ interface CategoryDisplayProps {
   CATEGORY_ICONS: Record<string, string>;
   CATEGORY_LABELS: Record<string, string>;
   customCategoryIcons: Record<string, string>;
+  customCategoryNames: Record<string, { zh: string; en: string }>;
   favorites: string[];
   toggleFavorite: (category: string) => void;
   onCategoryClick?: (category: string) => void;
@@ -17,6 +18,7 @@ export default function CategoryDisplay({
   CATEGORY_ICONS,
   CATEGORY_LABELS,
   customCategoryIcons,
+  customCategoryNames,
   favorites,
   toggleFavorite,
   onCategoryClick,
@@ -34,9 +36,9 @@ export default function CategoryDisplay({
             className="transition-transform duration-300 hover:rotate-12 hover:scale-125"
           />
           <div className="flex flex-col items-start">
-            <span className="text-3xl font-bold">{selectedCategory}</span>
+            <span className="text-3xl font-bold">{customCategoryNames[selectedCategory]?.zh ?? selectedCategory}</span>
             <span className="text-sm sm:text-base opacity-80 text-base sm:text-lg font-bold">
-              {CATEGORY_LABELS[selectedCategory] || selectedCategory}
+              {(customCategoryNames[selectedCategory]?.en ?? CATEGORY_LABELS[selectedCategory]) || selectedCategory}
             </span>
           </div>
         </button>

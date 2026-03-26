@@ -12,6 +12,7 @@ interface AddVocabularyPanelProps {
     icon: string;
     category: string;
     newCategory: string;
+    newCategoryEN: string;
   };
   handleVocabInputChange: (field: string, value: string) => void;
   resetAddVocabForm: () => void;
@@ -66,6 +67,7 @@ export default function AddVocabularyPanel({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showCreateCategory, setShowCreateCategory] = useState(false);
   const [showCategoryEmojiPicker, setShowCategoryEmojiPicker] = useState(false);
+  const [newCategoryLang, setNewCategoryLang] = useState<'zh' | 'en'>('zh');
 
   if (!showAddVocab) return null;
 
@@ -338,15 +340,44 @@ export default function AddVocabularyPanel({
                       </div>
                     )}
 
-                    {/* Category Name Input */}
-                    <input
-                      type="text"
-                      placeholder="新分類名稱 / New Category Name"
-                      value={addVocabInput.newCategory}
-                      onChange={(e) => handleVocabInputChange('newCategory', e.target.value)}
-                      disabled={!!addVocabInput.category}
-                      className="w-full px-6 py-4 border border-[#1e3a5f] rounded-xl text-lg font-bold text-[#1e3a5f] focus:border-[#f97316] focus:outline-none transition-all duration-300 disabled:bg-gray-200 disabled:text-gray-500"
-                    />
+                    {/* Category Name Input - Bilingual */}
+                    <div className="space-y-2">
+                      <div className="flex gap-2 justify-center">
+                        <button
+                          onClick={() => setNewCategoryLang('zh')}
+                          className={`px-4 py-2 rounded-lg font-bold transition-all duration-300 ${
+                            newCategoryLang === 'zh'
+                              ? 'bg-[#f97316] text-white'
+                              : 'bg-gray-200 text-[#1e3a5f]'
+                          }`}
+                        >
+                          中文
+                        </button>
+                        <button
+                          onClick={() => setNewCategoryLang('en')}
+                          className={`px-4 py-2 rounded-lg font-bold transition-all duration-300 ${
+                            newCategoryLang === 'en'
+                              ? 'bg-[#f97316] text-white'
+                              : 'bg-gray-200 text-[#1e3a5f]'
+                          }`}
+                        >
+                          English
+                        </button>
+                      </div>
+                      <div>
+                        <label className="block text-lg font-bold text-[#1e3a5f] mb-2">
+                          {newCategoryLang === 'zh' ? '中文分類名稱 / Chinese Category Name' : '英文分類名稱 / English Category Name'}
+                        </label>
+                        <input
+                          type="text"
+                          placeholder={newCategoryLang === 'zh' ? '新分類名稱...' : 'New category name...'}
+                          value={newCategoryLang === 'zh' ? addVocabInput.newCategory : addVocabInput.newCategoryEN}
+                          onChange={(e) => handleVocabInputChange(newCategoryLang === 'zh' ? 'newCategory' : 'newCategoryEN', e.target.value)}
+                          disabled={!!addVocabInput.category}
+                          className="w-full px-6 py-4 border border-[#1e3a5f] rounded-xl text-lg font-bold text-[#1e3a5f] focus:border-[#f97316] focus:outline-none transition-all duration-300 disabled:bg-gray-200 disabled:text-gray-500"
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
