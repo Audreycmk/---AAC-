@@ -1,4 +1,4 @@
-// File: /Users/Audrey/Desktop/Desktop/billaac/---AAC-/app/layout.tsx
+// File: C:\Users\Supervisor\Desktop\---AAC-\app\layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
