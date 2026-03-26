@@ -90,7 +90,7 @@ const PHRASES = [
   { id: 58, text: '榴槤', en: 'Durian', category: '水果', icon: '🟡' },
 
   // 地方
-  { id: 11111, text: '去', en: 'Go to', category: '地方', icon: '/去 go to.png' },
+  // { id: 11111, text: '去', en: 'Go to', category: '地方', icon: '/去 go to.png' },
   { id: 59, text: '廁所', en: 'Toilet', category: '地方', icon: '🚻' },
   { id: 60, text: '銀行', en: 'Bank', category: '地方', icon: '🏦' },
   { id: 61, text: '超市', en: 'Supermarket', category: '地方', icon: '🏬' },
@@ -388,7 +388,7 @@ const COMMON_EMOJIS = [
   '❄️', '🔥', '💡', '🐶', '🍴', '🍇', '🍊', '🍍', '🏢', '🌳',
   '☕', '🎓', '🎨', '⚽', '🎮', '🎵', '📚', '🏃', '🚗', '✈️',
   '🎁', '🎪', '🎭', '🎬', '🎸', '🎹', '🎤', '🏋️', '⛹️', '🚍',
-  '🧘', '🚇', '✈️', '🌏', '🚍', '🏊', '🚆', '🤺', '🏇', '🎿',
+  '🧘', '🚇', '🌏', '🏊', '🚆', '🤺', '🏇', '🎿',
 ];
 
 type CustomPhrase = (typeof PHRASES)[0];
