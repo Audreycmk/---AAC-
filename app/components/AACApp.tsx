@@ -575,6 +575,47 @@ export default function AACApp() {
 
   const hasFullAccess = () => !!user;
 
+  const saveCustomizations = async (overrides: Partial<{
+    favorites: string[];
+    customPhrases: typeof PHRASES;
+    customCategoryIcons: Record<string, string>;
+    customCategoryNames: Record<string, { zh: string; en: string }>;
+    phraseOrder: Record<string, number[]>;
+    deletedPhraseIds: number[];
+    categoryOrder: string[];
+    deletedCategories: string[];
+  }> = {}) => {
+    const customizationsBackup = {
+      favorites,
+      customPhrases,
+      customCategoryIcons,
+      customCategoryNames,
+      phraseOrder,
+      deletedPhraseIds,
+      categoryOrder,
+      deletedCategories,
+      ...overrides,
+    };
+
+    try {
+      localStorage.setItem('aac-customizations-backup', JSON.stringify(customizationsBackup));
+    } catch (storageError) {
+      console.warn('Failed to save to localStorage (quota exceeded):', storageError);
+    }
+
+    if (user?.id) {
+      try {
+        await fetch(`/api/users/${user.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customizations: customizationsBackup }),
+        });
+      } catch (error) {
+        console.error('Failed to sync customizations to server:', error);
+      }
+    }
+  };
+
   const isBasicStarter = (starterText: string) => SENTENCE_STARTERS.some((s) => s.text === starterText);
 
   const getLanguageCodeForVoice = (lang: 'zh-HK' | 'en-US' | 'en-AU') => (lang === 'zh-HK' ? 'zh' : 'en');
@@ -1074,14 +1115,14 @@ export default function AACApp() {
     }, 3500);
   };
 
-  // Handle reordering phrases in edit mode (only update state, save when exiting edit mode)
-  const handleReorderPhrases = (category: string, newOrder: number[]) => {
+  // Handle reordering phrases in edit mode (update state + persist immediately)
+  const handleReorderPhrases = async (category: string, newOrder: number[]) => {
     const updatedOrder = {
       ...phraseOrder,
       [category]: newOrder,
     };
     setPhraseOrder(updatedOrder);
-    // Don't save to localStorage here - will save when exiting edit mode to avoid quota errors
+    await saveCustomizations({ phraseOrder: updatedOrder });
   };
 
   // Handle deleting a phrase (both built-in and custom)
@@ -1148,8 +1189,9 @@ export default function AACApp() {
   };
 
   // Handle reordering categories
-  const handleReorderCategories = (newOrder: string[]) => {
+  const handleReorderCategories = async (newOrder: string[]) => {
     setCategoryOrder(newOrder);
+    await saveCustomizations({ categoryOrder: newOrder });
   };
 
   // Handle deleting a category
@@ -1506,6 +1548,10 @@ export default function AACApp() {
                 setCustomPhrases(result.customizations.customPhrases || []);
                 setCustomCategoryIcons(result.customizations.customCategoryIcons || {});
                 setCustomCategoryNames(result.customizations.customCategoryNames || {});
+                setPhraseOrder(result.customizations.phraseOrder || {});
+                setDeletedPhraseIds(result.customizations.deletedPhraseIds || []);
+                setCategoryOrder(result.customizations.categoryOrder || []);
+                setDeletedCategories(result.customizations.deletedCategories || []);
               } else if (!result.customizations) {
                 // If database doesn't have customizations, try localStorage backup
                 const backupCustomizations = localStorage.getItem('aac-customizations-backup');
@@ -1539,6 +1585,10 @@ export default function AACApp() {
                   setCustomPhrases(backup.customPhrases || []);
                   setCustomCategoryIcons(backup.customCategoryIcons || {});
                   setCustomCategoryNames(backup.customCategoryNames || {});
+                  setPhraseOrder(backup.phraseOrder || {});
+                  setDeletedPhraseIds(backup.deletedPhraseIds || []);
+                  setCategoryOrder(backup.categoryOrder || []);
+                  setDeletedCategories(backup.deletedCategories || []);
                 } catch (e) {
                   console.error('Error parsing backup customizations:', e);
                 }
