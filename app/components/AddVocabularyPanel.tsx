@@ -68,6 +68,56 @@ export default function AddVocabularyPanel({
   const [showCreateCategory, setShowCreateCategory] = useState(false);
   const [showCategoryEmojiPicker, setShowCategoryEmojiPicker] = useState(false);
   const [newCategoryLang, setNewCategoryLang] = useState<'zh' | 'en'>('zh');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+
+  // Blob URL、本地路徑或舊的 base64 都當成圖片
+  const isImageSrc = (src: string) =>
+    !!src &&
+    (src.startsWith('data:image') || /^(https?:)?\/\//i.test(src) || src.startsWith('/'));
+
+  const uploadImage = async (file: File) => {
+    setIsUploading(true);
+    setUploadError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      try {
+        // 由 localStorage 拎返 user id，用嚟分目錄存放
+        const session = JSON.parse(localStorage.getItem('aac-user-session') || '{}');
+        formData.append('userId', String(session.id ?? ''));
+      } catch {
+        // 讀唔到就由 server 當 anonymous，唔阻礙上傳
+      }
+
+      const response = await fetch('/api/upload', { method: 'POST', body: formData });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || '上傳失敗 / Upload failed');
+      }
+
+      handleVocabInputChange('icon', result.url);
+    } catch (error) {
+      console.error('Image upload error:', error);
+      setUploadError(error instanceof Error ? error.message : '上傳失敗 / Upload failed');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const openImagePicker = (capture: boolean) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    if (capture) input.setAttribute('capture', 'environment');
+    input.onchange = (e) => {
+      const file = (e.currentTarget as HTMLInputElement).files?.[0];
+      if (file) void uploadImage(file);
+    };
+    input.click();
+  };
 
   if (!showAddVocab) return null;
 
@@ -117,9 +167,9 @@ export default function AddVocabularyPanel({
           )}
 
           {/* Error Message */}
-          {vocabError && (
+          {(vocabError || uploadError) && (
             <div className="mb-6 p-4 bg-red-100 border-3 border-red-500 rounded-xl text-red-800 font-bold text-lg">
-              ❌ {vocabError}
+              ❌ {vocabError || uploadError}
             </div>
           )}
 
@@ -135,7 +185,7 @@ export default function AddVocabularyPanel({
               <div className="bg-[#f5f5dc] p-4 rounded-2xl">
                 <div className="flex flex-col items-center justify-center gap-2 mb-4">
                   <div className="flex-1 px-4 py-3 border-2 border-[#1e3a5f] rounded-xl text-center font-bold bg-white text-[#1e3a5f] flex flex-col items-center justify-center min-h-[120px]">
-                    {addVocabInput.icon && typeof addVocabInput.icon === 'string' && addVocabInput.icon.startsWith('data:image') ? (
+                    {isImageSrc(addVocabInput.icon) ? (
                       <img src={addVocabInput.icon} alt="Uploaded" className="max-w-[90%] max-h-[100px] object-contain" />
                     ) : (
                       <>
@@ -151,27 +201,15 @@ export default function AddVocabularyPanel({
                     )}
                   </div>
                 </div>
+                {isUploading && (
+                  <p className="mb-3 text-center font-bold text-[#1e3a5f]">上傳中... / Uploading...</p>
+                )}
                 <div className="flex flex-wrap gap-3">
                   {/* Camera Button */}
                   <button
-                    onClick={() => {
-                      const input = document.createElement('input');
-                      input.type = 'file';
-                      input.accept = 'image/*';
-                      input.setAttribute('capture', 'environment');
-                      input.onchange = (e: any) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = (event: any) => {
-                            handleVocabInputChange('icon', event.target.result);
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      };
-                      input.click();
-                    }}
-                    className="flex-1 min-w-[120px] px-6 py-4 bg-[#f97316] text-white rounded-2xl font-bold text-lg border-3 border-[#f97316] shadow-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2"
+                    onClick={() => openImagePicker(true)}
+                    disabled={isUploading}
+                    className="flex-1 min-w-[120px] px-6 py-4 bg-[#f97316] text-white rounded-2xl font-bold text-lg border-3 border-[#f97316] shadow-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
                   >
                     <Icon emoji="📷" size={32} />
                     <span>拍照 / Camera</span>
@@ -179,23 +217,9 @@ export default function AddVocabularyPanel({
 
                   {/* Upload Button */}
                   <button
-                    onClick={() => {
-                      const input = document.createElement('input');
-                      input.type = 'file';
-                      input.accept = 'image/*';
-                      input.onchange = (e: any) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = (event: any) => {
-                            handleVocabInputChange('icon', event.target.result);
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      };
-                      input.click();
-                    }}
-                    className="flex-1 min-w-[120px] px-6 py-4 bg-[#f97316] text-white rounded-2xl font-bold text-lg border-3 border-[#f97316] shadow-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2"
+                    onClick={() => openImagePicker(false)}
+                    disabled={isUploading}
+                    className="flex-1 min-w-[120px] px-6 py-4 bg-[#f97316] text-white rounded-2xl font-bold text-lg border-3 border-[#f97316] shadow-lg hover:bg-[#ea580c] hover:scale-105 transition-all duration-300 min-h-[60px] flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
                   >
                     <Icon emoji="📁" size={32} />
                     <span>上傳 / Upload</span>
@@ -387,6 +411,7 @@ export default function AddVocabularyPanel({
             <div className="flex gap-3 pt-4">
               <button
                 onClick={handleAddVocab}
+                disabled={isUploading}
                 className="flex-1 px-8 py-5 bg-[#f97316] text-white rounded-2xl font-bold text-2xl shadow-lg hover:bg-[#ea580c] hover:shadow-2xl hover:scale-105 active:scale-95 disabled:bg-gray-400 transition-all duration-300 min-h-[70px] flex items-center justify-center gap-1 sm:gap-2 flex-col sm:flex-row text-center"
               >
                 <img
